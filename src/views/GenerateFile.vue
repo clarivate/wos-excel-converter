@@ -92,6 +92,7 @@
 </template>
 
 <script lang="ts">
+// @ts-nocheck
 import { Component, Vue } from "vue-property-decorator";
 import { mdiFolderOpen } from "@mdi/js";
 import { search } from "@metrichor/jmespath";
@@ -107,7 +108,8 @@ import { ColumnConfig, SheetConfig } from "@/apis/helper/ExportConfig";
 const dialog = require("electron").remote.dialog;
 
 type RawParsed = string | number | Array<RawParsed>;
-
+// eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+// @ts-ignore
 const cartesian = (a: Array<RawParsed>): Array<string | number> =>
   a
     .map(v => {
@@ -121,6 +123,8 @@ const cartesian = (a: Array<RawParsed>): Array<string | number> =>
 
 @Component({})
 export default class GenerateFile extends Vue {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+  // @ts-ignore
   private _workBook: {
     workbook: Workbook;
     mainSheet: Worksheet;
@@ -264,6 +268,8 @@ export default class GenerateFile extends Vue {
     const flattenedRows = rows.map(arr => cartesian(arr)).flat();
     this._workBook?.mainSheet.addRows(flattenedRows);
     flattenedRows.forEach((value, index) => {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+      // @ts-ignore
       this._workBook?.otherSheets.forEach((otherSheet, sheetIndex) => {
         const referenceColumns = this.wos.exportConfig?.sheets[sheetIndex]
           .referenceColumns;
@@ -272,6 +278,8 @@ export default class GenerateFile extends Vue {
           const referenceIds: number[] = referenceColumns.map(col =>
             this._workBook?.mainHeader.findIndex(mainCol => col == mainCol)
           );
+          // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+          // @ts-ignore
           referenceValues = referenceIds.map((id: number) => value[id]);
         }
         this.wos.exportConfig?.sheets[sheetIndex].rowArrayPath.forEach(
@@ -280,6 +288,8 @@ export default class GenerateFile extends Vue {
               sheetIndex,
               index,
               mainPath,
+              // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+              // @ts-ignore
               referenceValues
             );
             const otherSheetRows = search(data, sheetJmesQuery) as Array<
@@ -312,10 +322,11 @@ export default class GenerateFile extends Vue {
       });
       this.progress = 25;
       const jmesQuery = this.queryJmesPathResOut;
-      const testSEARCH = search;
       const rows = search(data, jmesQuery) as Array<Array<RawParsed>>;
       const flattenedRows = rows.map(arr => cartesian(arr)).flat();
       workbook?.mainSheet.addRows(flattenedRows);
+      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+      // @ts-ignore
       flattenedRows.forEach((value: Array<number | string>, index: number) => {
         workbook?.otherSheets.forEach((otherSheet, sheetIndex) => {
           const referenceColumns = this.wos.exportConfig?.sheets[sheetIndex]
