@@ -20,7 +20,7 @@ jobs:
           node-version: 12.20.1
           
       - name: Yarn install
-        run: yarn install --network-timeout 1000000
+        run: yarn install --network-timeout 1000000000
 
       - name: Build/release Electron app
         uses: samuelmeuli/action-electron-builder@v1
