@@ -1,23 +1,39 @@
 import Vue from "vue";
 import VueRouter, { RouteConfig } from "vue-router";
-import Home from "../views/Home.vue";
+import Token from "../views/Token.vue";
+import Query from "../views/Query.vue";
+import About from "../views/About.vue";
+import AttributeSelection from "@/views/AttributeSelection.vue";
+import GenerateFile from "@/views/GenerateFile.vue";
 
 Vue.use(VueRouter);
 
 const routes: Array<RouteConfig> = [
   {
-    path: "/",
-    name: "Home",
-    component: Home
+    path: "/token",
+    alias: "/",
+    name: "token",
+    component: Token
+  },
+  {
+    path: "/query",
+    name: "query",
+    component: Query
+  },
+  {
+    path: "/selection",
+    name: "attrSelection",
+    component: AttributeSelection
+  },
+  {
+    path: "/generate",
+    name: "genFile",
+    component: GenerateFile
   },
   {
     path: "/about",
-    name: "About",
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () =>
-      import(/* webpackChunkName: "about" */ "../views/About.vue")
+    name: "about",
+    component: About
   }
 ];
 
