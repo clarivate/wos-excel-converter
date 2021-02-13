@@ -92,6 +92,7 @@
 </template>
 
 <script lang="ts">
+// @ts-nocheck
 import { Component, Vue } from "vue-property-decorator";
 import { mdiFolderOpen } from "@mdi/js";
 import { search } from "@metrichor/jmespath";
@@ -312,7 +313,6 @@ export default class GenerateFile extends Vue {
       });
       this.progress = 25;
       const jmesQuery = this.queryJmesPathResOut;
-      const testSEARCH = search;
       const rows = search(data, jmesQuery) as Array<Array<RawParsed>>;
       const flattenedRows = rows.map(arr => cartesian(arr)).flat();
       workbook?.mainSheet.addRows(flattenedRows);

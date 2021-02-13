@@ -13,4 +13,4 @@ This application can be used only if you have subscribed to the Web of Science A
 Please create an issue here in Github. Keep in mind this is an open source project, and we will do our best to fix issues as soon as possible.
 
 ### License 
-GPLv3
+GPL-3.0 License
