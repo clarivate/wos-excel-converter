@@ -1,5 +1,47 @@
 const ConfigSchema = {
   $schema: "http://json-schema.org/draft-04/schema#",
+  definitions: {
+    column: {
+      type: "object",
+      properties: {
+        name: {
+          type: "string"
+        },
+        path: {
+          type: "string"
+        }
+      },
+      additionalProperties: false,
+      required: ["name", "path"]
+    },
+    columnCollection: {
+      type: "object",
+      properties: {
+        mainPath: {
+          type: "string"
+        },
+        columns: {
+          type: "array",
+          items: {
+            $ref: "#/definitions/column"
+          },
+          additionalItems: false,
+          minItems: 1
+        },
+        columnCollection: {
+          type: "array",
+          items: {
+            $ref: "#/definitions/columnCollection"
+          },
+          additionalItems: false,
+          minItems: 1
+        }
+      },
+      additionalProperties: false,
+      required: ["mainPath", "columns"]
+    }
+  },
+
   type: "object",
   properties: {
     sheetName: {
@@ -11,17 +53,7 @@ const ConfigSchema = {
     columns: {
       type: "array",
       items: {
-        type: "object",
-        properties: {
-          name: {
-            type: "string"
-          },
-          path: {
-            type: "string"
-          }
-        },
-        additionalProperties: false,
-        required: ["name", "path"]
+        $ref: "#/definitions/column"
       },
       additionalItems: false,
       minItems: 1
@@ -29,30 +61,7 @@ const ConfigSchema = {
     columnCollection: {
       type: "array",
       items: {
-        type: "object",
-        properties: {
-          mainPath: {
-            type: "string"
-          },
-          columns: {
-            type: "array",
-            items: {
-              type: "object",
-              properties: {
-                name: {
-                  type: "string"
-                },
-                path: {
-                  type: "string"
-                }
-              },
-              additionalProperties: false,
-              required: ["name", "path"]
-            },
-            additionalItems: false,
-            minItems: 1
-          }
-        },
+        $ref: "#/definitions/columnCollection",
         additionalItems: false,
         minItems: 1
       }
@@ -65,12 +74,8 @@ const ConfigSchema = {
           sheetName: {
             type: "string"
           },
-          rowArrayPath: {
-            type: "array",
-            items: {
-              type: "string"
-            },
-            minItems: 1
+          mainPath: {
+            type: "string"
           },
           referenceColumns: {
             type: "array",
@@ -83,23 +88,22 @@ const ConfigSchema = {
           columns: {
             type: "array",
             items: {
-              type: "object",
-              properties: {
-                name: {
-                  type: "string"
-                },
-                path: {
-                  type: "string"
-                }
-              },
-              additionalProperties: false,
-              required: ["name", "path"]
+              $ref: "#/definitions/column"
             },
-            additionalItems: false
+            additionalItems: false,
+            minItems: 1
+          },
+          columnCollection: {
+            type: "array",
+            items: {
+              $ref: "#/definitions/columnCollection",
+              additionalItems: false,
+              minItems: 1
+            }
           }
         },
         additionalProperties: false,
-        required: ["sheetName", "rowArrayPath", "columns"]
+        required: ["sheetName", "mainPath", "columns"]
       },
       additionalItems: false,
       minItems: 1

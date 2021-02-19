@@ -27,6 +27,7 @@ async function createWindow() {
       nodeIntegration: true
     }
   });
+  win.webContents.userAgent = "WOSExcelExporter";
 
   win.setMenuBarVisibility(false);
   if (process.env.WEBPACK_DEV_SERVER_URL) {

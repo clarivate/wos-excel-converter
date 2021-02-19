@@ -15,6 +15,7 @@
     "baseUrl": ".",
     "types": [
       "webpack-env",
+      "jest",
       "vuetify"
     ],
     "paths": {

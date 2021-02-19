@@ -1,33 +1,75 @@
-import axios, { AxiosResponse } from "axios";
+import axios, { AxiosInstance, AxiosResponse } from "axios";
 import QueryFeedBack from "@/apis/helper/QueryFeedback";
 
-const WOS_EXPANDED_URL = "https://api.clarivate.com/api/wos";
-
 export default class WosExpanded {
-  key?: string;
+  private static instance: WosExpanded;
+  private readonly _key: string;
 
-  constructor(key?: string) {
-    this.key = key;
+  private _axiosInstance: AxiosInstance;
+
+  private _lastResponse: number = Date.UTC(1970, 1);
+
+  get key(): string {
+    return this._key;
+  }
+  private constructor(key: string) {
+    this._key = key;
+    this._axiosInstance = axios.create({
+      baseURL: "https://api.clarivate.com/api/wos",
+      headers: {
+        "X-ApiKey": this._key
+      }
+    });
+    const scheduler = (response: AxiosResponse) => {
+      const remainingReqPerSec = Number(
+        response.headers["x-req-reqpersec-remaining"]
+      );
+      const now = Date.now();
+      if (remainingReqPerSec < 1) {
+        const waitPeriodForThisRequest = now - this._lastResponse;
+        this._lastResponse = now;
+        if (waitPeriodForThisRequest < 1000) {
+          return new Promise<AxiosResponse>(resolve => {
+            setTimeout(() => resolve(response), waitPeriodForThisRequest + 100);
+          });
+        }
+      }
+      this._lastResponse = now;
+      return response;
+    };
+
+    this._axiosInstance.interceptors.response.use(scheduler);
+  }
+
+  public static getInstance(token: string | null): WosExpanded | undefined {
+    if (!WosExpanded.instance) {
+      if (token != null) {
+        WosExpanded.instance = new WosExpanded(token);
+      } else {
+        WosExpanded.instance = new WosExpanded("");
+      }
+    } else if (WosExpanded.instance.key != token && token != null) {
+      WosExpanded.instance = new WosExpanded(token);
+    }
+
+    return WosExpanded.instance;
   }
 
   /**
    * verifies key and returns remaining tokens
    */
   verifyKey(): Promise<number> {
-    return axios({
-      method: "get",
-      url: WOS_EXPANDED_URL + "/id/0",
-      params: {
-        count: 0,
-        firstRecord: 1,
-        databaseId: "WOS"
-      },
-      headers: {
-        "X-ApiKey": this.key
-      }
-    }).then(function(response) {
-      return Number(response.headers["x-rec-amtperyear-remaining"]);
-    });
+    return this._axiosInstance
+      .get("/id/0", {
+        params: {
+          count: 0,
+          firstRecord: 1,
+          databaseId: "WOS"
+        }
+      })
+      .then(function(response) {
+        return Number(response.headers["x-rec-amtperyear-remaining"]);
+      });
   }
 
   validateQuery(
@@ -36,9 +78,7 @@ export default class WosExpanded {
     edition: string | null = null,
     lang: string | null = null
   ): Promise<QueryFeedBack> {
-    return axios({
-      method: "get",
-      url: WOS_EXPANDED_URL,
+    return this._axiosInstance("", {
       params: {
         databaseId: databaseId,
         usrQuery: usrQuery,
@@ -46,9 +86,6 @@ export default class WosExpanded {
         lang: lang,
         firstRecord: 1,
         count: 0
-      },
-      headers: {
-        "X-ApiKey": this.key
       }
     }).then(function(response) {
       const queryResult = response.data["QueryResult"];
@@ -57,6 +94,7 @@ export default class WosExpanded {
         queryId: Number(queryResult["QueryID"]),
         remainingRecords: Number(response.headers["x-rec-amtperyear-remaining"])
       };
+
       return queryFeedback;
     });
   }
@@ -66,19 +104,16 @@ export default class WosExpanded {
     startRecord: number,
     count: number
   ): Promise<AxiosResponse> {
-    return axios({
-      method: "get",
-      url: WOS_EXPANDED_URL + "/query/" + queryId,
-      params: {
-        firstRecord: startRecord,
-        count: count
-      },
-      headers: {
-        "X-ApiKey": this.key
-      }
-    }).then(function(response) {
-      return response;
-    });
+    return this._axiosInstance
+      .get("/query/" + queryId, {
+        params: {
+          firstRecord: startRecord,
+          count: count
+        }
+      })
+      .then(function(response) {
+        return response;
+      });
   }
 
   runQueryRaw(
@@ -89,22 +124,21 @@ export default class WosExpanded {
     startRecord: number,
     count: number
   ): Promise<AxiosResponse> {
-    return axios({
-      method: "get",
-      url: WOS_EXPANDED_URL,
-      params: {
-        databaseId: databaseId,
-        usrQuery: usrQuery,
-        edition: edition,
-        lang: lang,
-        firstRecord: startRecord,
-        count: count
-      },
-      headers: {
-        "X-ApiKey": this.key
-      }
-    }).then(function(response) {
-      return response;
-    });
+    return this._axiosInstance
+      .get("", {
+        params: {
+          databaseId: databaseId,
+          usrQuery: usrQuery,
+          edition: edition,
+          lang: lang,
+          firstRecord: startRecord,
+          count: count,
+          sortField: "LD+D"
+        }
+      })
+      .then(function(response) {
+        return response;
+      })
+      .catch(ex => ex.response);
   }
 }

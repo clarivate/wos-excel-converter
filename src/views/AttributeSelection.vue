@@ -1,19 +1,24 @@
 <template>
-  <v-container>
-    <h3>3. Attribute selection</h3>
-    <div>
-      <a text class="text-none" @click="openJmesGithub">JMES Path</a>
-    </div>
-    <div id="jsoneditor" style="height: 600px"></div>
-    <v-btn @click="resetDefault" class="text-none mt-3"
-      >Reset default configuration
-    </v-btn>
-  </v-container>
+  <div>
+    <v-container>
+      <h3>3. Attribute selection</h3>
+      <span class="text-sm-body-2">
+        This configuration defines sheets, its columns and the values with JSON
+        path selection. The JSON path selection is based on
+        <a text class="text-none" @click="openJmesGithub">JMES Path</a>. This
+        configuration is optimized only WOS Core responses.
+      </span>
+      <div id="jsoneditor" style="height: 600px"></div>
+      <v-btn @click="resetDefault" class="text-none mt-3"
+        >Reset default configuration
+      </v-btn>
+    </v-container>
+  </div>
 </template>
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
-import { defaultConfig } from "@/apis/helper/ExportConfig";
+import { defaultConfig } from "@/apis/configs/defaultConfig";
 import JSONEditor, {
   JSONEditorOptions,
   ParseError,
@@ -24,6 +29,13 @@ import ConfigSchema from "@/apis/helper/ConfigSchema";
 import WOSConverter from "@/store/WOSConverter";
 import { getModule } from "vuex-module-decorators";
 import { shell } from "electron";
+import { ExportConfig } from "@/apis/helper/ExportConfig";
+
+interface SelectedConfig {
+  name: string;
+  config: ExportConfig;
+  hint: string;
+}
 
 @Component({})
 export default class AttributeSelection extends Vue {
@@ -38,12 +50,6 @@ export default class AttributeSelection extends Vue {
   }
 
   onUserChange(jsonString: string) {
-    // try {
-    //   this.editor?.get();
-    //   this.wos.updateExportConfigError(false);
-    // } catch (err) {
-    //   this.wos.updateExportConfigError(true);
-    // }
     this.wos.updateExportConfigText(jsonString);
   }
 

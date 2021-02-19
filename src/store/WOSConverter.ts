@@ -1,7 +1,8 @@
 import { Action, Module, Mutation, VuexModule } from "vuex-module-decorators";
 import QueryFeedBack from "@/apis/helper/QueryFeedback";
 import WosExpanded from "@/apis/wos";
-import { defaultConfig, ExportConfig } from "@/apis/helper/ExportConfig";
+import { ExportConfig } from "@/apis/helper/ExportConfig";
+import { defaultConfig } from "@/apis/configs/defaultConfig";
 
 enum QueryStatus {
   Uninitialized,
@@ -90,8 +91,8 @@ export default class WOSConverter extends VuexModule {
     return this._token;
   }
 
-  get wosExpandedClient(): WosExpanded | undefined {
-    if (this._token != null) return new WosExpanded(this._token);
+  get wosClient(): WosExpanded | undefined {
+    return WosExpanded.getInstance(this._token);
   }
 
   get tokenMessage(): string | null {
@@ -198,7 +199,7 @@ export default class WOSConverter extends VuexModule {
         msgType: "warning"
       });
     } else {
-      this.wosExpandedClient
+      this.wosClient
         ?.verifyKey()
         .then(records => {
           const format = new Intl.NumberFormat("en-us", {
@@ -238,7 +239,7 @@ export default class WOSConverter extends VuexModule {
   @Action
   async validateQuery() {
     if (this.usrQuery != null) {
-      this.wosExpandedClient
+      this.wosClient
         ?.validateQuery(this.usrQuery, this.databaseId, this.edition, this.lang)
         .then(feedback => {
           const format = new Intl.NumberFormat("en-us", {
@@ -306,8 +307,8 @@ export default class WOSConverter extends VuexModule {
 
   @Action
   async runQueryId(payload: { startRecord: number; count: number }) {
-    if (this.queryFeedback != null && this.wosExpandedClient != undefined) {
-      const response = await this.wosExpandedClient.runQueryIdRaw(
+    if (this.queryFeedback != null && this.wosClient != undefined) {
+      const response = await this.wosClient.runQueryIdRaw(
         this.queryFeedback.queryId,
         payload.startRecord,
         payload.count
@@ -324,23 +325,35 @@ export default class WOSConverter extends VuexModule {
 
   @Action
   async runQuery(payload: { startRecord: number; count: number }) {
-    if (this.wosExpandedClient != undefined && this.usrQuery != null) {
-      const response = await this.wosExpandedClient.runQueryRaw(
-        this.usrQuery,
-        this.databaseId,
-        this.edition,
-        this.lang,
-        payload.startRecord,
-        payload.count
-      );
-      const queryResult = response.data["QueryResult"];
-      const queryFeedback: QueryFeedBack = {
-        recordsFound: Number(queryResult["RecordsFound"]),
-        queryId: Number(queryResult["QueryID"]),
-        remainingRecords: Number(response.headers["x-rec-amtperyear-remaining"])
-      };
-      this.context.commit("updateQueryFeedback", queryFeedback);
-      return response.data;
+    if (this.wosClient != undefined && this.usrQuery != null) {
+      let badRequest = false;
+      let tries = 0;
+      while (!badRequest || (badRequest && tries <= 3)) {
+        const response = await this.wosClient.runQueryRaw(
+          this.usrQuery,
+          this.databaseId,
+          this.edition,
+          this.lang,
+          payload.startRecord,
+          payload.count
+        );
+        if (response.status > 400) {
+          badRequest = true;
+          tries++;
+        } else {
+          const queryResult = response.data["QueryResult"];
+          const queryFeedback: QueryFeedBack = {
+            recordsFound: Number(queryResult["RecordsFound"]),
+            queryId: Number(queryResult["QueryID"]),
+            remainingRecords: Number(
+              response.headers["x-rec-amtperyear-remaining"]
+            )
+          };
+          this.context.commit("updateQueryFeedback", queryFeedback);
+
+          return response.data;
+        }
+      }
     }
   }
 }

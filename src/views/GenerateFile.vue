@@ -26,28 +26,68 @@
             flat
             outlined
             label="Filename"
-            suffix="_ddMMyyyyHHmmss.xlsx"
+            hint="For every 10.000 records a new file will be created with a postfix partX, e.g. if you 25.000 records to export, then three parts will be created, i.e. part1 contains 1-10.000 records, part2 contains 10.001-20.0000 and part3 contains 20.001-25.000."
+            suffix="_ddMMyyyyHHmmss_partX.xlsx"
+            persistent-hint
             v-model="fileName"
           >
           </v-text-field>
         </v-col>
       </v-row>
+      <v-row no-gutters class="mb-6">
+        <v-col lg="12">
+          <v-card flat color="transparent">
+            <v-card-subtitle
+              >Define the range of records you want to export?</v-card-subtitle
+            >
+            <v-card-text>
+              <v-range-slider
+                v-model="range"
+                :max="maxSelect"
+                :min="1"
+                hide-details
+                class="align-center"
+                :disabled="!exportPossible"
+              >
+                <template v-slot:prepend>
+                  <v-text-field
+                    :value="range[0]"
+                    class="mt-0 pt-0"
+                    hide-details
+                    type="number"
+                    hint="First record"
+                    persistent-hint
+                    style="width: 60px"
+                    @change="$set(range, 0, $event)"
+                    @input="$set(range, 0, $event)"
+                  ></v-text-field>
+                </template>
+                <template v-slot:append>
+                  <v-text-field
+                    :value="range[1]"
+                    class="mt-0 pt-0"
+                    hide-details
+                    type="number"
+                    hint="Number of records"
+                    persistent-hint
+                    style="width: 60px"
+                    @change="$set(range, 1, $event)"
+                    @input="$set(range, 1, $event)"
+                  ></v-text-field>
+                </template>
+              </v-range-slider>
+            </v-card-text>
+          </v-card>
+        </v-col>
+      </v-row>
       <v-row no-gutters>
-        <v-btn
-          class="text-none"
-          @click="exportSampleData"
-          :disabled="!exportPossible"
-        >
-          Export sample of 10 records
-        </v-btn>
-
         <v-btn
           class="text-none ml-3"
           color="primary"
-          @click="exportAllData"
+          @click="exportData(25)"
           :disabled="!exportPossible"
         >
-          Export all
+          Start export
         </v-btn>
       </v-row>
       <v-alert
@@ -62,6 +102,13 @@
     </v-form>
     <v-row no-gutters class="pt-10">
       <v-col cols="12">
+        <span
+          class="text-sm-body-2"
+          v-show="generationStarted && !finished && error == null"
+          >{{ remainingTime }}</span
+        >
+      </v-col>
+      <v-col cols="12">
         <v-progress-linear
           class="pl-3 pl-3"
           :value="progress"
@@ -73,70 +120,88 @@
           <strong>{{ Math.ceil(progress) }}%</strong>
         </v-progress-linear>
       </v-col>
-      <v-col cols="12" v-if="finished && error == null" class="pt-8">
+      <v-col cols="12" v-if="savedFiles.length > 0" class="pt-8">
         <v-alert type="info" outlined>
-          <span class="text-sm-body-2">
-            File generated successfully at
-            {{ completeFilePath(sampleClicked) }}</span
-          ></v-alert
-        >
+          <div class="text-sm-body-2">
+            Saved Files:
+            <v-list dense flat>
+              <v-list-item
+                dense
+                link
+                v-for="(filePath, index) in savedFiles"
+                :key="index"
+                @click="openFile(filePath)"
+              >
+                <v-list-item-content>{{ filePath }}</v-list-item-content>
+              </v-list-item>
+            </v-list>
+            <span v-if="finished && error == null">
+              Export finished successfully.<br />
+              Duration : {{ generationDuration }}
+            </span>
+          </div>
+        </v-alert>
       </v-col>
       <v-col cols="12" class="mt-5" v-if="generationStarted">
         Your file is being generated. Until then nothing is clickable.
       </v-col>
     </v-row>
     <v-alert type="error" class="mt-5" v-if="error != null">
-      Something went wrong: {{ error }}
+      <v-row>
+        Something went wrong at startRecord = {{ range[0] }}. You can save the
+        excel with downloaded records.
+        <v-btn class="text-none" @click="saveFile">
+          Save current records
+        </v-btn>
+      </v-row>
+      <v-row>
+        {{ error }}
+      </v-row>
     </v-alert>
   </v-container>
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 import { Component, Vue } from "vue-property-decorator";
 import { mdiFolderOpen } from "@mdi/js";
-import { search } from "@metrichor/jmespath";
-import fs from "fs";
-import * as Excel from "exceljs";
 import WOSConverter from "@/store/WOSConverter";
 import { getModule } from "vuex-module-decorators";
 import dateFormat from "dateformat";
-import { Workbook, Worksheet } from "exceljs";
-import { ColumnConfig, SheetConfig } from "@/apis/helper/ExportConfig";
+import { ExcelGenerator } from "@/util/io/ExcelGenerator";
+import os from "os";
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 const dialog = require("electron").remote.dialog;
+const shell = require("electron").shell;
 
-type RawParsed = string | number | Array<RawParsed>;
-// eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-// @ts-ignore
-const cartesian = (a: Array<RawParsed>): Array<string | number> =>
-  a
-    .map(v => {
-      if (!Array.isArray(v)) {
-        return new Array([v]);
-      } else {
-        return v;
-      }
-    })
-    .reduce((a, b) => a.flatMap(d => b.map(e => [d, e].flat())));
+const NEW_FILE_AFTER_RECORD = 10000;
 
 @Component({})
 export default class GenerateFile extends Vue {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-  // @ts-ignore
-  private _workBook: {
-    workbook: Workbook;
-    mainSheet: Worksheet;
-    otherSheets: Array<Worksheet>;
-    mainHeader: Array<string>;
-  };
+  private excelGenerator?: ExcelGenerator;
 
   private progress = 0;
 
   private error: string | null = null;
   private finished = false;
-  private sampleClicked = false;
+
+  private batchAvgDuration = 0;
+  private batchSum = 0;
+  private remainingBatches = 0;
+  private overallTime = 0;
+  private exportCounter = 0;
+  private fileIsSaving = false;
+  private savedFiles: Array<string> = [];
+  private part = 1;
+
+  range = [1, 10];
+
+  get maxSelect(): number {
+    if (this.wos.queryFeedback?.recordsFound) {
+      return this.wos.queryFeedback?.recordsFound;
+    } else {
+      return 1;
+    }
+  }
 
   get generationStarted(): boolean {
     return this.wos.generationStarted;
@@ -161,6 +226,24 @@ export default class GenerateFile extends Vue {
     return getModule(WOSConverter, this.$store);
   }
 
+  get remainingTime(): string {
+    return (
+      "Remaining time: " +
+      this.msToTime(this.remainingBatches * this.batchAvgDuration)
+    );
+  }
+  get generationDuration(): string {
+    return this.msToTime(this.overallTime);
+  }
+
+  msToTime(duration: number): string {
+    const seconds = Math.floor((duration / 1000) % 60);
+    const minutes = Math.floor((duration / (1000 * 60)) % 60);
+    const hours = Math.floor((duration / (1000 * 60 * 60)) % 24);
+
+    return hours + "h " + minutes + " min " + seconds + " sec ";
+  }
+
   get icons() {
     return {
       folder: mdiFolderOpen
@@ -176,231 +259,78 @@ export default class GenerateFile extends Vue {
     );
   }
 
-  createWorkBookSheets(): {
-    workbook: Workbook;
-    mainSheet: Worksheet;
-    otherSheets: Array<Worksheet>;
-    mainHeader: Array<string>;
-  } {
-    const workbook = new Excel.Workbook();
-    workbook.creator = "WOS API Converter";
-    workbook.lastModifiedBy = "WOS API Converter";
-    workbook.created = new Date();
-    workbook.modified = new Date();
-
-    const resOutSheet = workbook.addWorksheet(this.wos.exportConfig?.sheetName);
-    const header = this.wos.exportConfig?.columns.map(col => {
-      return col.name;
-    });
-    if (this.wos.exportConfig?.columnCollection) {
-      this.wos.exportConfig.columnCollection.forEach(colColl => {
-        colColl.columns.forEach(col => {
-          if (header) {
-            header.push(col.name);
-          }
-        });
-      });
-    }
-    resOutSheet.addRow(header);
-    const otherSheets = this.wos.exportConfig?.sheets.map(
-      (sheet: SheetConfig) => {
-        const sheetWB = workbook.addWorksheet(sheet.sheetName);
-
-        const columnsHeader = sheet.columns.map((col: ColumnConfig) => {
-          return col.name;
-        });
-        if (sheet.columnCollection) {
-          sheet.columnCollection.forEach(colColl => {
-            colColl.columns.forEach(col => {
-              columnsHeader.push(col.name);
-            });
-          });
-        }
-        if (sheet.referenceColumns && header) {
-          let correctReferences = true;
-          sheet.referenceColumns.forEach(col => {
-            correctReferences = correctReferences && header.includes(col);
-            if (!correctReferences) {
-              throw sheet.sheetName +
-                " has defined reference column " +
-                col +
-                " which is not present in " +
-                resOutSheet.name;
-            }
-          });
-          sheet.referenceColumns
-            .reverse()
-            .forEach(refCol => columnsHeader.unshift(refCol));
-        }
-        sheetWB.addRow(columnsHeader);
-        return sheetWB;
-      }
-    );
-
-    this._workBook = {
-      workbook: workbook,
-      mainSheet: resOutSheet,
-      otherSheets: otherSheets ? otherSheets : [],
-      mainHeader: header ? header : []
-    };
-    return this._workBook;
-  }
-
-  completeFilePath(sample: boolean): string {
+  completeFilePath(): string {
+    const pathSeparator = os
+      .type()
+      .toLowerCase()
+      .startsWith("win")
+      ? "\\"
+      : "/";
     return (
       this.chosenDirectory +
-      "/" +
-      (sample ? "sample_" : "") +
+      pathSeparator +
       this.fileName +
       "_" +
       dateFormat(new Date(), "ddMMyyyyHHmmss") +
+      "_part" +
+      this.part +
       ".xlsx"
     );
   }
 
-  async exportBatch10(startRecord: number) {
+  async exportBatch(start: number, batchSize: number) {
     const data = await this.wos.runQuery({
-      startRecord: startRecord,
-      count: 10
+      startRecord: start,
+      count: batchSize
     });
-    const jmesQuery = this.queryJmesPathResOut;
-    const rows = search(data, jmesQuery) as Array<Array<RawParsed>>;
-    const flattenedRows = rows.map(arr => cartesian(arr)).flat();
-    this._workBook?.mainSheet.addRows(flattenedRows);
-    flattenedRows.forEach((value, index) => {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-      // @ts-ignore
-      this._workBook?.otherSheets.forEach((otherSheet, sheetIndex) => {
-        const referenceColumns = this.wos.exportConfig?.sheets[sheetIndex]
-          .referenceColumns;
-        let referenceValues;
-        if (referenceColumns) {
-          const referenceIds: number[] = referenceColumns.map(col =>
-            this._workBook?.mainHeader.findIndex(mainCol => col == mainCol)
-          );
-          // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-          // @ts-ignore
-          referenceValues = referenceIds.map((id: number) => value[id]);
-        }
-        this.wos.exportConfig?.sheets[sheetIndex].rowArrayPath.forEach(
-          mainPath => {
-            const sheetJmesQuery = this.queryJmesPathOther(
-              sheetIndex,
-              index,
-              mainPath,
-              // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-              // @ts-ignore
-              referenceValues
-            );
-            const otherSheetRows = search(data, sheetJmesQuery) as Array<
-              Array<RawParsed>
-            >;
-
-            if (otherSheetRows != null && otherSheetRows.length > 0) {
-              const otherSheetRowsFlattened = otherSheetRows
-                .map(arr => cartesian(arr))
-                .flat();
-              otherSheet.addRows(otherSheetRowsFlattened);
-            }
-          }
-        );
-      });
-    });
+    this.excelGenerator?.exportData(data);
   }
 
-  async exportSampleData() {
+  async exportData(batchSize = 10) {
     try {
-      this.sampleClicked = true;
+      const startOverall = Date.now();
       this.finished = false;
       this.progress = 0;
       this.wos.updateGenerationStarted(true);
-      const workbook = this.createWorkBookSheets();
-      this.progress = 2;
-      const data = await this.wos.runQuery({
-        startRecord: 1,
-        count: 10
-      });
-      this.progress = 25;
-      const jmesQuery = this.queryJmesPathResOut;
-      const rows = search(data, jmesQuery) as Array<Array<RawParsed>>;
-      const flattenedRows = rows.map(arr => cartesian(arr)).flat();
-      workbook?.mainSheet.addRows(flattenedRows);
-      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-      // @ts-ignore
-      flattenedRows.forEach((value: Array<number | string>, index: number) => {
-        workbook?.otherSheets.forEach((otherSheet, sheetIndex) => {
-          const referenceColumns = this.wos.exportConfig?.sheets[sheetIndex]
-            .referenceColumns;
-          let referenceValues: Array<string | number>;
-          if (referenceColumns) {
-            const referenceIds = referenceColumns.map(col =>
-              workbook.mainHeader.findIndex(mainCol => col == mainCol)
-            );
-            referenceValues = referenceIds.map(id => value[id]);
+      if (this.wos.exportConfig) {
+        this.excelGenerator = new ExcelGenerator(this.wos.exportConfig);
+        this.progress = 1;
+        const progressStep = 90 / ((this.range[1] - this.range[0]) / batchSize);
+
+        let workbookEmpty = true;
+
+        for (let i = this.range[0]; i <= this.range[1]; i += batchSize) {
+          const start = Date.now();
+          this.range[0] = i;
+          let finalBatchSize;
+          if (i + batchSize > this.range[1]) {
+            finalBatchSize = i + batchSize - this.range[1];
+          } else {
+            finalBatchSize = batchSize;
           }
-          this.wos.exportConfig?.sheets[sheetIndex].rowArrayPath.forEach(
-            mainPath => {
-              const sheetJmesQuery = this.queryJmesPathOther(
-                sheetIndex,
-                index,
-                mainPath,
-                referenceValues
-              );
-              const otherSheetRows = search(data, sheetJmesQuery) as Array<
-                Array<RawParsed>
-              >;
-
-              if (otherSheetRows != null && otherSheetRows.length > 0) {
-                const otherSheetRowsFlattened = otherSheetRows
-                  .map(arr => cartesian(arr))
-                  .flat();
-                otherSheet.addRows(otherSheetRowsFlattened);
-              }
-            }
-          );
-        });
-        this.progress += 7;
-      });
-      const buffer = await workbook?.workbook.xlsx.writeBuffer();
-      if (buffer != undefined) {
-        fs.writeFileSync(this.completeFilePath(true), new Uint8Array(buffer));
-        this.progress = 100;
-        this.wos.updateGenerationStarted(false);
-        this.finished = true;
-      }
-    } catch (e) {
-      this.error = e.toString();
-      this.wos.updateGenerationStarted(false);
-      this.finished = true;
-      throw e;
-    }
-  }
-
-  async exportAllData() {
-    try {
-      this.sampleClicked = false;
-      this.finished = false;
-      this.progress = 0;
-      this.wos.updateGenerationStarted(true);
-      this.createWorkBookSheets();
-      this.progress = 1;
-      if (this.wos.queryFeedback) {
-        const progressStep = 95 / (this.wos.queryFeedback?.recordsFound / 10);
-        for (let i = 1; i <= this.wos.queryFeedback?.recordsFound; i += 10) {
-          await this.exportBatch10(i);
+          await this.exportBatch(i, finalBatchSize);
+          workbookEmpty = false;
           this.progress += progressStep;
+          const end = Date.now();
+          this.remainingBatches = (this.range[1] - this.range[0]) / batchSize;
+          this.batchSum += end - start;
+          this.batchAvgDuration =
+            this.batchSum / (this.exportCounter / batchSize);
+          this.exportCounter += batchSize;
+          if (this.exportCounter % NEW_FILE_AFTER_RECORD == 0) {
+            this.fileIsSaving = true;
+            await this.saveFile();
+            this.fileIsSaving = false;
+            this.excelGenerator = new ExcelGenerator(this.wos.exportConfig);
+            workbookEmpty = true;
+          }
         }
-      }
-
-      const buffer = await this._workBook?.workbook.xlsx.writeBuffer();
-      if (buffer != undefined) {
-        fs.writeFileSync(
-          this.completeFilePath(this.sampleClicked),
-          new Uint8Array(buffer)
-        );
+        if (!workbookEmpty) await this.saveFile();
         this.progress = 100;
         this.wos.updateGenerationStarted(false);
         this.finished = true;
+        const endOverall = Date.now();
+        this.overallTime = endOverall - startOverall;
       }
     } catch (e) {
       this.error = e.toString();
@@ -410,52 +340,14 @@ export default class GenerateFile extends Vue {
     }
   }
 
-  get queryJmesPathResOut(): string {
-    let queryPath =
-      this.wos.exportConfig?.rowArrayPath +
-      ".[" +
-      this.wos.exportConfig?.columns.map(col => col.path).join(",");
-    if (this.wos.exportConfig?.columnCollection) {
-      this.wos.exportConfig.columnCollection.forEach(colColl => {
-        queryPath +=
-          "," +
-          colColl.columns
-            .map(col => colColl.mainPath + "." + col.path)
-            .join(",");
-      });
-    }
-    queryPath += "]";
-    return queryPath;
+  async saveFile() {
+    await this.excelGenerator?.saveFile(this.completeFilePath());
+    this.savedFiles.push(this.completeFilePath());
+    this.part++;
   }
 
-  queryJmesPathOther(
-    otherSheetIndex: number,
-    rowIndex: number,
-    mainPath: string,
-    referenceValues: Array<string | number> | undefined
-  ): string {
-    const sheetConfig = this.wos.exportConfig?.sheets[otherSheetIndex];
-    let queryPath =
-      this.wos.exportConfig?.rowArrayPath.replace("*", rowIndex + "") +
-      "." +
-      mainPath +
-      ".[";
-
-    if (referenceValues) {
-      queryPath += referenceValues.map(val => "`" + val + "`").join(",") + ",";
-    }
-    queryPath += sheetConfig?.columns.map(col => col.path).join(",");
-    if (sheetConfig?.columnCollection) {
-      sheetConfig.columnCollection.forEach(colColl => {
-        queryPath +=
-          "," +
-          colColl.columns
-            .map(col => colColl.mainPath + "." + col.path)
-            .join(",");
-      });
-    }
-    queryPath += "]";
-    return queryPath;
+  async openFile(filePath: string) {
+    await shell.openPath(filePath);
   }
 
   chooseDirectory() {
