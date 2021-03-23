@@ -86,9 +86,14 @@ export const defaultConfig: ExportConfig = {
         "static_data.fullrecord_metadata.category_info.subjects.[subject][].{subject:@}[?subject.ascatype=='extended'].subject.content|[0]"
     },
     {
-      name: "heading",
+      name: "heading_1",
       path:
-        "static_data.fullrecord_metadata.category_info.headings.[heading]|[0]"
+        "static_data.fullrecord_metadata.category_info.headings.[heading][]|[0]"
+    },
+    {
+      name: "heading_2",
+      path:
+        "static_data.fullrecord_metadata.category_info.headings.[heading][]|[1]"
     },
     {
       name: "abstract",
@@ -123,6 +128,10 @@ export const defaultConfig: ExportConfig = {
         {
           name: "pubtype",
           path: "pubtype"
+        },
+        {
+          name: "journal_oas_gold",
+          path: "journal_oas_gold"
         }
       ]
     },
@@ -268,6 +277,10 @@ export const defaultConfig: ExportConfig = {
           mainPath: "names.[name][]",
           columns: [
             {
+              name: "seq_no",
+              path: "seq_no"
+            },
+            {
               name: "full_name",
               path: "full_name"
             },
@@ -343,6 +356,10 @@ export const defaultConfig: ExportConfig = {
         "static_data.summary.names.[name][].{author: @}[?author.addr_no==`null`].author[]",
       referenceColumns: ["UT"],
       columns: [
+        {
+          name: "seq_no",
+          path: "seq_no"
+        },
         {
           name: "full_name",
           path: "full_name"

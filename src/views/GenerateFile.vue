@@ -259,7 +259,7 @@ export default class GenerateFile extends Vue {
     );
   }
 
-  completeFilePath(): string {
+  completeFilePath(date: Date): string {
     const pathSeparator = os
       .type()
       .toLowerCase()
@@ -271,7 +271,7 @@ export default class GenerateFile extends Vue {
       pathSeparator +
       this.fileName +
       "_" +
-      dateFormat(new Date(), "ddMMyyyyHHmmss") +
+      dateFormat(date, "ddMMyyyyHHmmss") +
       "_part" +
       this.part +
       ".xlsx"
@@ -341,8 +341,10 @@ export default class GenerateFile extends Vue {
   }
 
   async saveFile() {
-    await this.excelGenerator?.saveFile(this.completeFilePath());
-    this.savedFiles.push(this.completeFilePath());
+    const now = new Date();
+    const fileName = this.completeFilePath(now);
+    await this.excelGenerator?.saveFile(fileName);
+    this.savedFiles.push(fileName);
     this.part++;
   }
 
