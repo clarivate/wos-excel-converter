@@ -42,7 +42,7 @@ export const defaultConfig: ExportConfig = {
       path: "static_data.fullrecord_metadata.refs.count"
     },
     {
-      name: "citationCunt",
+      name: "citationCount",
       path: "dynamic_data.citation_related.tc_list.silo_tc.local_count"
     },
     {
