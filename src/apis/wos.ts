@@ -64,7 +64,7 @@ export default class WosExpanded {
         params: {
           count: 0,
           firstRecord: 1,
-          databaseId: "WOS"
+          databaseId: "WOK"
         }
       })
       .then(function(response) {

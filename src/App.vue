@@ -12,9 +12,7 @@
                 ><span class="text-sm-h6">&trade;</span>
               </v-list-item-title>
               <v-list-item-subtitle>
-                <span style="color: black">
-                  <strong>API Expanded</strong> Excel Converter</span
-                >
+                <span style="color: black"><strong>API</strong> Converter</span>
               </v-list-item-subtitle>
             </v-list-item-content>
           </v-list-item>

@@ -2,6 +2,7 @@ const ConfigSchema = {
   $schema: "http://json-schema.org/draft-04/schema#",
   definitions: {
     column: {
+      id: "#column",
       type: "object",
       properties: {
         name: {
@@ -15,6 +16,7 @@ const ConfigSchema = {
       required: ["name", "path"]
     },
     columnCollection: {
+      id: "#colCollection",
       type: "object",
       properties: {
         mainPath: {
@@ -23,7 +25,7 @@ const ConfigSchema = {
         columns: {
           type: "array",
           items: {
-            $ref: "#/definitions/column"
+            $ref: "#column"
           },
           additionalItems: false,
           minItems: 1
@@ -31,7 +33,7 @@ const ConfigSchema = {
         columnCollection: {
           type: "array",
           items: {
-            $ref: "#/definitions/columnCollection"
+            $ref: "#colCollection"
           },
           additionalItems: false,
           minItems: 1
@@ -53,7 +55,7 @@ const ConfigSchema = {
     columns: {
       type: "array",
       items: {
-        $ref: "#/definitions/column"
+        $ref: "#column"
       },
       additionalItems: false,
       minItems: 1
@@ -61,7 +63,7 @@ const ConfigSchema = {
     columnCollection: {
       type: "array",
       items: {
-        $ref: "#/definitions/columnCollection",
+        $ref: "#colCollection",
         additionalItems: false,
         minItems: 1
       }
@@ -88,7 +90,7 @@ const ConfigSchema = {
           columns: {
             type: "array",
             items: {
-              $ref: "#/definitions/column"
+              $ref: "#column"
             },
             additionalItems: false,
             minItems: 1
@@ -96,7 +98,7 @@ const ConfigSchema = {
           columnCollection: {
             type: "array",
             items: {
-              $ref: "#/definitions/columnCollection",
+              $ref: "#colCollection",
               additionalItems: false,
               minItems: 1
             }

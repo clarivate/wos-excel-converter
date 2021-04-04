@@ -4,11 +4,23 @@
       <v-row no-gutters>
         <v-col md="8" lg="6">
           <v-text-field
-            v-model="token"
+            v-model="wosExpToken"
             :append-icon="show ? icons.eye : icons.eyeOff"
             :type="show ? 'text' : 'password'"
             name="input-10-1"
             label="WOS API Expanded Token"
+            @click:append="show = !show"
+          ></v-text-field>
+        </v-col>
+      </v-row>
+      <v-row no-gutters>
+        <v-col md="8" lg="6">
+          <v-text-field
+            v-model="icToken"
+            :append-icon="show ? icons.eye : icons.eyeOff"
+            :type="show ? 'text' : 'password'"
+            name="input-10-1"
+            label="InCites API Token (optional)"
             @click:append="show = !show"
           ></v-text-field>
         </v-col>
@@ -62,12 +74,20 @@ export default class Token extends Vue {
     return this.wos.tokenMessageType;
   }
 
-  set token(token: string | null) {
-    this.wos.updateToken(token);
+  set wosExpToken(token: string | null) {
+    this.wos.updateWosExpToken(token);
   }
 
-  get token(): string | null {
-    return this.wos.token;
+  get wosExpToken(): string | null {
+    return this.wos.wosExpToken;
+  }
+
+  set icToken(token: string | null) {
+    this.wos.updateIcToken(token);
+  }
+
+  get icToken(): string | null {
+    return this.wos.icToken;
   }
 
   verifyToken() {

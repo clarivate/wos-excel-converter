@@ -68,7 +68,7 @@ app.on("ready", async () => {
       console.error("Vue Devtools failed to install:", e.toString());
     }
   }
-  // Register a shortcut listener for Ctrl + Shift + I
+  // Disable a shortcut listener for Ctrl + Shift + I
   globalShortcut.register("Control+Shift+I", () => {
     // When the user presses Ctrl + Shift + I, this function will get called
     // You can modify this function to do other things, but if you just want

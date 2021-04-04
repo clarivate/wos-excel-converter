@@ -5,7 +5,7 @@
       <v-container>
         <v-row class="pb-8">
           <v-col cols="12" lg="4">
-            <v-select
+            <v-combobox
               v-model="databaseId"
               hint="Database to search. WOK represents all databases."
               persistent-hint
@@ -25,7 +25,7 @@
               outlined
               dense
               flat
-            ></v-select>
+            ></v-combobox>
           </v-col>
           <v-col cols="12" lg="4">
             <v-text-field

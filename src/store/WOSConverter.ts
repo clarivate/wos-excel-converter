@@ -13,7 +13,8 @@ enum QueryStatus {
 
 @Module({ name: "wosModule" })
 export default class WOSConverter extends VuexModule {
-  private _token: string | null = null;
+  private _wosExpToken: string | null = null;
+  private _icToken: string | null = null;
   private _remainingRecords = 0;
   private _messageToken: string | null = null;
   private _messageTypeToken: string | null = null;
@@ -87,12 +88,16 @@ export default class WOSConverter extends VuexModule {
     this._exportConfigError = error;
   }
 
-  get token(): string | null {
-    return this._token;
+  get wosExpToken(): string | null {
+    return this._wosExpToken;
+  }
+
+  get icToken(): string | null {
+    return this._icToken;
   }
 
   get wosClient(): WosExpanded | undefined {
-    return WosExpanded.getInstance(this._token);
+    return WosExpanded.getInstance(this._wosExpToken);
   }
 
   get tokenMessage(): string | null {
@@ -145,8 +150,12 @@ export default class WOSConverter extends VuexModule {
   }
 
   @Mutation
-  updateToken(token: string | null) {
-    this._token = token;
+  updateWosExpToken(token: string | null) {
+    this._wosExpToken = token;
+  }
+  @Mutation
+  updateIcToken(token: string | null) {
+    this._icToken = token;
   }
 
   @Mutation
@@ -193,7 +202,7 @@ export default class WOSConverter extends VuexModule {
 
   @Action
   async verifyWithMessages() {
-    if (this.token == null || this.token.trim() == "") {
+    if (this.wosExpToken == null || this.wosExpToken.trim() == "") {
       this.context.commit("updateMessagesToken", {
         msg: "Your token is empty",
         msgType: "warning"
