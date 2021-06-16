@@ -1,13 +1,12 @@
 import axios, { AxiosInstance, AxiosResponse } from "axios";
 import QueryFeedBack from "@/apis/helper/QueryFeedback";
+import throttleScheduler from "@/apis/throttle_scheduler";
 
 export default class WosExpanded {
   private static instance: WosExpanded;
   private readonly _key: string;
 
   private _axiosInstance: AxiosInstance;
-
-  private _lastResponse: number = Date.UTC(1970, 1);
 
   get key(): string {
     return this._key;
@@ -20,23 +19,7 @@ export default class WosExpanded {
         "X-ApiKey": this._key
       }
     });
-    const scheduler = (response: AxiosResponse) => {
-      const remainingReqPerSec = Number(
-        response.headers["x-req-reqpersec-remaining"]
-      );
-      const now = Date.now();
-      if (remainingReqPerSec < 1) {
-        const waitPeriodForThisRequest = now - this._lastResponse;
-        this._lastResponse = now;
-        if (waitPeriodForThisRequest < 1000) {
-          return new Promise<AxiosResponse>(resolve => {
-            setTimeout(() => resolve(response), waitPeriodForThisRequest + 100);
-          });
-        }
-      }
-      this._lastResponse = now;
-      return response;
-    };
+    const scheduler = throttleScheduler("x-req-reqpersec-remaining");
 
     this._axiosInstance.interceptors.response.use(scheduler);
   }
@@ -56,7 +39,7 @@ export default class WosExpanded {
   }
 
   /**
-   * verifies key and returns remaining tokens
+   * verifies key and returns remaining records of the year
    */
   verifyKey(): Promise<number> {
     return this._axiosInstance
@@ -68,7 +51,8 @@ export default class WosExpanded {
         }
       })
       .then(function(response) {
-        return Number(response.headers["x-rec-amtperyear-remaining"]);
+        const remaining = response.headers["x-rec-amtperyear-remaining"];
+        return Number(remaining ? remaining : "-1");
       });
   }
 
@@ -76,7 +60,8 @@ export default class WosExpanded {
     usrQuery: string,
     databaseId: string,
     edition: string | null = null,
-    lang: string | null = null
+    lang: string | null = null,
+    timeSpan: string | null = null
   ): Promise<QueryFeedBack> {
     return this._axiosInstance("", {
       params: {
@@ -84,6 +69,7 @@ export default class WosExpanded {
         usrQuery: usrQuery,
         edition: edition,
         lang: lang,
+        loadTimeSpan: timeSpan,
         firstRecord: 1,
         count: 0
       }

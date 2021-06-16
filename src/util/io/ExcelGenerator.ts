@@ -2,16 +2,10 @@ import { stream, Worksheet } from "exceljs";
 import { ExportConfig, SheetConfig } from "@/apis/helper/ExportConfig";
 import * as Excel from "exceljs";
 import { flattenArrays, RawValue } from "@/util/parse";
-import {
-  JSONValue,
-  search,
-  registerFunction,
-  TYPE_ANY,
-  TYPE_STRING,
-  TYPE_NULL
-} from "@metrichor/jmespath";
+import { JSONValue, search } from "@metrichor/jmespath";
 import { mainPath, sheetColumns, sheetPath } from "@/util/jmesPath";
 import WorkbookWriter = stream.xlsx.WorkbookWriter;
+import { registerConcatFunction } from "@/util/io/wosJmesFunctions";
 
 interface WorkbookInternal {
   workbook: WorkbookWriter;
@@ -21,36 +15,11 @@ interface WorkbookInternal {
 }
 
 export class ExcelGenerator {
-  static functionRegistered = false;
   private readonly _workBook: WorkbookInternal;
   private readonly _exportConfig: ExportConfig;
 
   constructor(exportConfig: ExportConfig, fileName: string) {
-    if (!ExcelGenerator.functionRegistered) {
-      try {
-        registerFunction(
-          "concat",
-          resolvedArgs => {
-            const [maybeArr, separator] = resolvedArgs;
-            if (Array.isArray(maybeArr)) {
-              return maybeArr.map(elem => elem.toString()).join(separator);
-            } else if (maybeArr != null) {
-              return maybeArr.toString();
-            }
-            return null;
-          },
-          [
-            {
-              types: [TYPE_ANY, TYPE_NULL]
-            },
-            { types: [TYPE_STRING] }
-          ]
-        );
-        ExcelGenerator.functionRegistered = true;
-      } catch (e) {
-        //noop
-      }
-    }
+    registerConcatFunction();
     this._exportConfig = exportConfig;
     const options = {
       filename: fileName,
@@ -133,7 +102,5 @@ export class ExcelGenerator {
 
   async commitAll() {
     await this._workBook.workbook.commit();
-    // const buffer = await this._workBook.workbook.xlsx.writeBuffer();
-    // fs.writeFileSync(fileName, new Uint8Array(buffer));
   }
 }

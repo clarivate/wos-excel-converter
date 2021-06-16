@@ -1,6 +1,7 @@
 import Vue from "vue";
 import Vuetify from "vuetify/lib/framework";
 import WosIcon from "@/components/WosIcon.vue";
+import ClarivateIcon from "@/components/ClarivateIcon.vue";
 
 Vue.use(Vuetify);
 
@@ -10,6 +11,9 @@ export default new Vuetify({
     values: {
       wos: {
         component: WosIcon
+      },
+      clarivate: {
+        component: ClarivateIcon
       }
     }
   },

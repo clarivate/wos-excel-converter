@@ -17,8 +17,8 @@ protocol.registerSchemesAsPrivileged([
 async function createWindow() {
   // Create the browser window.
   const win = new BrowserWindow({
-    width: 1000,
-    height: 800,
+    width: 1200,
+    height: 830,
     show: true,
     webPreferences: {
       webSecurity: false,
@@ -27,7 +27,7 @@ async function createWindow() {
       nodeIntegration: true
     }
   });
-  win.webContents.userAgent = "WOSExcelExporter";
+  win.webContents.userAgent = "WOSExporter";
 
   win.setMenuBarVisibility(false);
   if (process.env.WEBPACK_DEV_SERVER_URL) {

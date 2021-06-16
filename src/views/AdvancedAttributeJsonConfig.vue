@@ -38,7 +38,7 @@ interface SelectedConfig {
 }
 
 @Component({})
-export default class AttributeSelection extends Vue {
+export default class AdvancedAttributeJsonConfig extends Vue {
   editor: JSONEditor | null = null;
 
   get wos(): WOSConverter {

@@ -1,128 +1,116 @@
 <template>
   <v-app>
-    <v-overlay :value="generationStarted" opacity="0"> </v-overlay>
-    <v-navigation-drawer left app permanent>
-      <v-overlay :value="generationStarted" opacity="0"> </v-overlay>
-      <template v-slot:prepend>
-        <v-list>
-          <v-list-item>
-            <v-list-item-content>
-              <v-list-item-title class="title">
-                <strong style="color:black">Web of Science</strong
-                ><span class="text-sm-h6">&trade;</span>
-              </v-list-item-title>
-              <v-list-item-subtitle>
-                <span style="color: black"><strong>API</strong> Converter</span>
-              </v-list-item-subtitle>
-            </v-list-item-content>
-          </v-list-item>
-        </v-list>
-        <v-divider></v-divider>
-      </template>
-
-      <v-list>
-        <v-list-item link :to="{ name: 'token' }">
-          <v-list-item-content>
-            <v-list-item-title>1. API Token</v-list-item-title>
-            <v-list-item-subtitle
-              v-show="tokenSucceeded && remainingRecordsAvailable"
-            >
-              Remaining records:
-              <strong>{{ remainingRecords }}</strong></v-list-item-subtitle
-            >
-          </v-list-item-content>
-          <v-list-item-icon>
-            <v-icon color="green" v-if="tokenSucceeded">
-              {{ icons.succeed }}
-            </v-icon>
-            <v-icon color="red" v-if="tokenFailed"> {{ icons.failed }}</v-icon>
-            <v-icon color="orange" v-if="tokenWarning">
-              {{ icons.failed }}
-            </v-icon>
-          </v-list-item-icon>
-        </v-list-item>
-
-        <v-list-item link :to="{ name: 'query' }">
-          <v-list-item-content>
-            <v-list-item-title>2. Search details</v-list-item-title>
-            <v-list-item-subtitle v-show="queryRecordsAvailable">
-              Records found: <strong>{{ queryRecords }}</strong>
-            </v-list-item-subtitle>
-          </v-list-item-content>
-          <v-list-item-icon>
-            <v-icon color="green" v-if="querySucceeded">
-              {{ icons.succeed }}
-            </v-icon>
-            <v-icon color="red" v-if="queryFailed"> {{ icons.failed }}</v-icon>
-            <v-icon color="orange" v-if="queryWarning">
-              {{ icons.failed }}
-            </v-icon>
-          </v-list-item-icon>
-        </v-list-item>
-
-        <v-list-item link :to="{ name: 'attrSelection' }">
-          <v-list-item-content>
-            <v-list-item-title>3. Attribute selection</v-list-item-title>
-          </v-list-item-content>
-          <v-list-item-icon>
-            <v-icon color="green" v-if="!configFailure">
-              {{ icons.succeed }}
-            </v-icon>
-            <v-icon color="red" v-if="configFailure">
-              {{ icons.failed }}
-            </v-icon>
-          </v-list-item-icon>
-        </v-list-item>
-
-        <v-list-item link :to="{ name: 'genFile' }">
-          <v-list-item-content>
-            <v-list-item-title>4. Generate File</v-list-item-title>
-          </v-list-item-content>
-        </v-list-item>
-      </v-list>
-      <template v-slot:append>
-        <v-list>
-          <v-list-item link :to="{ name: 'about' }">
-            <v-list-item-content>
-              <v-list-item-title>About</v-list-item-title>
-            </v-list-item-content>
-          </v-list-item>
-        </v-list>
-      </template>
-    </v-navigation-drawer>
-
-    <v-main>
+    <v-system-bar app color="black" dark height="30">
+      <v-icon size="90">$clarivate</v-icon>
+      <v-spacer></v-spacer>
+      <v-btn
+        small
+        color="black"
+        class="text-none"
+        @click="openUrl('https://developer.clarivate.com/')"
+        ><v-icon color="white" small> {{ icons.openNew }}</v-icon
+        ><strong>Developer Portal</strong>
+      </v-btn>
+      <v-btn small color="black" class="text-none" :to="{ name: 'about' }"
+        ><v-icon color="white" small> {{ icons.info }}</v-icon>
+        <strong>About</strong></v-btn
+      >
+    </v-system-bar>
+    <v-app-bar app color="white" elevation="1">
+      <v-container class="fill-height">
+        <v-toolbar-title class="mr-10">
+          <v-icon size="200" class="pr-1 mb" style="height: 0">$wos</v-icon> API
+          Exporter
+        </v-toolbar-title>
+      </v-container>
+      <v-spacer></v-spacer>
+      <v-chip-group
+        show-arrows
+        mandatory
+        style="max-width:800px"
+        center-active
+        :value="allConfigNames.indexOf(configName)"
+      >
+        <v-chip
+          active-class="primary white--text"
+          v-for="name in allConfigNames"
+          :key="name"
+          @click="changeConfig(name)"
+        >
+          {{ name }}
+        </v-chip>
+      </v-chip-group>
+    </v-app-bar>
+    <v-main app>
       <router-view />
-      <div id="wosIcon">
-        Powered by
-        <v-icon size="150">$wos</v-icon>
-      </div>
     </v-main>
+    <v-footer app>
+      <v-row>
+        <v-col cols="12">
+          <v-btn large color="primary">Export</v-btn>
+        </v-col>
+      </v-row>
+    </v-footer>
   </v-app>
 </template>
 
 <script lang="ts">
 import { Vue, Component } from "vue-property-decorator";
-import { mdiKey, mdiCheckCircle, mdiAlert } from "@mdi/js";
+import {
+  mdiKey,
+  mdiCheckCircle,
+  mdiAlert,
+  mdiApps,
+  mdiInformation,
+  mdiOpenInNew
+} from "@mdi/js";
 import { getModule } from "vuex-module-decorators";
 import WOSConverter from "@/store/WOSConverter";
+import SelectAPIs from "@/views/SelectAPIs.vue";
+import WosQuery from "@/views/WosQuery.vue";
+import Token from "@/views/Token.vue";
+import ExportFormat from "@/views/ExportFormat.vue";
+import { shell } from "electron";
 
-@Component({})
+@Component({
+  components: { ExportFormat, WosQuery, SelectAPIs, Token }
+})
 export default class App extends Vue {
   get generationStarted(): boolean {
     return this.wos.generationStarted;
+  }
+  openUrl(url: string) {
+    shell.openExternal(url);
+  }
+
+  async changeConfig(to: string) {
+    this.wos.changeConfig(to);
+    await this.wos.verifyWosToken();
+    await this.wos.verifyIcToken();
+    await this.wos.validateQuery();
   }
 
   get icons(): Record<string, string> {
     return {
       token: mdiKey,
       succeed: mdiCheckCircle,
-      failed: mdiAlert
+      failed: mdiAlert,
+      myApps: mdiApps,
+      info: mdiInformation,
+      openNew: mdiOpenInNew
     };
   }
 
   get wos(): WOSConverter {
     return getModule(WOSConverter, this.$store);
+  }
+
+  get allConfigNames(): Array<string> {
+    return this.wos.allConfigNames;
+  }
+
+  get configName(): string {
+    return this.wos.configName;
   }
 
   get remainingRecordsAvailable(): boolean {
@@ -166,31 +154,31 @@ export default class App extends Vue {
   }
 
   get remainingRecTextClass(): string {
-    return "text-" + this.wos.tokenMessageType;
+    return "text-" + this.wos.wosTokenMessageType;
   }
 
   get tokenSucceeded(): boolean {
-    return this.wos.tokenMessageType == "success";
+    return this.wos.wosTokenMessageType == "success";
   }
 
   get tokenFailed(): boolean {
-    return this.wos.tokenMessageType == "error";
+    return this.wos.wosTokenMessageType == "error";
   }
 
   get tokenWarning(): boolean {
-    return this.wos.tokenMessageType == "warning";
+    return this.wos.wosTokenMessageType == "warning";
   }
 
   get querySucceeded(): boolean {
-    return this.wos.queryMessageType == "success";
+    return this.wos.queryWosMessageType == "success";
   }
 
   get queryFailed(): boolean {
-    return this.wos.queryMessageType == "error";
+    return this.wos.queryWosMessageType == "error";
   }
 
   get queryWarning(): boolean {
-    return this.wos.queryMessageType == "warning";
+    return this.wos.queryWosMessageType == "warning";
   }
 
   get configFailure(): boolean {
