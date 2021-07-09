@@ -22,6 +22,10 @@ const ConfigSchema = {
         mainPath: {
           type: "string"
         },
+        api: {
+          type: "string",
+          enum: ["WOS", "InCites", "Journals"]
+        },
         columns: {
           type: "array",
           items: {
@@ -52,6 +56,10 @@ const ConfigSchema = {
     rowArrayPath: {
       type: "string"
     },
+    api: {
+      type: "string",
+      enum: ["WOS", "InCites", "Journals"]
+    },
     columns: {
       type: "array",
       items: {
@@ -78,6 +86,10 @@ const ConfigSchema = {
           },
           mainPath: {
             type: "string"
+          },
+          api: {
+            type: "string",
+            enum: ["WOS", "InCites", "Journals"]
           },
           referenceColumns: {
             type: "array",

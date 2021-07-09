@@ -445,6 +445,7 @@ export const defaultConfig: ExportConfig = {
       columnCollection: [
         {
           mainPath: "grants.[grant][]",
+          api: "WOS",
           columns: [
             {
               name: "grantAgency",

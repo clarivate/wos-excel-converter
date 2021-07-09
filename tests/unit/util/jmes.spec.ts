@@ -11,6 +11,7 @@ describe("JMES path should", () => {
     const testConfig: ExportConfig = {
       rowArrayPath: "Data.Test[*]",
       sheetName: "Test",
+      api: "WOS",
       columns: [
         {
           name: "test1",
@@ -24,6 +25,7 @@ describe("JMES path should", () => {
       columnCollection: [
         {
           mainPath: "someArray[]",
+          api: "WOS",
           columns: [
             {
               name: "test2",
@@ -33,6 +35,7 @@ describe("JMES path should", () => {
           columnCollection: [
             {
               mainPath: "anotherArray[]",
+              api: "WOS",
               columns: [{ name: "test5", path: "test5" }]
             }
           ]
@@ -43,6 +46,7 @@ describe("JMES path should", () => {
           sheetName: "test",
           mainPath: "sheetArrow[]",
           referenceColumns: ["test1", "test3"],
+          api: "WOS",
           columns: [
             {
               name: "test1",
@@ -56,6 +60,7 @@ describe("JMES path should", () => {
           columnCollection: [
             {
               mainPath: "someArray[]",
+              api: "WOS",
               columns: [
                 {
                   name: "test2",
@@ -64,6 +69,7 @@ describe("JMES path should", () => {
               ],
               columnCollection: [
                 {
+                  api: "WOS",
                   mainPath: "anotherArray[]",
                   columns: [{ name: "test5", path: "test5" }]
                 }

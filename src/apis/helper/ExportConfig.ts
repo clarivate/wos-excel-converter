@@ -1,6 +1,6 @@
 export interface ExportConfig {
   sheetName: string;
-  api: "WOS" | "InCites" | "Journals";
+  api?: "WOS" | "InCites" | "Journals";
   rowArrayPath: string;
   columns: Array<ColumnConfig>;
   columnCollection?: Array<ColumnCollectionConfig>;
@@ -9,7 +9,7 @@ export interface ExportConfig {
 
 export interface SheetConfig {
   sheetName: string;
-  api: "WOS" | "InCites" | "Journals";
+  api?: "WOS" | "InCites" | "Journals";
   mainPath: string;
   referenceColumns?: Array<string>;
   columns: Array<ColumnConfig>;
@@ -18,7 +18,7 @@ export interface SheetConfig {
 
 export interface ColumnCollectionConfig {
   mainPath: string;
-  api: "WOS" | "InCites" | "Journals";
+  api?: "WOS" | "InCites" | "Journals";
   columns: Array<ColumnConfig>;
   columnCollection?: Array<ColumnCollectionConfig>;
 }
