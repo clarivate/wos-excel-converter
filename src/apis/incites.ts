@@ -1,5 +1,4 @@
 import axios, { AxiosInstance, AxiosResponse } from "axios";
-import QueryFeedBack from "@/apis/helper/QueryFeedback";
 import throttleScheduler from "@/apis/throttle_scheduler";
 
 export default class InCites {
