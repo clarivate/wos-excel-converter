@@ -308,13 +308,14 @@ export default class GenerateFile extends Vue {
 
         for (let i = this.range[0]; i <= this.range[1]; i += batchSize) {
           const start = Date.now();
-          this.range[0] = i;
+
           let finalBatchSize;
           if (i + batchSize > this.range[1]) {
-            finalBatchSize = this.range[1];
+            finalBatchSize = this.range[1] - i + 1;
           } else {
             finalBatchSize = batchSize;
           }
+          this.range[0] = i + finalBatchSize;
           console.log("startRecord:" + i + ", batch:" + finalBatchSize);
           await this.exportBatch(i, finalBatchSize);
           workbookEmpty = false;
