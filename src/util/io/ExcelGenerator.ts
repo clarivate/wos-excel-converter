@@ -1,54 +1,32 @@
-import { Workbook, Worksheet } from "exceljs";
+import { stream, Worksheet } from "exceljs";
 import { ExportConfig, SheetConfig } from "@/apis/helper/ExportConfig";
 import * as Excel from "exceljs";
 import { flattenArrays, RawValue } from "@/util/parse";
-import {
-  JSONValue,
-  search,
-  registerFunction,
-  TYPE_ANY,
-  TYPE_STRING,
-  TYPE_NULL
-} from "@metrichor/jmespath";
+import { JSONValue, search } from "@metrichor/jmespath";
 import { mainPath, sheetColumns, sheetPath } from "@/util/jmesPath";
-import fs from "fs";
+import WorkbookWriter = stream.xlsx.WorkbookWriter;
+import { registerConcatFunction } from "@/util/io/wosJmesFunctions";
 
 interface WorkbookInternal {
-  workbook: Workbook;
+  workbook: WorkbookWriter;
   mainSheet: Worksheet;
   otherSheets: Array<Worksheet>;
   mainHeader: Array<string>;
 }
 
 export class ExcelGenerator {
-  static functionRegistered = false;
   private readonly _workBook: WorkbookInternal;
   private readonly _exportConfig: ExportConfig;
 
-  constructor(exportConfig: ExportConfig) {
-    if (!ExcelGenerator.functionRegistered) {
-      registerFunction(
-        "concat",
-        resolvedArgs => {
-          const [maybeArr, separator] = resolvedArgs;
-          if (Array.isArray(maybeArr)) {
-            return maybeArr.map(elem => elem.toString()).join(separator);
-          } else if (maybeArr != null) {
-            return maybeArr.toString();
-          }
-          return null;
-        },
-        [
-          {
-            types: [TYPE_ANY, TYPE_NULL]
-          },
-          { types: [TYPE_STRING] }
-        ]
-      );
-      ExcelGenerator.functionRegistered = true;
-    }
+  constructor(exportConfig: ExportConfig, fileName: string) {
+    registerConcatFunction();
     this._exportConfig = exportConfig;
-    const workbook = new Excel.Workbook();
+    const options = {
+      filename: fileName,
+      useStyles: false,
+      useSharedStrings: false
+    };
+    const workbook = new Excel.stream.xlsx.WorkbookWriter(options);
     workbook.creator = "WOS API Converter";
     workbook.lastModifiedBy = "WOS API Converter";
     workbook.created = new Date();
@@ -58,7 +36,7 @@ export class ExcelGenerator {
       exportConfig.columns,
       exportConfig.columnCollection
     );
-    resOutSheet.addRow(header);
+    resOutSheet.addRow(header).commit();
     const otherSheets = exportConfig.sheets?.map((sheet: SheetConfig) => {
       const sheetWB = workbook.addWorksheet(sheet.sheetName);
       let columnsHeader: Array<string>;
@@ -71,7 +49,7 @@ export class ExcelGenerator {
         columnsHeader = sheetColumns(sheet.columns, sheet.columnCollection);
       }
 
-      sheetWB.addRow(columnsHeader);
+      sheetWB.addRow(columnsHeader).commit();
       return sheetWB;
     });
     this._workBook = {
@@ -90,7 +68,9 @@ export class ExcelGenerator {
     > | null;
     if (parsedData != null) {
       const rows = parsedData.flatMap(arr => flattenArrays(arr));
-      this._workBook.mainSheet.addRows(rows);
+      rows.forEach(row => {
+        this._workBook.mainSheet.addRow(row).commit();
+      });
 
       this._exportConfig.sheets?.forEach((otherSheet, sheetIndex) => {
         rows.forEach((row, rowIndex) => {
@@ -113,15 +93,14 @@ export class ExcelGenerator {
             const sheetRows = sheetParsedData.flatMap(arr =>
               flattenArrays(arr)
             );
-            wbSheet.addRows(sheetRows);
+            sheetRows.forEach(row => wbSheet.addRow(row).commit());
           }
         });
       });
     }
   }
 
-  async saveFile(fileName: string) {
-    const buffer = await this._workBook.workbook.xlsx.writeBuffer();
-    fs.writeFileSync(fileName, new Uint8Array(buffer));
+  async commitAll() {
+    await this._workBook.workbook.commit();
   }
 }

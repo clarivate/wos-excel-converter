@@ -10,6 +10,7 @@ module.exports = {
         productName: "WOS API Excel Converter",
         copyright: "Copyright © 2021 Clarivate Analytics"
       },
+      externals: ["exceljs"],
       nodeIntegration: true
     }
   }

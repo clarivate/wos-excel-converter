@@ -38,8 +38,8 @@
         <v-col lg="12">
           <v-card flat color="transparent">
             <v-card-subtitle
-              >Define the range of records you want to export?</v-card-subtitle
-            >
+              >Define the range of records you want to export?
+            </v-card-subtitle>
             <v-card-text>
               <v-range-slider
                 v-model="range"
@@ -206,6 +206,7 @@ export default class GenerateFile extends Vue {
   get generationStarted(): boolean {
     return this.wos.generationStarted;
   }
+
   get fileName(): string | undefined {
     return this.wos.fileName;
   }
@@ -232,6 +233,7 @@ export default class GenerateFile extends Vue {
       this.msToTime(this.remainingBatches * this.batchAvgDuration)
     );
   }
+
   get generationDuration(): string {
     return this.msToTime(this.overallTime);
   }
@@ -289,11 +291,16 @@ export default class GenerateFile extends Vue {
   async exportData(batchSize = 10) {
     try {
       const startOverall = Date.now();
+      const dateNow = new Date();
+      let fileName = this.completeFilePath(dateNow);
       this.finished = false;
       this.progress = 0;
       this.wos.updateGenerationStarted(true);
       if (this.wos.exportConfig) {
-        this.excelGenerator = new ExcelGenerator(this.wos.exportConfig);
+        this.excelGenerator = new ExcelGenerator(
+          this.wos.exportConfig,
+          fileName
+        );
         this.progress = 1;
         const progressStep = 90 / ((this.range[1] - this.range[0]) / batchSize);
 
@@ -304,10 +311,11 @@ export default class GenerateFile extends Vue {
           this.range[0] = i;
           let finalBatchSize;
           if (i + batchSize > this.range[1]) {
-            finalBatchSize = i + batchSize - this.range[1];
+            finalBatchSize = this.range[1];
           } else {
             finalBatchSize = batchSize;
           }
+          console.log("startRecord:" + i + ", batch:" + finalBatchSize);
           await this.exportBatch(i, finalBatchSize);
           workbookEmpty = false;
           this.progress += progressStep;
@@ -319,13 +327,18 @@ export default class GenerateFile extends Vue {
           this.exportCounter += batchSize;
           if (this.exportCounter % NEW_FILE_AFTER_RECORD == 0) {
             this.fileIsSaving = true;
-            await this.saveFile();
             this.fileIsSaving = false;
-            this.excelGenerator = new ExcelGenerator(this.wos.exportConfig);
+            this.saveFile(fileName);
+            fileName = this.completeFilePath(dateNow);
+            this.excelGenerator = new ExcelGenerator(
+              this.wos.exportConfig,
+              fileName
+            );
+
             workbookEmpty = true;
           }
         }
-        if (!workbookEmpty) await this.saveFile();
+        if (!workbookEmpty) this.saveFile(fileName);
         this.progress = 100;
         this.wos.updateGenerationStarted(false);
         this.finished = true;
@@ -340,10 +353,8 @@ export default class GenerateFile extends Vue {
     }
   }
 
-  async saveFile() {
-    const now = new Date();
-    const fileName = this.completeFilePath(now);
-    await this.excelGenerator?.saveFile(fileName);
+  saveFile(fileName: string) {
+    this.excelGenerator?.commitAll();
     this.savedFiles.push(fileName);
     this.part++;
   }
@@ -370,3 +381,4 @@ export default class GenerateFile extends Vue {
   color: #8f8989 !important;
 }
 </style>
+{"mode":"full","isActive":false}
