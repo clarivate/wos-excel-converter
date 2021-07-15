@@ -9,7 +9,10 @@ module.exports = {
         appId: "com.clarivate.wos-excel-converter",
         productName: "WOS API Excel Converter",
         copyright: "Copyright © 2021 Clarivate Analytics",
-        publish: ["github"]
+        publish: ["github"],
+        linux: {
+          target: ["AppImage", "deb", "tar.gz"]
+        }
       },
       externals: ["exceljs"],
       nodeIntegration: true
