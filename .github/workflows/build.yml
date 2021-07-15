@@ -15,10 +15,10 @@ jobs:
         #os: [macos-latest]
 
     steps:
-      - Install Snapcraft
+      - name: Install Snapcraft
         run : sudo snap install snapcraft --classic
         if: matrix.os == 'ubuntu-latest'
-      
+
       - name: Check out Git repository
         uses: actions/checkout@v1
 
