@@ -11,7 +11,7 @@ module.exports = {
         copyright: "Copyright © 2021 Clarivate Analytics",
         publish: ["github"],
         linux: {
-          target: ["AppImage", "deb", "tar.gz"]
+          target: ["AppImage", "tar.gz"]
         }
       },
       externals: ["exceljs"],
