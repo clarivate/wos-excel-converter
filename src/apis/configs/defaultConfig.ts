@@ -13,8 +13,12 @@ export const defaultConfig: ExportConfig = {
       path: "static_data.summary.EWUID.WUID.coll_id"
     },
     {
-      name: "edition",
-      path: "static_data.summary.EWUID.edition.value"
+      name: "edition_1",
+      path: "static_data.summary.EWUID.[edition][].[value]|[0]"
+    },
+    {
+      name: "edition_2",
+      path: "static_data.summary.EWUID.[edition][].[value]|[1]"
     },
     {
       name: "doctype_1",
@@ -76,9 +80,14 @@ export const defaultConfig: ExportConfig = {
         "static_data.fullrecord_metadata.category_info.subheadings.[subheading][]|[1]"
     },
     {
-      name: "subject_traditional",
+      name: "subject_traditional_1",
       path:
         "static_data.fullrecord_metadata.category_info.subjects.[subject][].{subject:@}[?subject.ascatype=='traditional'].subject.content|[0]"
+    },
+    {
+      name: "subject_traditional_2",
+      path:
+        "static_data.fullrecord_metadata.category_info.subjects.[subject][].{subject:@}[?subject.ascatype=='traditional'].subject.content|[1]"
     },
     {
       name: "subject_extended",
@@ -149,6 +158,26 @@ export const defaultConfig: ExportConfig = {
         {
           name: "doi",
           path: "identifier[?type=='doi'].value|[0]"
+        },
+        {
+          name: "xref_doi",
+          path: "identifier[?type=='xref_doi'].value|[0]"
+        },
+        {
+          name: "pmid",
+          path: "identifier[?type=='pmid'].value|[0]"
+        },
+        {
+          name: "isbn",
+          path: "identifier[?type=='isbn'].value|[0]"
+        },
+        {
+          name: "eisbn",
+          path: "identifier[?type=='eisbn'].value|[0]"
+        },
+        {
+          name: "parent_book_doi",
+          path: "identifier[?type=='parent_book_doi'].value|[0]"
         }
       ]
     },
@@ -435,7 +464,7 @@ export const defaultConfig: ExportConfig = {
       columns: [
         {
           name: "fund_text",
-          path: "fund_text.p"
+          path: "fund_text.[p][]|concat(@,',')"
         },
         {
           name: "grants_count",
@@ -446,6 +475,10 @@ export const defaultConfig: ExportConfig = {
         {
           mainPath: "grants.[grant][]",
           columns: [
+            {
+              name: "grantSource",
+              path: "grant_source"
+            },
             {
               name: "grantAgency",
               path: "grant_agency"
