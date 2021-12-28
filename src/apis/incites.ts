@@ -10,6 +10,7 @@ export default class InCites {
   get key(): string {
     return this._key;
   }
+
   private constructor(key: string) {
     this._key = key;
     this._axiosInstance = axios.create({
@@ -55,13 +56,33 @@ export default class InCites {
       });
   }
 
-  runQueryRaw(
+  runQueryRawJson(
     uts: Array<string>,
     schema: string,
     esci: string | null = null
   ): Promise<AxiosResponse> {
     return this._axiosInstance
       .get("/DocumentLevelMetricsByUT/json", {
+        params: {
+          UT: uts.join(","),
+          ver: 2,
+          schema: schema,
+          esci: esci
+        }
+      })
+      .then(function(response) {
+        return response;
+      })
+      .catch(ex => ex.response);
+  }
+
+  runQueryRawXml(
+    uts: Array<string>,
+    schema: string,
+    esci: string | null = null
+  ): Promise<AxiosResponse> {
+    return this._axiosInstance
+      .get("/DocumentLevelMetricsByUT/xml", {
         params: {
           UT: uts.join(","),
           ver: 2,

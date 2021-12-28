@@ -11,6 +11,7 @@ export default class WosExpanded {
   get key(): string {
     return this._key;
   }
+
   private constructor(key: string) {
     this._key = key;
     this._axiosInstance = axios.create({
@@ -61,45 +62,54 @@ export default class WosExpanded {
     databaseId: string,
     edition: string | null = null,
     lang: string | null = null,
-    timeSpan: string | null = null
+    createdSpan: string | null = null,
+    modifiedSpan: string | null = null
   ): Promise<QueryFeedBack> {
-    return this._axiosInstance("", {
-      params: {
+    return this._axiosInstance
+      .post("", {
         databaseId: databaseId,
         usrQuery: usrQuery,
         edition: edition,
         lang: lang,
-        loadTimeSpan: timeSpan,
+        createdTimeSpan: createdSpan,
+        modifiedTimeSpan: modifiedSpan,
         firstRecord: 1,
         count: 0
-      }
-    }).then(function(response) {
-      const queryResult = response.data["QueryResult"];
-      const queryFeedback: QueryFeedBack = {
-        recordsFound: Number(queryResult["RecordsFound"]),
-        queryId: Number(queryResult["QueryID"]),
-        remainingRecords: Number(response.headers["x-rec-amtperyear-remaining"])
-      };
+      })
+      .then(function(response) {
+        const queryResult = response.data["QueryResult"];
+        const queryFeedback: QueryFeedBack = {
+          recordsFound: Number(queryResult["RecordsFound"]),
+          queryId: Number(queryResult["QueryID"]),
+          remainingRecords: Number(
+            response.headers["x-rec-amtperyear-remaining"]
+          )
+        };
 
-      return queryFeedback;
-    });
+        return queryFeedback;
+      });
   }
 
   runQueryIdRaw(
     queryId: number,
     startRecord: number,
-    count: number
+    count: number,
+    isXml = false
   ): Promise<AxiosResponse> {
     return this._axiosInstance
       .get("/query/" + queryId, {
         params: {
           firstRecord: startRecord,
           count: count
+        },
+        headers: {
+          Accept: isXml ? "application/xml" : "application/json"
         }
       })
       .then(function(response) {
         return response;
-      });
+      })
+      .catch(ex => ex.response);
   }
 
   runQueryRaw(
@@ -108,18 +118,82 @@ export default class WosExpanded {
     edition: string | null = null,
     lang: string | null = null,
     startRecord: number,
+    count: number,
+    createdSpan: string | null = null,
+    modifiedSpan: string | null = null,
+    isXml = false
+  ): Promise<AxiosResponse> {
+    let params: Record<string, string | number | null>;
+    if (!lang) {
+      params = {
+        databaseId: databaseId,
+        usrQuery: usrQuery,
+        edition: edition,
+        firstRecord: startRecord,
+        count: count,
+        createdTimeSpan: createdSpan,
+        modifiedTimeSpan: modifiedSpan,
+        sortField: "LD+D"
+      };
+    } else {
+      params = {
+        databaseId: databaseId,
+        usrQuery: usrQuery,
+        edition: edition,
+        lang: lang,
+        firstRecord: startRecord,
+        count: count,
+        createdTimeSpan: createdSpan,
+        modifiedTimeSpan: modifiedSpan,
+        sortField: "LD+D"
+      };
+    }
+    return this._axiosInstance
+      .post("", params, {
+        headers: {
+          Accept: isXml ? "application/xml" : "application/json"
+        }
+      })
+      .then(function(response) {
+        return response;
+      })
+      .catch(ex => ex.response);
+  }
+
+  getCitingReferences(
+    uniqueId: string,
+    databaseId: string,
+    startRecord: number,
     count: number
   ): Promise<AxiosResponse> {
     return this._axiosInstance
-      .get("", {
+      .get("/citing", {
         params: {
+          uniqueId: uniqueId,
           databaseId: databaseId,
-          usrQuery: usrQuery,
-          edition: edition,
-          lang: lang,
-          firstRecord: startRecord,
           count: count,
-          sortField: "LD+D"
+          firstRecord: startRecord
+        }
+      })
+      .then(function(response) {
+        return response;
+      })
+      .catch(ex => ex.response);
+  }
+
+  getCitedReferences(
+    uniqueId: string,
+    databaseId: string,
+    startRecord: number,
+    count: number
+  ): Promise<AxiosResponse> {
+    return this._axiosInstance
+      .get("/references", {
+        params: {
+          uniqueId: uniqueId,
+          databaseId: databaseId,
+          count: count,
+          firstRecord: startRecord
         }
       })
       .then(function(response) {

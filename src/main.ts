@@ -13,5 +13,13 @@ new Vue({
   store,
   vuetify,
   i18n,
-  render: h => h(AppNew)
+  render: h => h(AppNew),
+  created() {
+    // Prevent blank screen in Electron builds
+    try {
+      this.$router.push("/");
+    } catch (e) {
+      //this happens only in test mode
+    }
+  }
 }).$mount("#app");

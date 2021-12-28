@@ -8,11 +8,11 @@
       </template>
       <template v-slot:default="{}">
         <v-row no-gutters>
-          <v-col cols="12"
-            ><v-toolbar-title>
+          <v-col cols="12">
+            <v-toolbar-title>
               Query Settings
-            </v-toolbar-title></v-col
-          >
+            </v-toolbar-title>
+          </v-col>
           <v-col cols="12" class="text--secondary" v-if="wosQueryExecuted">
             <v-list>
               <v-list-item-title class="text--secondary pb-1"
@@ -43,8 +43,8 @@
               <v-list-item-title
                 class="text--secondary pb-1"
                 style="font-size: 0.9em"
-                v-if="wos.timeSpan"
-                >loadTimeSpan: {{ wos.timeSpan }}
+                v-if="wos.createdTimeSpan"
+                >loadTimeSpan: {{ wos.createdTimeSpan }}
               </v-list-item-title>
             </v-list>
           </v-col>
@@ -65,7 +65,72 @@
               </v-list-item-title>
             </v-list>
           </v-col>
-          <v-col cols="12" v-if="showAnotherIcon">
+          <v-col
+            cols="12"
+            v-if="wos.plainFileWithIds !== '' && !disableFileIDS"
+          >
+            <v-list>
+              <v-list-item-title class="text--secondary pt-2 pb-1"
+                >File with IDs
+                <strong
+                  :class="
+                    fileContent.length > 0 ? 'text-success' : 'text-error'
+                  "
+                >
+                  ({{ fileContent.length }} IDs)
+                </strong>
+                <span
+                  class="text-error"
+                  style="font-size: 0.8em"
+                  v-if="errorFileRead"
+                  >{{ errorFileRead }}</span
+                >
+              </v-list-item-title>
+              <v-list-item-title
+                class="text--secondary pb-1"
+                style="font-size: 0.9em"
+              >
+                {{ wos.plainFileWithIds }}.
+                <v-btn
+                  text
+                  class="text-none"
+                  small
+                  @click="
+                    wos.updatePlainFileWithIds('');
+                    fileContent = [];
+                    wos.exportConfig = null;
+                  "
+                  >Remove
+                </v-btn>
+              </v-list-item-title>
+              <v-list-item-title
+                class="text--secondary pb-1"
+                style="font-size: 0.9em"
+                v-if="invalidIds > 0"
+              >
+                <span class="text-warning"
+                  >Removed {{ invalidIds }} invalid rows.</span
+                >
+              </v-list-item-title>
+              <v-list-item-title
+                class="text--secondary pb-1"
+                style="font-size: 0.9em"
+                v-if="duplicates > 0"
+              >
+                <span class="text-warning"
+                  >Removed {{ duplicates }} duplicated rows.</span
+                >
+              </v-list-item-title>
+            </v-list>
+          </v-col>
+          <v-col
+            cols="12"
+            v-if="
+              fileRequired &&
+                showAnotherIcon &&
+                (disableWosQuery || icTokenSucceeded)
+            "
+          >
             <v-list>
               <v-list-item-title class="text--secondary pt-2 pb-1"
                 >File with IDs
@@ -79,7 +144,7 @@
                     ? "No file chosen"
                     : wos.plainFileWithIds
                 }}.
-                <span v-if="fileRequired" class="text-error">
+                <span class="text-error">
                   Required by disabling API Expanded Query Settings or missing
                   token.</span
                 >
@@ -95,7 +160,7 @@
           <v-col cols="4" style="border-right: 1px solid #a1a1a1">
             <WosQuery />
             <v-switch
-              v-model="useWosQuery"
+              v-model="disableWosQuery"
               label="Disable query (you need to provide IDs by selecting a file)"
               :disabled="!wos.wosExpToken"
             >
@@ -112,15 +177,20 @@
               x-large
               block
               @click="chooseFile()"
+              :disabled="disableFileIDS"
             >
               <span style="white-space: normal !important;">
                 Plain file with IDs (UTF-8)
               </span>
             </v-btn>
             <span class="text--secondary text-sm-body-2">
-              Provide a file that includes an ID per line, e.g.,
+              Provide a file that includes an ID per line instead of using Web
+              of Science API Query, e.g.,
               <br />UT:000271248500020
-              <br />DOI:10.1111/j.1532-5415.2009.02523.x <br />PMID:20121955
+              <span v-if="wos.wosExpToken"
+                ><br />DOI:10.1111/j.1532-5415.2009.02523.x
+                <br />PMID:20121955</span
+              >
             </span>
           </v-col>
         </v-row>
@@ -130,7 +200,7 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+import { Component, Vue, Watch } from "vue-property-decorator";
 import {
   mdiMicrosoftExcel,
   mdiFileDelimitedOutline,
@@ -152,6 +222,9 @@ const dialog = require("electron").remote.dialog;
   components: { IcQuery, WosQuery }
 })
 export default class QueryDetails extends Vue {
+  invalidIds = 0;
+  duplicates = 0;
+
   get icons(): Record<string, string> {
     return {
       excel: mdiMicrosoftExcel,
@@ -164,13 +237,33 @@ export default class QueryDetails extends Vue {
     };
   }
 
+  get disableFileIDS(): boolean {
+    //this calculates when to enable the upload button
+    return !(
+      (this.wosTokenSucceeded && this.disableWosQuery) ||
+      (this.icTokenSucceeded && !this.wosTokenSucceeded)
+    );
+  }
+
   get wos(): WOSConverter {
     return getModule(WOSConverter, this.$store);
   }
 
+  get fileContent(): string[] {
+    return this.wos.fileContent;
+  }
+
+  set fileContent(v: string[]) {
+    this.wos.updateFileContent(v);
+  }
+
+  get configName(): string {
+    return this.wos.configName;
+  }
+
   get wosQueryExecuted(): boolean {
     return (
-      !this.useWosQuery &&
+      !this.disableWosQuery &&
       this.wos.wosExpToken != null &&
       this.wos.wosExpToken != "" &&
       this.wos.queryWosMessageType != null &&
@@ -181,14 +274,50 @@ export default class QueryDetails extends Vue {
   get fileRequired(): boolean {
     return (
       this.wos.plainFileWithIds === "" &&
-      (!this.wos.wosExpToken || !this.wosTokenSucceeded || this.useWosQuery)
+      (!this.wos.wosExpToken || !this.wosTokenSucceeded || this.disableWosQuery)
     );
   }
-  get useWosQuery(): boolean {
-    return this.wos.useWosQuery;
+
+  get disableWosQuery(): boolean {
+    return this.wos.disableWosQuery;
   }
-  set useWosQuery(b: boolean) {
-    this.wos.updateUseWosQuery(b);
+
+  set disableWosQuery(b: boolean) {
+    this.wos.updateDisableWosQuery(b);
+  }
+
+  mounted() {
+    if (!this.wos.wosExpToken) this.disableWosQuery = true;
+    this.reloadFileContent();
+  }
+
+  set errorFileRead(v: string | null) {
+    this.wos.updateErrorFileRead(v);
+  }
+
+  get errorFileRead(): string | null {
+    return this.wos.errorFileRead;
+  }
+
+  reloadFileContent() {
+    this.errorFileRead = null;
+    this.invalidIds = 0;
+    this.duplicates = 0;
+    if (this.wos.plainFileWithIds != "") {
+      try {
+        this.fileContent = fs
+          .readFileSync(this.wos.plainFileWithIds, "utf-8")
+          .split("\n");
+        this.cleanUpIds();
+      } catch (e) {
+        this.errorFileRead = e.message;
+      }
+    }
+  }
+
+  @Watch("configName")
+  onConfigChangeReloadFileContent() {
+    this.reloadFileContent();
   }
 
   get showAnotherIcon(): boolean {
@@ -212,7 +341,7 @@ export default class QueryDetails extends Vue {
   }
 
   get anotherColor(): string {
-    if (!this.useWosQuery) {
+    if (!this.disableWosQuery) {
       switch (this.wos.queryWosMessageType) {
         case null:
           this.wos.validateQuery();
@@ -225,7 +354,7 @@ export default class QueryDetails extends Vue {
           return "green";
       }
     } else {
-      if (this.wos.plainFileWithIds === "") return "red";
+      if (this.wos.plainFileWithIds === "" || this.errorFileRead) return "red";
       else return "green";
     }
     return "";
@@ -250,16 +379,52 @@ export default class QueryDetails extends Vue {
         title: "Select file with IDs",
         properties: ["openFile"],
         filters: [
-          { name: "Plain (UTF-8) files", extensions: ["txt", ""] },
+          { name: "Plain (UTF-8) files (.txt)", extensions: ["txt", ""] },
           { name: "All Files", extensions: ["*"] }
         ]
       })
       .then((value: Electron.OpenDialogReturnValue) => {
         this.wos.updatePlainFileWithIds(value.filePaths[0] || "");
-        if (this.wos.plainFileWithIds != "") {
-          fs.readFileSync(this.wos.plainFileWithIds, "utf-8");
-        }
+        this.reloadFileContent();
       });
+  }
+
+  cleanUpIds() {
+    this.fileContent = this.removeInvalidIds();
+    this.fileContent = this.removeDuplicates();
+  }
+
+  removeInvalidIds(): string[] {
+    const cleanUpIds: string[] = [];
+    this.fileContent.forEach(v => {
+      if (this.wosTokenSucceeded) {
+        if (
+          v.startsWith("UT:") ||
+          v.startsWith("DOI:") ||
+          v.startsWith("PMID:")
+        ) {
+          cleanUpIds.push(v);
+        } else {
+          this.invalidIds++;
+        }
+      } else {
+        if (v.startsWith("UT:")) {
+          cleanUpIds.push(v);
+        } else {
+          this.invalidIds++;
+        }
+      }
+    });
+    return cleanUpIds;
+  }
+
+  removeDuplicates(): string[] {
+    const uniqueSet = new Set(this.fileContent);
+
+    const backToArray = [...uniqueSet];
+    this.duplicates = this.fileContent.length - backToArray.length;
+
+    return backToArray;
   }
 }
 </script>
@@ -268,8 +433,10 @@ export default class QueryDetails extends Vue {
 .activeBtn {
   color: white;
 }
+
 .text-success {
 }
+
 .text-warning {
   color: orange;
 }

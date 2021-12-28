@@ -1,6 +1,12 @@
 "use strict";
 
-import { app, protocol, BrowserWindow, globalShortcut } from "electron";
+import {
+  app,
+  protocol,
+  BrowserWindow,
+  globalShortcut,
+  ipcMain
+} from "electron";
 import { createProtocol } from "vue-cli-plugin-electron-builder/lib";
 import installExtension, { VUEJS_DEVTOOLS } from "electron-devtools-installer";
 
@@ -13,10 +19,10 @@ app.commandLine.appendSwitch("disable-features", "OutOfBlinkCors");
 protocol.registerSchemesAsPrivileged([
   { scheme: "app", privileges: { secure: true, standard: true } }
 ]);
-
+let win: BrowserWindow;
 async function createWindow() {
   // Create the browser window.
-  const win = new BrowserWindow({
+  win = new BrowserWindow({
     width: 1200,
     height: 830,
     show: true,
@@ -56,28 +62,54 @@ app.on("activate", () => {
   if (BrowserWindow.getAllWindows().length === 0) createWindow();
 });
 
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
-app.on("ready", async () => {
-  if (isDevelopment && !process.env.IS_TEST) {
-    // Install Vue Devtools
-    try {
-      await installExtension(VUEJS_DEVTOOLS);
-    } catch (e) {
-      console.error("Vue Devtools failed to install:", e.toString());
+ipcMain.on("start-progress", () => {
+  win.setProgressBar(0);
+});
+
+ipcMain.on("progress", (_, args) => {
+  win.setProgressBar(args);
+});
+
+ipcMain.on("end-progress", () => {
+  win.setProgressBar(-1);
+});
+
+const gotTheLock = app.requestSingleInstanceLock();
+
+if (!gotTheLock) {
+  app.quit();
+} else {
+  app.on("second-instance", () => {
+    // Someone tried to run a second instance, we should focus our window.
+    if (win) {
+      if (win.isMinimized()) win.restore();
+      win.focus();
     }
-  }
-  // Disable a shortcut listener for Ctrl + Shift + I
-  globalShortcut.register("Control+Shift+I", () => {
-    // When the user presses Ctrl + Shift + I, this function will get called
-    // You can modify this function to do other things, but if you just want
-    // to disable the shortcut, you can just return false
-    return false;
   });
 
-  createWindow();
-});
+  // This method will be called when Electron has finished
+  // initialization and is ready to create browser windows.
+  // Some APIs can only be used after this event occurs.
+  app.on("ready", async () => {
+    if (isDevelopment && !process.env.IS_TEST) {
+      // Install Vue Devtools
+      try {
+        await installExtension(VUEJS_DEVTOOLS);
+      } catch (e) {
+        console.error("Vue Devtools failed to install:", e.toString());
+      }
+    }
+    // Disable a shortcut listener for Ctrl + Shift + I
+    globalShortcut.register("Control+Shift+I", () => {
+      // When the user presses Ctrl + Shift + I, this function will get called
+      // You can modify this function to do other things, but if you just want
+      // to disable the shortcut, you can just return false
+      return false;
+    });
+
+    createWindow();
+  });
+}
 
 // Exit cleanly on request from parent process in development mode.
 if (isDevelopment) {

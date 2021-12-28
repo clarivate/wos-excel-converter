@@ -1,3 +1,5 @@
+import { defaultConfig } from "@/apis/configs/defaultConfig";
+
 const STORAGE_NAME = "apiConverterConfigs";
 
 const DEFAULT_CONFIG: WOSConverterConfig = {
@@ -9,13 +11,25 @@ const DEFAULT_CONFIG: WOSConverterConfig = {
     editions: "",
     lang: "",
     usrQuery: "TS=covid* and PY=2020",
-    timeSpan: "1D"
+    timeSpan: "",
+    modifiedTimeSpan: ""
   },
-  useWosQuery: true,
+  disableWosQuery: true,
   idsFile: "",
   incitesQueryDetails: {
     schema: { code: "wos", name: "Web of Science" },
     esci: "n"
+  },
+  exportSettings: {
+    excel: true,
+    csv: false,
+    json: true,
+    xml: false,
+    wosDefault: false,
+    exportConfig: JSON.stringify(defaultConfig),
+    chosenDirectory: require("os").homedir(),
+    rangeStart: 0,
+    rangeStop: 10
   }
 };
 
@@ -46,6 +60,7 @@ const reviver = (key: string, value: any) => {
 export default class ConverterStorageService {
   private static _instance: ConverterStorageService;
   private _chosenConfig: WOSConverterConfig = DEFAULT_CONFIG;
+
   private constructor() {
     const apiConverterConfStr = localStorage.getItem(STORAGE_NAME);
     if (apiConverterConfStr != null) {
@@ -79,6 +94,7 @@ export default class ConverterStorageService {
     configs.configs.set(this._chosenConfig.name, this._chosenConfig);
     localStorage.setItem(STORAGE_NAME, JSON.stringify(configs, replacer));
   }
+
   public getAllConfigNames(): Array<string> {
     return Array.from(
       ConverterStorageService.getStorageConfigs().configs.keys()
@@ -162,13 +178,22 @@ export default class ConverterStorageService {
     return this._chosenConfig.wosExpandedToken;
   }
 
-  set useWosQuery(b: boolean) {
-    this._chosenConfig.useWosQuery = b;
+  set chosenDirectory(dir: string) {
+    this._chosenConfig.exportSettings.chosenDirectory = dir;
     this.updateStorageConfigs();
   }
 
-  get useWosQuery(): boolean {
-    return this._chosenConfig.useWosQuery;
+  get chosenDirectory(): string {
+    return this._chosenConfig.exportSettings.chosenDirectory;
+  }
+
+  set disableWosQuery(b: boolean) {
+    this._chosenConfig.disableWosQuery = b;
+    this.updateStorageConfigs();
+  }
+
+  get disableWosQuery(): boolean {
+    return this._chosenConfig.disableWosQuery;
   }
 
   set icToken(token: string) {
@@ -225,6 +250,15 @@ export default class ConverterStorageService {
     return this._chosenConfig.wosSearchDetails.timeSpan;
   }
 
+  set modifiedTimeSpan(timeSpan: string) {
+    this._chosenConfig.wosSearchDetails.modifiedTimeSpan = timeSpan;
+    this.updateStorageConfigs();
+  }
+
+  get modifiedTimeSpan(): string {
+    return this._chosenConfig.wosSearchDetails.modifiedTimeSpan;
+  }
+
   set wosUsrQuery(usrQuery: string) {
     this._chosenConfig.wosSearchDetails.usrQuery = usrQuery;
     this.updateStorageConfigs();
@@ -234,6 +268,60 @@ export default class ConverterStorageService {
     return this._chosenConfig.wosSearchDetails.usrQuery;
   }
 
+  set excel(v: boolean) {
+    this._chosenConfig.exportSettings.excel = v;
+    this.updateStorageConfigs();
+  }
+
+  get excel(): boolean {
+    return this._chosenConfig.exportSettings.excel;
+  }
+
+  set csv(v: boolean) {
+    this._chosenConfig.exportSettings.csv = v;
+    this.updateStorageConfigs();
+  }
+
+  get csv(): boolean {
+    return this._chosenConfig.exportSettings.csv;
+  }
+
+  set json(v: boolean) {
+    this._chosenConfig.exportSettings.json = v;
+    this.updateStorageConfigs();
+  }
+
+  get json(): boolean {
+    return this._chosenConfig.exportSettings.json;
+  }
+
+  set xml(v: boolean) {
+    this._chosenConfig.exportSettings.xml = v;
+    this.updateStorageConfigs();
+  }
+
+  get xml(): boolean {
+    return this._chosenConfig.exportSettings.xml;
+  }
+
+  set wosDefault(v: boolean) {
+    this._chosenConfig.exportSettings.wosDefault = v;
+    this.updateStorageConfigs();
+  }
+
+  get wosDefault(): boolean {
+    return this._chosenConfig.exportSettings.wosDefault;
+  }
+
+  get exportConfig(): string {
+    return this._chosenConfig.exportSettings.exportConfig;
+  }
+
+  set exportConfig(v: string) {
+    this._chosenConfig.exportSettings.exportConfig = v;
+    this.updateStorageConfigs();
+  }
+
   get idsFile(): string {
     return this._chosenConfig.idsFile;
   }
@@ -241,6 +329,18 @@ export default class ConverterStorageService {
   set idsFile(file: string) {
     this._chosenConfig.idsFile = file;
     this.updateStorageConfigs();
+  }
+
+  set range(v: number[]) {
+    this._chosenConfig.exportSettings.rangeStart = v[0];
+    this._chosenConfig.exportSettings.rangeStop = v[1];
+  }
+
+  get range(): number[] {
+    return [
+      this._chosenConfig.exportSettings.rangeStart,
+      this._chosenConfig.exportSettings.rangeStop
+    ];
   }
 }
 
@@ -254,9 +354,10 @@ export interface WOSConverterConfig {
   wosExpandedToken: string;
   icToken: string;
   wosSearchDetails: WOSExpandedQueryDetails;
-  useWosQuery: boolean;
+  disableWosQuery: boolean;
   idsFile: string;
   incitesQueryDetails: InCitesQueryDetails;
+  exportSettings: ExportSettings;
 }
 
 export interface WOSExpandedQueryDetails {
@@ -265,9 +366,22 @@ export interface WOSExpandedQueryDetails {
   lang: string;
   usrQuery: string;
   timeSpan: string;
+  modifiedTimeSpan: string;
 }
 
 export interface InCitesQueryDetails {
   schema: { code: string; name: string };
   esci: "y" | "n";
+}
+
+export interface ExportSettings {
+  excel: boolean;
+  csv: boolean;
+  json: boolean;
+  xml: boolean;
+  wosDefault: boolean;
+  exportConfig: string;
+  chosenDirectory: string;
+  rangeStart: number;
+  rangeStop: number;
 }

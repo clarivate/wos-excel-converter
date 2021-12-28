@@ -21,18 +21,28 @@ export default class WOSConverter extends VuexModule {
     .allConfigNames;
   private _wosExpToken: string = ConverterStorageService.getInstance().wosToken;
   private _icToken: string = ConverterStorageService.getInstance().icToken;
+  private _excel: boolean = ConverterStorageService.getInstance().excel;
+  private _csv: boolean = ConverterStorageService.getInstance().csv;
+  private _json: boolean = ConverterStorageService.getInstance().json;
+  private _xml: boolean = ConverterStorageService.getInstance().xml;
+  private _wosDefault: boolean = ConverterStorageService.getInstance()
+    .wosDefault;
   private _remainingRecords = 0;
   private _remainingIcRequests = 0;
   private _messageWosToken: string | null = null;
   private _messageWosTypeToken: string | null = null;
   private _messageIcToken: string | null = null;
   private _messageIcTypeToken: string | null = null;
+  private _errorFileRead: string | null = null;
   private _selectedPanel = 0;
+
+  private _range = [0, 0];
 
   private _databaseId =
     ConverterStorageService.getInstance().wosDatabaseId || "WOS";
 
-  private _useWosQuery = ConverterStorageService.getInstance().useWosQuery;
+  private _disableWosQuery = ConverterStorageService.getInstance()
+    .disableWosQuery;
   private _icSchema: {
     code: string;
     name: string;
@@ -45,8 +55,12 @@ export default class WOSConverter extends VuexModule {
   private _lang: string | null = ConverterStorageService.getInstance().wosLang;
   private _edition: string | null = ConverterStorageService.getInstance()
     .wosEdition;
-  private _timeSpan: string | null = ConverterStorageService.getInstance()
-    .wosTimeSpan;
+  private _createdTimeSpan:
+    | string
+    | null = ConverterStorageService.getInstance().wosTimeSpan;
+  private _modifiedTimeSpan:
+    | string
+    | null = ConverterStorageService.getInstance().modifiedTimeSpan;
   private _usrQuery: string | null =
     ConverterStorageService.getInstance().wosUsrQuery ||
     "TS=(covid) AND PY=2020";
@@ -63,33 +77,44 @@ export default class WOSConverter extends VuexModule {
   private _exportConfigError = false;
   private _exportConfigText = JSON.stringify(defaultConfig, null, 2);
 
-  private _chosenDirectory =
-    localStorage._chosenDirectory || require("os").homedir();
+  private _chosenDirectory = ConverterStorageService.getInstance()
+    .chosenDirectory;
   private _fileName: string | undefined = "WOS_Export";
 
-  private _plainFileWithIds =
-    ConverterStorageService.getInstance().idsFile || "";
+  private _plainFileWithIds = ConverterStorageService.getInstance().idsFile;
 
   private _generationStarted = false;
 
   private _packageVersion = process.env.PACKAGE_VERSION || "0";
+  private _fileContent: string[] = [];
 
   get packageVersion(): string {
     return this._packageVersion;
   }
 
-  get useWosQuery(): boolean {
-    return this._useWosQuery;
+  get disableWosQuery(): boolean {
+    return this._disableWosQuery;
   }
+
   @Mutation
-  updateUseWosQuery(b: boolean) {
-    ConverterStorageService.getInstance().useWosQuery = b;
-    this._useWosQuery = ConverterStorageService.getInstance().useWosQuery;
+  updateDisableWosQuery(b: boolean) {
+    ConverterStorageService.getInstance().disableWosQuery = b;
+    this._disableWosQuery = ConverterStorageService.getInstance().disableWosQuery;
   }
 
   get wosQueryDialog(): boolean {
     return this._wosQueryDialog;
   }
+
+  @Mutation
+  updateRange(range: number[]) {
+    this._range = range;
+  }
+
+  get range(): number[] {
+    return this._range;
+  }
+
   @Mutation
   updateWosQueryDialog(b: boolean) {
     this._wosQueryDialog = b;
@@ -98,6 +123,7 @@ export default class WOSConverter extends VuexModule {
   get icQueryDialog(): boolean {
     return this._icQueryDialog;
   }
+
   @Mutation
   updateIcQueryDialog(b: boolean) {
     this._icQueryDialog = b;
@@ -106,6 +132,7 @@ export default class WOSConverter extends VuexModule {
   get advancedExportDialog(): boolean {
     return this._advancedExportDialog;
   }
+
   @Mutation
   updateAdvancedExportDialog(b: boolean) {
     this._advancedExportDialog = b;
@@ -114,6 +141,7 @@ export default class WOSConverter extends VuexModule {
   get selectedPanel(): number {
     return this._selectedPanel;
   }
+
   @Mutation
   updateSelectedPanel(index: number) {
     this._selectedPanel = index;
@@ -132,8 +160,32 @@ export default class WOSConverter extends VuexModule {
     return this._configName;
   }
 
-  get timeSpan(): string | null {
-    return this._timeSpan;
+  get createdTimeSpan(): string | null {
+    return this._createdTimeSpan;
+  }
+
+  get modifiedTimeSpan(): string | null {
+    return this._modifiedTimeSpan;
+  }
+
+  get excel(): boolean {
+    return this._excel;
+  }
+
+  get csv(): boolean {
+    return this._csv;
+  }
+
+  get json(): boolean {
+    return this._json;
+  }
+
+  get xml(): boolean {
+    return this._xml;
+  }
+
+  get wosDefault(): boolean {
+    return this._wosDefault;
   }
 
   @Mutation
@@ -142,6 +194,16 @@ export default class WOSConverter extends VuexModule {
     this._configName = configName;
     this._allConfigNames = ConverterStorageService.getInstance().allConfigNames;
   }
+
+  get errorFileRead(): string | null {
+    return this._errorFileRead;
+  }
+
+  @Mutation
+  updateErrorFileRead(v: string | null) {
+    this._errorFileRead = v;
+  }
+
   get generationStarted(): boolean {
     return this._generationStarted;
   }
@@ -177,7 +239,8 @@ export default class WOSConverter extends VuexModule {
 
   @Mutation
   updateChosenDirectory(dir: string | undefined) {
-    this._chosenDirectory = dir;
+    ConverterStorageService.getInstance().chosenDirectory = dir ? dir : "";
+    this._chosenDirectory = ConverterStorageService.getInstance().chosenDirectory;
   }
 
   get fileName(): string | undefined {
@@ -195,7 +258,13 @@ export default class WOSConverter extends VuexModule {
 
   @Mutation
   updateExportConfigText(jsonTxt: string) {
-    this._exportConfigText = jsonTxt;
+    ConverterStorageService.getInstance().exportConfig = jsonTxt;
+    this._exportConfigText = ConverterStorageService.getInstance().exportConfig;
+    try {
+      JSON.parse(this._exportConfigText);
+    } catch (e) {
+      this._exportConfigError = true;
+    }
   }
 
   get exportConfig(): ExportConfig | undefined {
@@ -248,6 +317,7 @@ export default class WOSConverter extends VuexModule {
   get remainingRecords(): number {
     return this._remainingRecords;
   }
+
   get remainingIcRequests(): number {
     return this._remainingIcRequests;
   }
@@ -303,10 +373,41 @@ export default class WOSConverter extends VuexModule {
     ConverterStorageService.getInstance().wosToken = token ? token : "";
     this._wosExpToken = ConverterStorageService.getInstance().wosToken;
   }
+
   @Mutation
   updateIcToken(token: string | null) {
     ConverterStorageService.getInstance().icToken = token ? token : "";
     this._icToken = ConverterStorageService.getInstance().icToken;
+  }
+
+  @Mutation
+  updateExcel(v: boolean) {
+    ConverterStorageService.getInstance().excel = v;
+    this._excel = ConverterStorageService.getInstance().excel;
+  }
+
+  @Mutation
+  updateCsv(v: boolean) {
+    ConverterStorageService.getInstance().csv = v;
+    this._csv = ConverterStorageService.getInstance().csv;
+  }
+
+  @Mutation
+  updateJson(v: boolean) {
+    ConverterStorageService.getInstance().json = v;
+    this._json = ConverterStorageService.getInstance().json;
+  }
+
+  @Mutation
+  updateXml(v: boolean) {
+    ConverterStorageService.getInstance().xml = v;
+    this._xml = ConverterStorageService.getInstance().xml;
+  }
+
+  @Mutation
+  updateWosDefault(v: boolean) {
+    ConverterStorageService.getInstance().wosDefault = v;
+    this._wosDefault = ConverterStorageService.getInstance().wosDefault;
   }
 
   @Mutation
@@ -358,9 +459,15 @@ export default class WOSConverter extends VuexModule {
   }
 
   @Mutation
-  updateTimeSpan(timespan: string | null) {
+  updateCreatedTimeSpan(timespan: string | null) {
     ConverterStorageService.getInstance().wosTimeSpan = timespan || "";
-    this._timeSpan = ConverterStorageService.getInstance().wosTimeSpan;
+    this._createdTimeSpan = ConverterStorageService.getInstance().wosTimeSpan;
+  }
+
+  @Mutation
+  updateModifiedTimeSpan(timespan: string | null) {
+    ConverterStorageService.getInstance().modifiedTimeSpan = timespan || "";
+    this._modifiedTimeSpan = ConverterStorageService.getInstance().modifiedTimeSpan;
   }
 
   @Mutation
@@ -374,21 +481,57 @@ export default class WOSConverter extends VuexModule {
   }
 
   @Mutation
+  updateFileContent(v: string[]) {
+    this._fileContent = v;
+  }
+
+  get fileContent() {
+    return this._fileContent;
+  }
+
+  @Mutation
   changeConfig(to: string) {
     const s = ConverterStorageService.getInstance();
     s.changeConfig(to);
+    //reset computed attributes based on previous configuration
+    this._messageWosTypeToken = null;
+    this._messageIcTypeToken = null;
+    this._messageIcToken = null;
+    this._messageWosToken = null;
+    this._queryWosMessage = null;
+    this._queryFeedback = null;
+    this._queryWosMessageType = null;
+    this._generationStarted = false;
+    this._range = [0, 0];
+    this._fileContent = [];
+    this._errorFileRead = null;
+    //replace configuration with another
     this._wosExpToken = s.wosToken;
-    this._useWosQuery = s.useWosQuery;
-    this._configName = s.configName;
+    this._disableWosQuery = s.disableWosQuery;
     this._icToken = s.icToken;
     this._allConfigNames = s.allConfigNames;
-    this._timeSpan = s.wosTimeSpan;
+    this._createdTimeSpan = s.wosTimeSpan;
     this._usrQuery = s.wosUsrQuery;
     this._databaseId = s.wosDatabaseId;
+    this._plainFileWithIds = s.idsFile;
     this._edition = s.wosEdition;
     this._lang = s.wosLang;
     this._icSchema = s.icSchema;
     this._icEsci = s.esci;
+    this._excel = s.excel;
+    this._csv = s.csv;
+    this._json = s.json;
+    this._xml = s.xml;
+    this._wosDefault = s.wosDefault;
+    this._exportConfigText = s.exportConfig;
+    try {
+      JSON.parse(this._exportConfigText);
+      this._exportConfigError = false;
+    } catch (e) {
+      this._exportConfigError = true;
+    }
+    this._chosenDirectory = s.chosenDirectory;
+    this._configName = s.configName;
   }
 
   @Action
@@ -405,6 +548,7 @@ export default class WOSConverter extends VuexModule {
       ConverterStorageService.getInstance().configName
     );
   }
+
   @Action
   async verifyWosToken() {
     if (this.wosExpToken == null || this.wosExpToken.trim() == "") {
@@ -423,7 +567,7 @@ export default class WOSConverter extends VuexModule {
           this.context.commit("updateWosMessagesToken", {
             msg:
               "Web of Science API Expanded validation succeeded. Remaining records (year) <strong>" +
-              (records != -1 ? format.format(records) : "unlimited") +
+              (records != -1 ? format.format(records) : "unknown") +
               "</strong>.",
             msgType: "success"
           });
@@ -505,7 +649,8 @@ export default class WOSConverter extends VuexModule {
           this.databaseId,
           this.edition,
           this.lang == "" ? null : this.lang,
-          this.timeSpan
+          this.createdTimeSpan,
+          this.modifiedTimeSpan
         )
         .then(feedback => {
           const format = new Intl.NumberFormat("en-us", {
@@ -578,50 +723,136 @@ export default class WOSConverter extends VuexModule {
   }
 
   @Action
-  async runQueryId(payload: { startRecord: number; count: number }) {
-    if (this.queryFeedback != null && this.wosClient != undefined) {
-      const response = await this.wosClient.runQueryIdRaw(
-        this.queryFeedback.queryId,
-        payload.startRecord,
-        payload.count
-      );
-      const queryFeedback: QueryFeedBack = {
-        recordsFound: this.queryFeedback.recordsFound,
-        queryId: this.queryFeedback.queryId,
-        remainingRecords: Number(response.headers["x-rec-amtperyear-remaining"])
-      };
-      this.context.commit("updateQueryFeedback", queryFeedback);
-      return response.data;
+  async runQuery(payload: {
+    startRecord: number;
+    count: number;
+    differentQuery?: string;
+  }) {
+    if (this.wosClient) {
+      const format = new Intl.NumberFormat("en-us", {
+        minimumFractionDigits: 0
+      });
+      let badRequest = false;
+      let tries = 0;
+      while (!badRequest || (badRequest && tries <= 3)) {
+        if (payload.differentQuery && this.disableWosQuery) {
+          const response = await this.wosClient.runQueryRaw(
+            payload.differentQuery,
+            this.databaseId,
+            this.edition,
+            this.lang,
+            payload.startRecord,
+            payload.count,
+            "",
+            "",
+            this.xml
+          );
+          if (response.status >= 400) {
+            badRequest = true;
+            tries++;
+          } else {
+            const remainingRecords = Number(
+              response.headers["x-rec-amtperyear-remaining"]
+            );
+            this.context.commit("updateRemainingRecords", remainingRecords);
+            this.context.commit("updateWosMessagesToken", {
+              msg:
+                "Web of Science API Expanded validation succeeded. Remaining records (year) <strong>" +
+                (remainingRecords != -1
+                  ? format.format(remainingRecords)
+                  : "unknown") +
+                "</strong>.",
+              msgType: "success"
+            });
+          }
+          return response.data;
+        } else if (this.usrQuery && this.queryFeedback) {
+          const response = await this.wosClient.runQueryIdRaw(
+            this.queryFeedback.queryId,
+            payload.startRecord,
+            payload.count,
+            this.xml
+          );
+          if (response.status >= 400) {
+            badRequest = true;
+            tries++;
+          } else {
+            const queryFeedback: QueryFeedBack = {
+              recordsFound: this.queryFeedback.recordsFound,
+              queryId: this.queryFeedback.queryId,
+              remainingRecords: Number(
+                response.headers["x-rec-amtperyear-remaining"]
+              )
+            };
+            this.context.commit("updateQueryFeedback", queryFeedback);
+            const format = new Intl.NumberFormat("en-us", {
+              minimumFractionDigits: 0
+            });
+            this.context.commit(
+              "updateRemainingRecords",
+              this.queryFeedback.remainingRecords
+            );
+            this.context.commit("updateWosMessagesToken", {
+              msg:
+                "Web of Science API Expanded validation succeeded. Remaining records (year) <strong>" +
+                (this.queryFeedback.remainingRecords != -1
+                  ? format.format(this.queryFeedback.remainingRecords)
+                  : "unknown") +
+                "</strong>.",
+              msgType: "success"
+            });
+
+            return response.data;
+          }
+        } else {
+          throw new Error("Something went wrong querying WOS API Expanded.");
+        }
+      }
+    } else {
+      throw new Error("WOS Client is not properly configured.");
     }
   }
 
   @Action
-  async runQuery(payload: { startRecord: number; count: number }) {
-    if (this.wosClient != undefined && this.usrQuery != null) {
+  async runIcQuery(payload: { uts: Array<string> }) {
+    if (this.icClient != undefined) {
       let badRequest = false;
       let tries = 0;
       while (!badRequest || (badRequest && tries <= 3)) {
-        const response = await this.wosClient.runQueryRaw(
-          this.usrQuery,
-          this.databaseId,
-          this.edition,
-          this.lang,
-          payload.startRecord,
-          payload.count
-        );
-        if (response.status > 400) {
+        let response;
+        if (this.xml)
+          response = await this.icClient.runQueryRawXml(
+            payload.uts,
+            this.icSchema.code,
+            this.icEsci
+          );
+        else
+          response = await this.icClient.runQueryRawJson(
+            payload.uts,
+            this.icSchema.code,
+            this.icEsci
+          );
+        if (response.status >= 400) {
           badRequest = true;
           tries++;
         } else {
-          const queryResult = response.data["QueryResult"];
-          const queryFeedback: QueryFeedBack = {
-            recordsFound: Number(queryResult["RecordsFound"]),
-            queryId: Number(queryResult["QueryID"]),
-            remainingRecords: Number(
-              response.headers["x-rec-amtperyear-remaining"]
-            )
-          };
-          this.context.commit("updateQueryFeedback", queryFeedback);
+          const format = new Intl.NumberFormat("en-us", {
+            minimumFractionDigits: 0
+          });
+          const remaining = response.headers["x-ratelimit-remaining-day"];
+          this.context.commit("updateIcRemainingRequests", remaining);
+          this.context.commit("updateIcMessagesToken", {
+            msg:
+              "InCites API validation succeeded. Remaining requests (day) <strong>" +
+              (remaining != -1
+                ? format.format(remaining) +
+                  "</strong> ~ " +
+                  remaining * 100 +
+                  " records"
+                : "<strong>unlimited</strong>") +
+              ".",
+            msgType: "success"
+          });
 
           return response.data;
         }

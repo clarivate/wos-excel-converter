@@ -1,14 +1,14 @@
 <template>
   <v-container>
     <v-row class="pl-1 pb-6">
-      <v-col cols="6"
-        ><div class="text-h5" v-if="!editName">
+      <v-col cols="6">
+        <div class="text-h5" v-if="!editName">
           {{ configName }}
-          <v-btn icon small
-            ><v-icon small @click="editName = !editName">{{
-              icons.edit
-            }}</v-icon></v-btn
-          >
+          <v-btn icon small :disabled="wos.generationStarted">
+            <v-icon small @click="editName = !editName"
+              >{{ icons.edit }}
+            </v-icon>
+          </v-btn>
         </div>
         <div v-if="editName">
           <v-text-field
@@ -24,19 +24,28 @@
             ]"
           >
             <template v-slot:append-outer>
-              <v-btn text class="text-none" @click="editName = !editName"
-                >Done</v-btn
-              ></template
-            ></v-text-field
-          >
+              <v-btn
+                text
+                class="text-none"
+                @click="editName = !editName"
+                :disabled="wos.generationStarted"
+                >Done
+              </v-btn>
+            </template>
+          </v-text-field>
         </div>
       </v-col>
       <v-col cols="6">
         <div class="float-right">
-          <v-btn text small @click="copyConfig()"
-            ><v-icon small class="mr-2">{{ icons.duplicate }}</v-icon>
-            Copy</v-btn
+          <v-btn
+            text
+            small
+            @click="copyConfig()"
+            :disabled="wos.generationStarted"
           >
+            <v-icon small class="mr-2">{{ icons.duplicate }}</v-icon>
+            Copy
+          </v-btn>
           <v-btn
             text
             small
@@ -44,16 +53,25 @@
             v-if="wos.allConfigNames.length > 1"
             class="mr-2"
             @click="wos.deleteConfig()"
-            ><v-icon small>{{ icons.delete }}</v-icon> Delete</v-btn
+            :disabled="wos.generationStarted"
           >
+            <v-icon small>{{ icons.delete }}</v-icon>
+            Delete
+          </v-btn>
         </div>
       </v-col>
     </v-row>
 
-    <v-expansion-panels focusable color="primary" v-model="selectedPanel">
+    <v-expansion-panels
+      focusable
+      color="primary"
+      v-model="selectedPanel"
+      :disabled="wos.generationStarted"
+    >
       <Token />
       <QueryDetails />
       <ExportFormat />
+      <ExportSettings />
     </v-expansion-panels>
   </v-container>
 </template>
@@ -75,8 +93,7 @@ import {
 } from "@mdi/js";
 import Token from "@/views/Token.vue";
 import ExportFormat from "@/views/ExportFormat.vue";
-import WosQuery from "@/views/WosQuery.vue";
-import SelectAPIs from "@/views/SelectAPIs.vue";
+import ExportSettings from "@/views/ExportSettings.vue";
 import { shell } from "electron";
 import WOSConverter from "@/store/WOSConverter";
 import { getModule } from "vuex-module-decorators";
@@ -85,16 +102,15 @@ import ConverterStorageService from "@/store/ConverterStorageService";
 
 @Component({
   components: {
-    WosQuery,
     QueryDetails,
     ExportFormat,
-    Query: WosQuery,
-    SelectAPIs,
+    ExportSettings,
     Token
   }
 })
 export default class MainWizard extends Vue {
   editName = false;
+
   get icons(): Record<string, string> {
     return {
       token: mdiKey,
@@ -125,8 +141,10 @@ export default class MainWizard extends Vue {
   }
 
   get selectedPanel(): number {
+    if (this.wos.generationStarted) this.wos.updateSelectedPanel(-1);
     return this.wos.selectedPanel;
   }
+
   set selectedPanel(index: number) {
     this.wos.updateSelectedPanel(index);
   }
@@ -134,6 +152,7 @@ export default class MainWizard extends Vue {
   get configName(): string {
     return this.wos.configName;
   }
+
   set configName(name: string) {
     if (name.length > 0 && name.length <= 25 && this.nameExists(name))
       this.wos.updateConfigName(name);

@@ -80,7 +80,6 @@
 import { Component, Vue } from "vue-property-decorator";
 import { getModule } from "vuex-module-decorators";
 import WOSConverter from "@/store/WOSConverter";
-import { shell } from "electron";
 
 @Component({})
 export default class IcQuery extends Vue {

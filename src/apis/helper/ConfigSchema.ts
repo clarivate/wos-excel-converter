@@ -44,7 +44,24 @@ const ConfigSchema = {
         }
       },
       additionalProperties: false,
-      required: ["mainPath", "columns"]
+      required: ["mainPath", "columns", "api"]
+    },
+    csv: {
+      id: "#csv",
+      type: "object",
+      properties: {
+        fieldDelimiter: {
+          type: "string"
+        },
+        rowDelimiter: {
+          type: "string"
+        },
+        quote: {
+          type: "string"
+        }
+      },
+      additionalProperties: false,
+      required: ["fieldDelimiter", "rowDelimiter", "quote"]
     }
   },
 
@@ -59,6 +76,17 @@ const ConfigSchema = {
     api: {
       type: "string",
       enum: ["WOS", "InCites", "Journals"]
+    },
+    citedReferences: {
+      type: "boolean"
+    },
+    citingReferences: {
+      type: "boolean"
+    },
+    csv: {
+      type: "object",
+      $ref: "#/definitions/csv",
+      additionalItems: false
     },
     columns: {
       type: "array",
@@ -91,13 +119,17 @@ const ConfigSchema = {
             type: "string",
             enum: ["WOS", "InCites", "Journals"]
           },
+          csv: {
+            type: "object",
+            $ref: "#csv"
+          },
           referenceColumns: {
             type: "array",
             items: {
               type: "string"
             },
             minItems: 1,
-            maxItems: 3
+            maxItems: 5
           },
           columns: {
             type: "array",
@@ -117,13 +149,13 @@ const ConfigSchema = {
           }
         },
         additionalProperties: false,
-        required: ["sheetName", "mainPath", "columns"]
+        required: ["sheetName", "mainPath", "columns", "api"]
       },
       additionalItems: false,
       minItems: 1
     }
   },
   additionalProperties: false,
-  required: ["sheetName", "rowArrayPath", "columns"]
+  required: ["sheetName", "rowArrayPath", "columns", "api"]
 };
 export default ConfigSchema;

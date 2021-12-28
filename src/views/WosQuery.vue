@@ -15,7 +15,7 @@
           class="text-none no-text-transform"
           v-bind="attrs"
           v-on="on"
-          :disabled="!wos.wosExpToken || wos.useWosQuery"
+          :disabled="!wos.wosExpToken || wos.disableWosQuery"
         >
           <span style="white-space: normal !important;">
             Web of Science API <br />Expanded Query Details
@@ -34,7 +34,7 @@
         </v-app-bar>
         <v-container>
           <v-row class="mt-12">
-            <v-col cols="12" xl="3">
+            <v-col cols="12" xl="6">
               <v-combobox
                 v-model="databaseId"
                 hint="Database to search. WOK represents all databases."
@@ -57,18 +57,7 @@
                 flat
               ></v-combobox>
             </v-col>
-            <v-col cols="12" xl="3">
-              <v-text-field
-                v-model="lang"
-                hint="Language of search. This element can take only one value: en for English. If no language is specified, English is passed by default."
-                persistent-hint
-                label="lang"
-                outlined
-                dense
-                flat
-              ></v-text-field>
-            </v-col>
-            <v-col cols="12" xl="3">
+            <v-col cols="12" xl="6">
               <v-text-field
                 v-model="edition"
                 hint="Edition(s) to be searched. If empty, user permissions will be substituted. Must include the name of the collection and edition name separated by '+', ex: WOS+SCI.
@@ -80,12 +69,35 @@
                 flat
               ></v-text-field>
             </v-col>
-            <v-col cols="12" xl="3">
+            <v-col cols="12" xl="4">
               <v-text-field
-                v-model="loadTimeSpan"
-                hint="Load time span (otherwise described as symbolic time span) defines a range of load dates. The load date is the date a record or its references are added to the database. If omitted, the maximum publication date will be inferred from the editions data. Any of D/W/M/Y prefixed with a number where D-Day, M-Month, W-Week, Y-Year allowed. Acceptable value range for Day(0-6), Week(1-52), Month(1-12) and Year(0-10), ex: 5D,30W,10M,8Y."
+                v-model="lang"
+                hint="Language of search. This element can take only one value: en for English. If no language is specified, English is passed by default."
                 persistent-hint
-                label="loadTimeSpan"
+                label="lang"
+                outlined
+                dense
+                flat
+              ></v-text-field>
+            </v-col>
+
+            <v-col cols="6" xl="4">
+              <v-text-field
+                v-model="createdTimeSpan"
+                hint="Filter on when the record firstly created in Web of Science. Format yyyy-mm-dd+yyyy-mm-dd"
+                persistent-hint
+                label="createdTimeSpan"
+                outlined
+                dense
+                flat
+              ></v-text-field>
+            </v-col>
+            <v-col cols="6" xl="4">
+              <v-text-field
+                v-model="modifiedTimeSpan"
+                hint="Filter on when the record modified in Web of Science. Format yyyy-mm-dd+yyyy-mm-dd"
+                persistent-hint
+                label="modifiedTimeSpan"
                 outlined
                 dense
                 flat
@@ -167,12 +179,20 @@ export default class WosQuery extends Vue {
     return this.wos.databaseId;
   }
 
-  set loadTimeSpan(timespan: string | null) {
-    this.wos.updateTimeSpan(timespan);
+  set createdTimeSpan(timespan: string | null) {
+    this.wos.updateCreatedTimeSpan(timespan);
   }
 
-  get loadTimeSpan() {
-    return this.wos.timeSpan;
+  get createdTimeSpan() {
+    return this.wos.createdTimeSpan;
+  }
+
+  set modifiedTimeSpan(timespan: string | null) {
+    this.wos.updateModifiedTimeSpan(timespan);
+  }
+
+  get modifiedTimeSpan() {
+    return this.wos.modifiedTimeSpan;
   }
 
   set edition(edition: string | null) {
@@ -229,7 +249,7 @@ export default class WosQuery extends Vue {
   }
   openWOSQueryDocumentation() {
     shell.openExternal(
-      "http://images.webofknowledge.com//WOKRS529AR7/help/WOS/hp_advanced_examples.html"
+      "https://webofscience.help.clarivate.com/en-us/Content/advanced-search.html"
     );
   }
 }

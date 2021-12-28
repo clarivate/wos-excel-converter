@@ -1,52 +1,16 @@
 import Vue from "vue";
 import VueRouter, { RouteConfig } from "vue-router";
-import WosQuery from "../views/WosQuery.vue";
 import About from "../views/About.vue";
-import AdvancedAttributeJsonConfig from "@/views/AdvancedAttributeJsonConfig.vue";
-import GenerateFile from "@/views/GenerateFile.vue";
-import SelectAPIs from "@/views/SelectAPIs.vue";
-import Token from "@/views/Token.vue";
-import ExportFormat from "@/views/ExportFormat.vue";
 import MainWizard from "@/views/MainWizard.vue";
 
 Vue.use(VueRouter);
 
 const routes: Array<RouteConfig> = [
   {
-    path: "/",
+    path: "",
     name: "main",
+    alias: "/",
     component: MainWizard
-  },
-
-  {
-    path: "/token",
-    name: "token",
-    component: Token
-  },
-  {
-    path: "/select-api",
-    name: "select-api",
-    component: SelectAPIs
-  },
-  {
-    path: "/export-format",
-    name: "export-format",
-    component: ExportFormat
-  },
-  {
-    path: "/query",
-    name: "query",
-    component: WosQuery
-  },
-  {
-    path: "/selection",
-    name: "attrSelection",
-    component: AdvancedAttributeJsonConfig
-  },
-  {
-    path: "/generate",
-    name: "genFile",
-    component: GenerateFile
   },
   {
     path: "/about",

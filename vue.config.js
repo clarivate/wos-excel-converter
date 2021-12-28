@@ -22,10 +22,10 @@ module.exports = {
     electronBuilder: {
       builderOptions: {
         appId: "com.clarivate.wos-excel-converter",
-        productName: "WOS API Exporter",
+        productName: "Web of Science™ API Exporter",
         copyright: "Copyright © 2021 Clarivate Analytics"
       },
-      externals: ["exceljs"],
+      externals: ["exceljs", "fast-csv", "fs"],
       nodeIntegration: true
     },
     i18n: {

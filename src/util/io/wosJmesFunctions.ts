@@ -8,7 +8,7 @@ import {
 let functionRegistered = false;
 
 export const registerConcatFunction = () => {
-  if (functionRegistered) {
+  if (!functionRegistered) {
     try {
       registerFunction(
         "concat",

@@ -7,7 +7,25 @@
       transition="dialog-bottom-transition"
     >
       <template v-slot:activator="{ on, attrs }">
+        <v-badge v-show="isError" color="error" dot>
+          <v-btn
+            icon
+            outlined
+            elevation="0"
+            small
+            class="ml-3"
+            :disabled="isConfigEnabled"
+            color="error"
+            v-bind="attrs"
+            v-on="on"
+          >
+            <v-icon>
+              {{ icons.config }}
+            </v-icon>
+          </v-btn>
+        </v-badge>
         <v-btn
+          v-show="!isError"
           icon
           outlined
           elevation="0"
@@ -16,17 +34,22 @@
           :disabled="isConfigEnabled"
           v-bind="attrs"
           v-on="on"
-          ><v-icon>{{ icons.config }}</v-icon></v-btn
         >
+          <v-icon>
+            {{ icons.config }}
+          </v-icon>
+        </v-btn>
       </template>
       <v-card>
         <v-app-bar dense dark color="#222222" fixed>
           <v-toolbar-title
-            >Advanced Export Settings for Excel/CSV</v-toolbar-title
-          >
+            >Advanced Export Settings for Excel/CSV
+          </v-toolbar-title>
           <v-btn-toggle outlined text class="ml-3" mandatory v-model="mode">
-            <v-btn class="text-none">Beginner (Coming soon) </v-btn>
-            <v-btn class="text-none">Expert </v-btn>
+            <v-btn class="text-none" disabled
+              >Beginner (Actively exploring)</v-btn
+            >
+            <v-btn class="text-none">Expert</v-btn>
           </v-btn-toggle>
           <v-spacer></v-spacer>
           <v-toolbar-items>
@@ -41,8 +64,8 @@
               <span class="text-sm-body-2">
                 This configuration defines sheets, its columns and the values
                 with JSON path selection. The JSON path selection is based on
-                <a text class="text-none" @click="openJmesGithub">JMES Path</a>.
-                This configuration is optimized only for Web of Science Core
+                <a class="text-none" @click="openJmesGithub">JMES Path</a>. This
+                configuration is optimized only for Web of Science Core
                 Collection responses. For CSV new files are created for sheet
                 configurations.
               </span>
@@ -53,8 +76,8 @@
             </v-col>
           </v-row>
           <v-row class="mt-12" v-show="mode === 0">
-            <v-col cols="12" md="6" lg="4"> Database </v-col>
-            <v-col cols="12" md="6" lg="4"> Database </v-col>
+            <v-col cols="12" md="6" lg="4"> Database</v-col>
+            <v-col cols="12" md="6" lg="4"> Database</v-col>
           </v-row>
         </v-container>
       </v-card>
@@ -74,7 +97,11 @@ import JSONEditor, {
   SchemaValidationError
 } from "jsoneditor";
 import { defaultConfig } from "@/apis/configs/defaultConfig";
+
+import "jsoneditor/dist/jsoneditor.min.css";
+
 import ConfigSchema from "@/apis/helper/ConfigSchema";
+import { ExportConfig } from "@/apis/helper/ExportConfig";
 
 @Component({})
 export default class AdvancedExportConfig extends Vue {
@@ -84,6 +111,10 @@ export default class AdvancedExportConfig extends Vue {
   editor: JSONEditor | null = null;
   jsonEditorMounted = false;
 
+  get mainConfig(): ExportConfig {
+    return defaultConfig;
+  }
+
   onValidationError(err: readonly (SchemaValidationError | ParseError)[]) {
     this.wos.updateExportConfigError(err.length > 0);
   }
@@ -92,10 +123,16 @@ export default class AdvancedExportConfig extends Vue {
     this.wos.updateExportConfigText(jsonString);
   }
 
+  get isError(): boolean {
+    return this.wos.exportConfigError;
+  }
+
   resetDefault() {
-    this.wos.updateExportConfigText(JSON.stringify(defaultConfig, null, 2));
+    this.wos.updateExportConfigError(false);
+    this.wos.updateExportConfigText(JSON.stringify(this.mainConfig, null, 2));
     this.editor?.set(this.wos.exportConfig);
   }
+
   openJmesGithub() {
     shell.openExternal("https://github.com/nanoporetech/jmespath-ts");
   }
@@ -103,12 +140,16 @@ export default class AdvancedExportConfig extends Vue {
   mounted() {
     this.renderJsonEditor();
   }
+
   updated() {
     this.renderJsonEditor();
   }
 
   renderJsonEditor() {
-    if (this.jsonEditorMounted) return;
+    if (this.jsonEditorMounted) {
+      this.editor?.setText(this.wos.exportConfigText);
+      return;
+    }
     const container = document.getElementById("jsoneditor") as HTMLElement;
     const options: JSONEditorOptions = {
       mode: "code",
@@ -117,14 +158,19 @@ export default class AdvancedExportConfig extends Vue {
       history: false,
       schema: ConfigSchema,
       onValidationError: err => this.onValidationError(err),
-      onChangeText: jsonString => this.onUserChange(jsonString)
+      onChangeText: jsonString => this.onUserChange(jsonString),
+      onChange: () => {
+        const text = this.wos.exportConfigText;
+        this.onUserChange(text);
+      }
     };
     try {
       this.editor = new JSONEditor(container, options);
       this.editor.setText(this.wos.exportConfigText);
       this.jsonEditorMounted = true;
     } catch (e) {
-      this.jsonEditorMounted = false;
+      this.jsonEditorMounted = e.name === "SyntaxError";
+      console.log("Error by mounting jsoneditor" + e);
     }
   }
 
@@ -133,6 +179,7 @@ export default class AdvancedExportConfig extends Vue {
       config: mdiCog
     };
   }
+
   get wos(): WOSConverter {
     return getModule(WOSConverter, this.$store);
   }
