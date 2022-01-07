@@ -12,7 +12,8 @@ export const wosStandard: ExportConfig = {
   columns: [
     {
       name: "PT",
-      path: "static_data.summary.pub_info.pubtype"
+      path:
+        "static_data.summary.pub_info.pubtype|conditionalReplace(['Journal','Book'], ['J','B'])"
     },
     {
       name: "TI",
