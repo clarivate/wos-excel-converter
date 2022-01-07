@@ -1,14 +1,13 @@
 {
-  "name": "wos-excel-converter",
-  "version": "0.1.6",
+  "name": "wos-api-exporter",
+  "version": "1.0.0-rc1",
   "private": true,
   "scripts": {
-    "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build",
     "test:unit": "vue-cli-service test:unit",
     "lint": "vue-cli-service lint",
     "electron:build": "vue-cli-service electron:build",
     "electron:serve": "vue-cli-service electron:serve",
+    "i18n:report": "vue-cli-service i18n:report --src \"./src/**/*.?(js|vue)\" --locales \"./src/locales/**/*.json\"",
     "postinstall": "electron-builder install-app-deps",
     "postuninstall": "electron-builder install-app-deps"
   },
@@ -17,6 +16,7 @@
     "@mdi/font": "^3.6.95",
     "@metrichor/jmespath": "^0.1.10",
     "axios": "^0.21.1",
+    "caniuse-lite": "^1.0.30001285",
     "core-js": "^3.6.5",
     "dateformat": "^4.5.1",
     "exceljs": "^4.2.0",
@@ -25,17 +25,20 @@
     "roboto-fontface": "*",
     "vue": "^2.6.11",
     "vue-class-component": "^7.2.3",
+    "vue-i18n": "^8.22.3",
     "vue-property-decorator": "^9.1.2",
     "vue-router": "^3.2.0",
     "vuetify": "^2.2.11",
     "vuex": "^3.4.0",
-    "vuex-module-decorators": "^1.0.1"
+    "vuex-module-decorators": "^1.0.1",
+    "xpath": "^0.0.32"
   },
   "devDependencies": {
+    "@intlify/vue-i18n-loader": "^1.0.0",
     "@mdi/js": "^5.9.55",
-    "@types/jest": "^26.0.20",
     "@types/dateformat": "^3.0.1",
     "@types/electron-devtools-installer": "^2.2.0",
+    "@types/jest": "^26.0.20",
     "@types/jmespath": "^0.15.0",
     "@types/jsoneditor": "^8.6.0",
     "@typescript-eslint/eslint-plugin": "^2.33.0",
@@ -62,11 +65,11 @@
     "sass-loader": "^8.0.2",
     "typescript": "~3.9.3",
     "vue-cli-plugin-electron-builder": "~2.0.0-rc.5",
+    "vue-cli-plugin-i18n": "~2.0.3",
     "vue-cli-plugin-vuetify": "~2.0.9",
     "vue-template-compiler": "^2.6.11",
     "vuetify-loader": "^1.3.0"
   },
-
   "jest": {
     "preset": "@vue/cli-plugin-unit-jest/presets/typescript-and-babel",
     "collectCoverage": true,

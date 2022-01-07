@@ -2,6 +2,7 @@ const ConfigSchema = {
   $schema: "http://json-schema.org/draft-04/schema#",
   definitions: {
     column: {
+      id: "#column",
       type: "object",
       properties: {
         name: {
@@ -15,15 +16,20 @@ const ConfigSchema = {
       required: ["name", "path"]
     },
     columnCollection: {
+      id: "#colCollection",
       type: "object",
       properties: {
         mainPath: {
           type: "string"
         },
+        api: {
+          type: "string",
+          enum: ["WOS", "InCites", "Journals"]
+        },
         columns: {
           type: "array",
           items: {
-            $ref: "#/definitions/column"
+            $ref: "#column"
           },
           additionalItems: false,
           minItems: 1
@@ -31,14 +37,31 @@ const ConfigSchema = {
         columnCollection: {
           type: "array",
           items: {
-            $ref: "#/definitions/columnCollection"
+            $ref: "#colCollection"
           },
           additionalItems: false,
           minItems: 1
         }
       },
       additionalProperties: false,
-      required: ["mainPath", "columns"]
+      required: ["mainPath", "columns", "api"]
+    },
+    csv: {
+      id: "#csv",
+      type: "object",
+      properties: {
+        fieldDelimiter: {
+          type: "string"
+        },
+        rowDelimiter: {
+          type: "string"
+        },
+        quote: {
+          type: "string"
+        }
+      },
+      additionalProperties: false,
+      required: ["fieldDelimiter", "rowDelimiter", "quote"]
     }
   },
 
@@ -50,10 +73,19 @@ const ConfigSchema = {
     rowArrayPath: {
       type: "string"
     },
+    api: {
+      type: "string",
+      enum: ["WOS", "InCites", "Journals"]
+    },
+    csv: {
+      type: "object",
+      $ref: "#/definitions/csv",
+      additionalItems: false
+    },
     columns: {
       type: "array",
       items: {
-        $ref: "#/definitions/column"
+        $ref: "#column"
       },
       additionalItems: false,
       minItems: 1
@@ -61,7 +93,7 @@ const ConfigSchema = {
     columnCollection: {
       type: "array",
       items: {
-        $ref: "#/definitions/columnCollection",
+        $ref: "#colCollection",
         additionalItems: false,
         minItems: 1
       }
@@ -77,18 +109,26 @@ const ConfigSchema = {
           mainPath: {
             type: "string"
           },
+          api: {
+            type: "string",
+            enum: ["WOS", "InCites", "Journals"]
+          },
+          csv: {
+            type: "object",
+            $ref: "#csv"
+          },
           referenceColumns: {
             type: "array",
             items: {
               type: "string"
             },
             minItems: 1,
-            maxItems: 3
+            maxItems: 5
           },
           columns: {
             type: "array",
             items: {
-              $ref: "#/definitions/column"
+              $ref: "#column"
             },
             additionalItems: false,
             minItems: 1
@@ -96,20 +136,20 @@ const ConfigSchema = {
           columnCollection: {
             type: "array",
             items: {
-              $ref: "#/definitions/columnCollection",
+              $ref: "#colCollection",
               additionalItems: false,
               minItems: 1
             }
           }
         },
         additionalProperties: false,
-        required: ["sheetName", "mainPath", "columns"]
+        required: ["sheetName", "mainPath", "columns", "api"]
       },
       additionalItems: false,
       minItems: 1
     }
   },
   additionalProperties: false,
-  required: ["sheetName", "rowArrayPath", "columns"]
+  required: ["sheetName", "rowArrayPath", "columns", "api"]
 };
 export default ConfigSchema;

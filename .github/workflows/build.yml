@@ -2,8 +2,8 @@ name: Build/release
 
 on:
   push:
-      tags:
-        - v*
+    tags:
+      - v*
 
 jobs:
   release:
@@ -30,7 +30,6 @@ jobs:
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-yarn-
-
       - name: Check out Git repository
         uses: actions/checkout@v1
 

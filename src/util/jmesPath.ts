@@ -113,3 +113,13 @@ export const sheetColumns = (
   result = result.concat(columnCollectionsNames(ccs));
   return result;
 };
+
+export const incitesUTs = (): string => {
+  return "api[].rval[].ACCESSION_NUMBER";
+};
+
+export const wosUTs = (isQuery: boolean): string => {
+  return isQuery
+    ? "Records.records.REC[].UID"
+    : "Data.Records.records.REC[].UID";
+};

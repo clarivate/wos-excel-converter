@@ -5,7 +5,8 @@ import { flattenArrays, RawValue } from "@/util/parse";
 import { JSONValue, search } from "@metrichor/jmespath";
 import { mainPath, sheetColumns, sheetPath } from "@/util/jmesPath";
 import WorkbookWriter = stream.xlsx.WorkbookWriter;
-import { registerConcatFunction } from "@/util/io/wosJmesFunctions";
+import { registerConcatFunction } from "@/util/wosJmesFunctions";
+import adjustConfig from "@/apis/configs/adjustConfig";
 
 interface WorkbookInternal {
   workbook: WorkbookWriter;
@@ -13,16 +14,25 @@ interface WorkbookInternal {
   otherSheets: Array<Worksheet>;
   mainHeader: Array<string>;
 }
-
 export class ExcelGenerator {
   private readonly _workBook: WorkbookInternal;
   private readonly _exportConfig: ExportConfig;
+  private readonly _wosData: boolean;
+  private readonly _icData: boolean;
 
-  constructor(exportConfig: ExportConfig, fileName: string) {
+  constructor(
+    eConfig: ExportConfig,
+    excelFile: string,
+    wosData: boolean,
+    icData: boolean
+  ) {
     registerConcatFunction();
-    this._exportConfig = exportConfig;
+
+    this._wosData = wosData;
+    this._icData = icData;
+    this._exportConfig = adjustConfig(eConfig, wosData, icData);
     const options = {
-      filename: fileName,
+      filename: excelFile,
       useStyles: false,
       useSharedStrings: false
     };
@@ -31,13 +41,13 @@ export class ExcelGenerator {
     workbook.lastModifiedBy = "WOS API Converter";
     workbook.created = new Date();
     workbook.modified = new Date();
-    const resOutSheet = workbook.addWorksheet(exportConfig.sheetName);
+    const resOutSheet = workbook.addWorksheet(this._exportConfig.sheetName);
     const header = sheetColumns(
-      exportConfig.columns,
-      exportConfig.columnCollection
+      this._exportConfig.columns,
+      this._exportConfig.columnCollection
     );
     resOutSheet.addRow(header).commit();
-    const otherSheets = exportConfig.sheets?.map((sheet: SheetConfig) => {
+    const otherSheets = this._exportConfig.sheets?.map((sheet: SheetConfig) => {
       const sheetWB = workbook.addWorksheet(sheet.sheetName);
       let columnsHeader: Array<string>;
       if (sheet.referenceColumns) {
@@ -60,10 +70,10 @@ export class ExcelGenerator {
     };
   }
 
-  exportData(responseData: JSONValue) {
+  exportData(wosResponse: JSONValue) {
     const mainJMESPath = mainPath(this._exportConfig);
 
-    const parsedData = search(responseData, mainJMESPath) as Array<
+    const parsedData = search(wosResponse, mainJMESPath) as Array<
       Array<RawValue>
     > | null;
     if (parsedData != null) {
@@ -86,7 +96,7 @@ export class ExcelGenerator {
             this._exportConfig.rowArrayPath,
             referenceValues
           );
-          const sheetParsedData = search(responseData, sheetJMESPath) as Array<
+          const sheetParsedData = search(wosResponse, sheetJMESPath) as Array<
             Array<RawValue>
           > | null;
           if (sheetParsedData != null) {

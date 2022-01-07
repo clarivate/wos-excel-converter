@@ -1,0 +1,14 @@
+{
+  "mainApp": {
+    "wos": "Web of Science",
+    "api": "API",
+    "selectApis": "API Tokens",
+    "exporter": "Exporter",
+    "powBy": "Powered by",
+    "about": "About",
+    "genFile": "Generate",
+    "wosTokenFeedback": ""
+  }
+}
+
+
