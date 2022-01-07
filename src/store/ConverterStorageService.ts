@@ -14,7 +14,8 @@ const DEFAULT_CONFIG: WOSConverterConfig = {
     timeSpan: "",
     modifiedTimeSpan: ""
   },
-  disableWosQuery: true,
+  disableWosQuery: false,
+  addCitedReferences: true,
   idsFile: "",
   incitesQueryDetails: {
     schema: { code: "wos", name: "Web of Science" },
@@ -196,6 +197,15 @@ export default class ConverterStorageService {
     return this._chosenConfig.disableWosQuery;
   }
 
+  set addCitedReferences(b: boolean) {
+    this._chosenConfig.addCitedReferences = b;
+    this.updateStorageConfigs();
+  }
+
+  get addCitedReferences(): boolean {
+    return this._chosenConfig.addCitedReferences;
+  }
+
   set icToken(token: string) {
     this._chosenConfig.icToken = token;
     this.updateStorageConfigs();
@@ -355,6 +365,7 @@ export interface WOSConverterConfig {
   icToken: string;
   wosSearchDetails: WOSExpandedQueryDetails;
   disableWosQuery: boolean;
+  addCitedReferences: boolean;
   idsFile: string;
   incitesQueryDetails: InCitesQueryDetails;
   exportSettings: ExportSettings;

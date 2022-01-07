@@ -176,6 +176,7 @@ import { wosUTs } from "@/util/jmesPath";
 import JsonGenerator from "@/util/io/JsonGenerator";
 import { select, SelectedValue, useNamespaces } from "xpath";
 import XmlGenerator from "@/util/io/XmlGenerator";
+import { wosStandard } from "@/apis/configs/wosStandard";
 
 const NEW_FILE_AFTER_RECORD = 10000;
 const pathSeparator = os
@@ -201,6 +202,7 @@ const selectWithIsi = useNamespaces({
 export default class App extends Vue {
   private excelGenerator?: ExcelGenerator;
   private csvGenerator?: CsvGenerator;
+  private wosGenerator?: CsvGenerator;
   private jsonGenerator?: JsonGenerator;
   private xmlGenerator?: XmlGenerator;
 
@@ -261,6 +263,7 @@ export default class App extends Vue {
   }
 
   async changeConfig(to: string) {
+    if (this.configName === to) return;
     this.wos.changeConfig(to);
     if (this.wos.wosExpToken) {
       await this.wos.verifyWosToken();
@@ -447,6 +450,7 @@ export default class App extends Vue {
 
       if (this.wos.excel) this.excelGenerator?.exportData(data);
       if (this.wos.csv) this.csvGenerator?.exportData(data);
+      if (this.wos.wosDefault) this.wosGenerator?.exportData(data);
       if (this.wos.json)
         this.jsonGenerator?.exportData(
           data as { Records: { records: { REC: Array<JSONValue> } } }
@@ -559,6 +563,44 @@ export default class App extends Vue {
         differentQuery: query
       });
       uts = this.extractUTsFromWosJson(wosData);
+      if (this.wos.addCitedReferences) {
+        let recs: JSONArray;
+        if (!this.wos.disableWosQuery) {
+          recs = (((wosData as JSONObject)["Records"] as JSONObject)[
+            "records"
+          ] as JSONObject)["REC"] as JSONArray;
+        } else {
+          recs = ((((wosData as JSONObject)["Data"] as JSONObject)[
+            "Records"
+          ] as JSONObject)["records"] as JSONObject)["REC"] as JSONArray;
+        }
+        for (let i = 0; i < recs.length; i++) {
+          const rec = recs[i] as JSONObject;
+          rec["cited_references"] = await this.wos.getAllReferences({
+            uniqueId: rec["UID"] as string
+          });
+          recs[i] = rec;
+        }
+        if (!this.wos.disableWosQuery) {
+          wosData = {
+            Records: {
+              records: {
+                REC: recs
+              }
+            }
+          };
+        } else {
+          wosData = {
+            Data: {
+              Records: {
+                records: {
+                  REC: recs
+                }
+              }
+            }
+          };
+        }
+      }
     } else {
       uts = this.batchIds(start, batchSize)
         .filter(value => value.startsWith("UT:"))
@@ -698,6 +740,15 @@ export default class App extends Vue {
           this.csvGenerator = new CsvGenerator(
             this.wos.exportConfig,
             this.currentDirectory + pathSeparator + CSV,
+            this.tokenSucceeded,
+            this.icTokenSucceeded
+          );
+        }
+
+        if (this.wos.wosDefault) {
+          this.wosGenerator = new CsvGenerator(
+            wosStandard,
+            this.currentDirectory + pathSeparator + WOS,
             this.tokenSucceeded,
             this.icTokenSucceeded
           );

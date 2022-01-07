@@ -77,12 +77,6 @@ const ConfigSchema = {
       type: "string",
       enum: ["WOS", "InCites", "Journals"]
     },
-    citedReferences: {
-      type: "boolean"
-    },
-    citingReferences: {
-      type: "boolean"
-    },
     csv: {
       type: "object",
       $ref: "#/definitions/csv",

@@ -181,11 +181,75 @@ export default class WosExpanded {
       .catch(ex => ex.response);
   }
 
-  getCitedReferences(
+  async getAllReferences(
+    uniqueId: string,
+    databaseId: string
+  ): Promise<CitedReferences> {
+    let start: number;
+    const count = 100;
+
+    const result: CitedReferences = {
+      Data: []
+    };
+    let recordsFound = count;
+
+    for (start = 1; start < recordsFound; start = start + count) {
+      const response = await this.citedReferencesWithRetries(
+        uniqueId,
+        databaseId,
+        start,
+        count
+      );
+      if (response.status == 200) {
+        const responseData = response.data as CitedReferencesResponse;
+        result.Data = result.Data.concat(responseData.Data);
+        recordsFound = responseData.QueryResult.RecordsFound;
+      } else {
+        return Promise.reject(
+          "Failed to fetch references for " +
+            uniqueId +
+            "in " +
+            databaseId +
+            ". Response " +
+            response.data
+        );
+      }
+    }
+
+    return Promise.resolve(result);
+  }
+
+  private async citedReferencesWithRetries(
     uniqueId: string,
     databaseId: string,
     startRecord: number,
     count: number
+  ): Promise<AxiosResponse> {
+    let tries = 0;
+    let response = await this.getCitedReferences(
+      uniqueId,
+      databaseId,
+      startRecord,
+      count
+    );
+    while (response.status >= 400 && tries < 3) {
+      tries = tries + 1;
+      response = await this.getCitedReferences(
+        uniqueId,
+        databaseId,
+        startRecord,
+        count
+      );
+    }
+    return response;
+  }
+
+  getCitedReferences(
+    uniqueId: string,
+    databaseId: string,
+    startRecord: number,
+    count: number,
+    isXml = false
   ): Promise<AxiosResponse> {
     return this._axiosInstance
       .get("/references", {
@@ -194,6 +258,9 @@ export default class WosExpanded {
           databaseId: databaseId,
           count: count,
           firstRecord: startRecord
+        },
+        headers: {
+          Accept: isXml ? "application/xml" : "application/json"
         }
       })
       .then(function(response) {
@@ -201,4 +268,27 @@ export default class WosExpanded {
       })
       .catch(ex => ex.response);
   }
+}
+
+export type CitedReference = {
+  UID: string;
+  CitedAuthor: string;
+  TimesCited: string;
+  Year: string;
+  Page: string;
+  Volume: string;
+  CitedWork: string;
+  CitedTitle: string;
+};
+
+export type CitedReferences = {
+  Data: Array<CitedReference>;
+};
+
+interface CitedReferencesResponse extends CitedReferences {
+  QueryResult: {
+    QueryID: number;
+    RecordsSearched: number;
+    RecordsFound: number;
+  };
 }

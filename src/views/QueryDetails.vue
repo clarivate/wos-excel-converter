@@ -98,7 +98,6 @@
                   @click="
                     wos.updatePlainFileWithIds('');
                     fileContent = [];
-                    wos.exportConfig = null;
                   "
                   >Remove
                 </v-btn>
@@ -163,6 +162,12 @@
               v-model="disableWosQuery"
               label="Disable query (you need to provide IDs by selecting a file)"
               :disabled="!wos.wosExpToken"
+            >
+            </v-switch>
+            <v-switch
+              v-model="addCitedReferences"
+              label="Add cited references (required for Web of Science default format)"
+              :disabled="!wos.wosExpToken || wos.wosDefault"
             >
             </v-switch>
           </v-col>
@@ -286,9 +291,17 @@ export default class QueryDetails extends Vue {
     this.wos.updateDisableWosQuery(b);
   }
 
+  get addCitedReferences(): boolean {
+    return this.wos.addCitedReferences;
+  }
+
+  set addCitedReferences(b: boolean) {
+    this.wos.updateAddCitedReferences(b);
+  }
+
   mounted() {
     if (!this.wos.wosExpToken) this.disableWosQuery = true;
-    this.reloadFileContent();
+    this.onConfigChangeReloadFileContent();
   }
 
   set errorFileRead(v: string | null) {
@@ -317,7 +330,9 @@ export default class QueryDetails extends Vue {
 
   @Watch("configName")
   onConfigChangeReloadFileContent() {
-    this.reloadFileContent();
+    this.wos.verifyWosToken().then(() => {
+      return this.reloadFileContent();
+    });
   }
 
   get showAnotherIcon(): boolean {

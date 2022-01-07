@@ -5,7 +5,7 @@ import { flattenArrays, RawValue } from "@/util/parse";
 import { JSONValue, search } from "@metrichor/jmespath";
 import { mainPath, sheetColumns, sheetPath } from "@/util/jmesPath";
 import WorkbookWriter = stream.xlsx.WorkbookWriter;
-import { registerConcatFunction } from "@/util/io/wosJmesFunctions";
+import { registerConcatFunction } from "@/util/wosJmesFunctions";
 import adjustConfig from "@/apis/configs/adjustConfig";
 
 interface WorkbookInternal {

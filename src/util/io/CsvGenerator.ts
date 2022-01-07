@@ -1,7 +1,7 @@
 import { ExportConfig, SheetConfig } from "@/apis/helper/ExportConfig";
 import * as fs from "fs";
 import * as csv from "fast-csv";
-import { registerConcatFunction } from "@/util/io/wosJmesFunctions";
+import { registerConcatFunction } from "@/util/wosJmesFunctions";
 import os from "os";
 import { mainPath, sheetColumns, sheetPath } from "@/util/jmesPath";
 import { CsvFormatterStream } from "@fast-csv/format/build/src/CsvFormatterStream";

@@ -235,8 +235,10 @@ export default class ExportFormat extends Vue {
     if (!this.wosTokenSucceeded) {
       this.wos.updateWosDefault(false);
     }
-    if (this.wos.wosDefault) return [0];
-    else return [];
+    if (this.wos.wosDefault) {
+      this.wos.updateAddCitedReferences(true);
+      return [0];
+    } else return [];
   }
 
   set advancedExport(advancedExport: number[]) {

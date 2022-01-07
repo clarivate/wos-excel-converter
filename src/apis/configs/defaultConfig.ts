@@ -3,8 +3,6 @@ import { ExportConfig } from "@/apis/helper/ExportConfig";
 export const defaultConfig: ExportConfig = {
   sheetName: "ResearchOutput",
   rowArrayPath: "Records.records.REC[*]",
-  citedReferences: true,
-  citingReferences: false,
   api: "WOS",
   csv: {
     rowDelimiter: "\n",
@@ -607,6 +605,50 @@ export const defaultConfig: ExportConfig = {
               path: "IS_BEST"
             }
           ]
+        }
+      ]
+    },
+    {
+      sheetName: "Cited References",
+      api: "WOS",
+      referenceColumns: ["Accession Number (UT)"],
+      mainPath: "cited_references.[Data][]",
+      columns: [
+        {
+          name: "Reference UT",
+          path: "UID"
+        },
+        {
+          name: "Cited Author",
+          path: "CitedAuthor"
+        },
+        {
+          name: "Times Cited",
+          path: "TimesCited"
+        },
+        {
+          name: "Year",
+          path: "Year"
+        },
+        {
+          name: "Page",
+          path: "Page"
+        },
+        {
+          name: "Volume",
+          path: "Volume"
+        },
+        {
+          name: "CitedWork",
+          path: "CitedWork"
+        },
+        {
+          name: "CitedTitle",
+          path: "CitedTitle"
+        },
+        {
+          name: "DOI",
+          path: "DOI"
         }
       ]
     }

@@ -1,6 +1,6 @@
 import { Action, Module, Mutation, VuexModule } from "vuex-module-decorators";
 import QueryFeedBack from "@/apis/helper/QueryFeedback";
-import WosExpanded from "@/apis/wos";
+import WosExpanded, { CitedReferences } from "@/apis/wos";
 import { ExportConfig } from "@/apis/helper/ExportConfig";
 import { defaultConfig } from "@/apis/configs/defaultConfig";
 import ConverterStorageService from "@/store/ConverterStorageService";
@@ -43,6 +43,9 @@ export default class WOSConverter extends VuexModule {
 
   private _disableWosQuery = ConverterStorageService.getInstance()
     .disableWosQuery;
+
+  private _addCitedReferences = ConverterStorageService.getInstance()
+    .addCitedReferences;
   private _icSchema: {
     code: string;
     name: string;
@@ -85,12 +88,7 @@ export default class WOSConverter extends VuexModule {
 
   private _generationStarted = false;
 
-  private _packageVersion = process.env.PACKAGE_VERSION || "0";
   private _fileContent: string[] = [];
-
-  get packageVersion(): string {
-    return this._packageVersion;
-  }
 
   get disableWosQuery(): boolean {
     return this._disableWosQuery;
@@ -100,6 +98,16 @@ export default class WOSConverter extends VuexModule {
   updateDisableWosQuery(b: boolean) {
     ConverterStorageService.getInstance().disableWosQuery = b;
     this._disableWosQuery = ConverterStorageService.getInstance().disableWosQuery;
+  }
+
+  get addCitedReferences(): boolean {
+    return this._addCitedReferences;
+  }
+
+  @Mutation
+  updateAddCitedReferences(b: boolean) {
+    ConverterStorageService.getInstance().addCitedReferences = b;
+    this._addCitedReferences = ConverterStorageService.getInstance().addCitedReferences;
   }
 
   get wosQueryDialog(): boolean {
@@ -550,51 +558,55 @@ export default class WOSConverter extends VuexModule {
   }
 
   @Action
-  async verifyWosToken() {
+  async verifyWosToken(): Promise<boolean> {
     if (this.wosExpToken == null || this.wosExpToken.trim() == "") {
       this.context.commit("updateWosMessagesToken", {
         msg: "Your Web of Science API Expanded token is empty",
         msgType: "warning"
       });
     } else {
-      this.wosClient
-        ?.verifyKey()
-        .then(records => {
-          const format = new Intl.NumberFormat("en-us", {
-            minimumFractionDigits: 0
+      if (this.wosClient)
+        return this.wosClient
+          .verifyKey()
+          .then(records => {
+            const format = new Intl.NumberFormat("en-us", {
+              minimumFractionDigits: 0
+            });
+            this.context.commit("updateRemainingRecords", records);
+            this.context.commit("updateWosMessagesToken", {
+              msg:
+                "Web of Science API Expanded validation succeeded. Remaining records (year) <strong>" +
+                (records != -1 ? format.format(records) : "unknown") +
+                "</strong>.",
+              msgType: "success"
+            });
+            return true;
+          })
+          .catch(ex => {
+            this.context.commit("updateRemainingRecords", 0);
+            this.context.commit("updateWosMessagesToken", {
+              msg:
+                ex.message +
+                " " +
+                ex.response.data.code +
+                ". Reason: " +
+                ex.response.data.message,
+              msgType: "error"
+            });
+            return false;
+          })
+          .finally(() => {
+            this.context.commit(
+              "updateQueryStatus",
+              WosQueryStatus.Uninitialized
+            );
+            this.context.commit("updateMessagesQuery", {
+              msg: null,
+              msgType: null
+            });
           });
-          this.context.commit("updateRemainingRecords", records);
-          this.context.commit("updateWosMessagesToken", {
-            msg:
-              "Web of Science API Expanded validation succeeded. Remaining records (year) <strong>" +
-              (records != -1 ? format.format(records) : "unknown") +
-              "</strong>.",
-            msgType: "success"
-          });
-        })
-        .catch(ex => {
-          this.context.commit("updateRemainingRecords", 0);
-          this.context.commit("updateWosMessagesToken", {
-            msg:
-              ex.message +
-              " " +
-              ex.response.data.code +
-              ". Reason: " +
-              ex.response.data.message,
-            msgType: "error"
-          });
-        })
-        .finally(() => {
-          this.context.commit(
-            "updateQueryStatus",
-            WosQueryStatus.Uninitialized
-          );
-          this.context.commit("updateMessagesQuery", {
-            msg: null,
-            msgType: null
-          });
-        });
     }
+    return Promise.resolve(false);
   }
 
   @Action
@@ -810,6 +822,17 @@ export default class WOSConverter extends VuexModule {
       }
     } else {
       throw new Error("WOS Client is not properly configured.");
+    }
+  }
+
+  @Action
+  async getAllReferences(payload: {
+    uniqueId: string;
+  }): Promise<CitedReferences> {
+    if (this.wosClient) {
+      return this.wosClient.getAllReferences(payload.uniqueId, this.databaseId);
+    } else {
+      return Promise.reject("WOS Client is not properly configured");
     }
   }
 
