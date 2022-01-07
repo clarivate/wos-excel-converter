@@ -23,7 +23,11 @@ module.exports = {
       builderOptions: {
         appId: "com.clarivate.wos-excel-converter",
         productName: "Web of Science™ API Exporter",
-        copyright: "Copyright © 2021 Clarivate Analytics"
+        copyright: "Copyright © 2021 Clarivate Analytics",
+        publish: ["github"],
+        linux: {
+          target: ["AppImage", "tar.gz"]
+        }
       },
       externals: ["exceljs", "fast-csv", "fs"],
       nodeIntegration: true
