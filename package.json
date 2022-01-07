@@ -1,6 +1,6 @@
 {
   "name": "wos-api-exporter",
-  "version": "1.0.0-beta",
+  "version": "1.0.0-rc1",
   "private": true,
   "scripts": {
     "test:unit": "vue-cli-service test:unit",
