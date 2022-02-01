@@ -110,7 +110,8 @@ export default class IcQuery extends Vue {
     { code: "ref2008", name: "UK REF 2008" },
     { code: "ref2014", name: "UK REF 2014" },
     { code: "ref2021", name: "UK REF 2021" },
-    { code: "wos", name: "Web of Science" }
+    { code: "wos", name: "Web of Science" },
+    { code: "sdg", name: "United Nations Sustainable Development Goals" }
   ];
 
   set icSchema(icSchema: { code: string; name: string }) {

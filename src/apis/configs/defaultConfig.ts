@@ -590,11 +590,11 @@ export const defaultConfig: ExportConfig = {
             },
             {
               name: "Category percentile",
-              path: "CATPERCENTILE"
+              path: "CAT_PERC"
             },
             {
-              name: "Category expected citations",
-              path: "CATPERCENTILE"
+              name: "Category Expected Citation",
+              path: "CAT_EXP_CITATION"
             },
             {
               name: "Category Normalized Citation Impact",
