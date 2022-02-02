@@ -20,7 +20,7 @@
     "core-js": "^3.6.5",
     "dateformat": "^4.5.1",
     "exceljs": "^4.2.0",
-    "filelist": "^1.0.2",
+    "filelist": "1.0.1",
     "jsoneditor": "^9.1.9",
     "register-service-worker": "^1.7.1",
     "roboto-fontface": "*",
