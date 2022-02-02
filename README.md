@@ -8,9 +8,9 @@ The initiative comes from the Web of Science API Product team to help the API us
 Although the Web of Science API product team is the primary maintainer, we welcome anyone to contribute. If you found an issue or have an idea for a feature, please [report it](https://github.com/Clarivate-SAR/wos-excel-converter/issues/new/choose) in GitHub instead of contacting Clarivate Support. This tool uses Electron/Typescript/Vue. If you are familiar with those technologies, feel free to make a pull request in GitHub with your ideas, we would appreciate it.
 
 Download and Install:
-- [Windows](https://github.com/clarivate/wos-excel-converter/releases/download/v1.0.0-rc1/wos-api-exporter-setup-1.0.0-rc2.exe)
-- [Mac](https://github.com/clarivate/wos-excel-converter/releases/download/v1.0.0-rc1/wos-api-exporter-1.0.0-rc2.dmg)
-- [Linux tar.gz](https://github.com/clarivate/wos-excel-converter/releases/download/v1.0.0-rc1/wos-api-exporter-1.0.0-rc2.tar.gz)
+- [Windows](https://github.com/clarivate/wos-excel-converter/releases/download/v1.0.0-rc2/wos-api-exporter-setup-1.0.0-rc2.exe)
+- [Mac](https://github.com/clarivate/wos-excel-converter/releases/download/v1.0.0-rc2/wos-api-exporter-1.0.0-rc2.dmg)
+- [Linux tar.gz](https://github.com/clarivate/wos-excel-converter/releases/download/v1.0.0-rc2/wos-api-exporter-1.0.0-rc2.tar.gz)
 
 ### License 
 GPL-3.0 License
