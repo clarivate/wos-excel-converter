@@ -18,8 +18,10 @@ export default class JsonGenerator {
     `);
   }
 
-  exportData(data: { Records: { records: { REC: Array<JSONValue> } } }) {
-    data.Records.records.REC.forEach(rec => {
+  exportData(data: {
+    Data: { Records: { records: { REC: Array<JSONValue> } } };
+  }) {
+    data.Data.Records.records.REC.forEach(rec => {
       let recString: string;
       if (this.first) {
         recString = JSON.stringify(rec, null, 2);

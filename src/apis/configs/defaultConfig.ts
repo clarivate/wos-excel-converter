@@ -2,7 +2,7 @@ import { ExportConfig } from "@/apis/helper/ExportConfig";
 
 export const defaultConfig: ExportConfig = {
   sheetName: "ResearchOutput",
-  rowArrayPath: "Records.records.REC[*]",
+  rowArrayPath: "Data.Records.records.REC[*]",
   api: "WOS",
   csv: {
     rowDelimiter: "\n",
@@ -50,6 +50,35 @@ export const defaultConfig: ExportConfig = {
     {
       name: "Times Cited",
       path: "dynamic_data.citation_related.tc_list.silo_tc.local_count"
+    },
+    {
+      name: "Citing items with citation context",
+      path: "dynamic_data.citation_related.tc_list_cc.dedup_total_count"
+    },
+    {
+      name: "Background",
+      path:
+        "dynamic_data.citation_related.tc_list_cc.function_tc[?func_class=='background'].local_count[]|[0]"
+    },
+    {
+      name: "Support",
+      path:
+        "dynamic_data.citation_related.tc_list_cc.function_tc[?func_class=='support'].local_count[]|[0]"
+    },
+    {
+      name: "Differ",
+      path:
+        "dynamic_data.citation_related.tc_list_cc.function_tc[?func_class=='differ'].local_count[]|[0]"
+    },
+    {
+      name: "Discuss",
+      path:
+        "dynamic_data.citation_related.tc_list_cc.function_tc[?func_class=='discuss'].local_count[]|[0]"
+    },
+    {
+      name: "Basis",
+      path:
+        "dynamic_data.citation_related.tc_list_cc.function_tc[?func_class=='basis'].local_count[]|[0]"
     },
     {
       name: "Keywords",
@@ -422,12 +451,12 @@ export const defaultConfig: ExportConfig = {
             {
               name: "ResearcherID",
               path:
-                '"data-item-ids"."data-item-id"[?"id-type"==\'PreferredRID\'].content|[0]'
+                '"data-item-ids".["data-item-id"][].{rid: @}[?rid."id-type"==\'PreferredRID\'].rid[].content|[0]'
             },
             {
               name: "Other ResearcherID",
               path:
-                '"data-item-ids"."data-item-id"[?"id-type"==\'OtherRID\'].content|[0]'
+                '"data-item-ids".["data-item-id"][].{rid: @}[?rid."id-type"==\'OtherRID\'].rid[].content|[0]'
             },
             {
               name: "ORCID ID",
@@ -503,12 +532,12 @@ export const defaultConfig: ExportConfig = {
         {
           name: "ResearcherID",
           path:
-            '"data-item-ids"."data-item-id"[?"id-type"==\'PreferredRID\'].content|[0]'
+            '"data-item-ids".["data-item-id"][].{rid: @}[?rid."id-type"==\'PreferredRID\'].rid[].content|[0]'
         },
         {
           name: "Other ResearcherID",
           path:
-            '"data-item-ids"."data-item-id"[?"id-type"==\'OtherRID\'].content|[0]'
+            '"data-item-ids".["data-item-id"][].{rid: @}[?rid."id-type"==\'OtherRID\'].rid[].content|[0]'
         },
         {
           name: "ORCID ID",
@@ -555,6 +584,18 @@ export const defaultConfig: ExportConfig = {
             {
               name: "Grant Agency",
               path: "grant_agency"
+            },
+            {
+              name: "1st Grant Agency Enhanced Name",
+              path: "grant_agency_names[?pref=='Y'].content|[0]"
+            },
+            {
+              name: "2nd Grant Agency Enhanced Name",
+              path: "grant_agency_names[?pref=='Y'].content|[1]"
+            },
+            {
+              name: "Grant Agency Enhanced Names (concatenated)",
+              path: "grant_agency_names[?pref=='Y'].content[]|concat(@,'; ')"
             },
             {
               name: "Grant IDs (concatenated)",

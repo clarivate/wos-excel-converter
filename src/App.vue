@@ -453,7 +453,7 @@ export default class App extends Vue {
       if (this.wos.wosDefault) this.wosGenerator?.exportData(data);
       if (this.wos.json)
         this.jsonGenerator?.exportData(
-          data as { Records: { records: { REC: Array<JSONValue> } } }
+          data as { Data: { Records: { records: { REC: Array<JSONValue> } } } }
         );
     }
   }

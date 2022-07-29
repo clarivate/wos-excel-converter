@@ -120,6 +120,6 @@ export const incitesUTs = (): string => {
 
 export const wosUTs = (isQuery: boolean): string => {
   return isQuery
-    ? "Records.records.REC[].UID"
+    ? "Data.Records.records.REC[].UID"
     : "Data.Records.records.REC[].UID";
 };

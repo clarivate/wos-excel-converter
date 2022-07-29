@@ -779,10 +779,15 @@ export default class WOSConverter extends VuexModule {
           }
           return response.data;
         } else if (this.usrQuery && this.queryFeedback) {
-          const response = await this.wosClient.runQueryIdRaw(
-            this.queryFeedback.queryId,
+          const response = await this.wosClient.runQueryRaw(
+            this.usrQuery,
+            this.databaseId,
+            this.edition,
+            this.lang,
             payload.startRecord,
             payload.count,
+            this.createdTimeSpan,
+            this.modifiedTimeSpan,
             this.xml
           );
           if (response.status >= 400) {
