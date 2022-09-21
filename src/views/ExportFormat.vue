@@ -38,7 +38,9 @@
           <v-col cols="4" style="border-right: 1px solid #a1a1a1"
             >Raw export
           </v-col>
-          <v-col cols="4">Web of Science Default format</v-col>
+          <v-col cols="4" disabled
+            >Web of Science Default format (Coming soon)</v-col
+          >
         </v-row>
         <v-row>
           <v-col cols="4" style="border-right: 1px solid #a1a1a1">
@@ -100,7 +102,7 @@
               </v-btn-toggle>
             </v-toolbar>
           </v-col>
-          <v-col cols="4">
+          <v-col cols="4" disabled>
             <v-toolbar elevation="0" dense>
               <v-btn-toggle
                 v-model="wosDefaultFormat"
@@ -113,7 +115,7 @@
                   text
                   class="text-none"
                   height="60"
-                  :disabled="!wosTokenSucceeded"
+                  :disabled="!wosTokenSucceeded || true"
                 >
                   <v-icon class="pr-1">{{ icons.wosfile }}</v-icon>
                   <span class="pa-2">
@@ -145,7 +147,7 @@
             JSON to generate other formats, therefore JSON can be combined with
             others.
           </v-col>
-          <v-col cols="4" class="text--secondary text-sm-body-2"
+          <v-col cols="4" class="text--secondary text-sm-body-2" disabled
             >Use this format if you want to import the data in other tools,e.g.,
             VOSViewer. Please note that API does not expose all information,
             e.g. corresponding emails. These fields will be empty. This requires

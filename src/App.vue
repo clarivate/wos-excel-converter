@@ -421,9 +421,9 @@ export default class App extends Vue {
   batchIds(start: number, batchSize: number): string[] {
     const idArrStart = start - 1;
     const idArrayEnd =
-      start - 1 + batchSize - 1 >= this.wos.fileContent.length
-        ? this.wos.fileContent.length - 1
-        : start - 1 + batchSize - 1;
+      start - 1 + batchSize >= this.wos.fileContent.length
+        ? this.wos.fileContent.length
+        : start - 1 + batchSize;
     return this.wos.fileContent.slice(idArrStart, idArrayEnd);
   }
 
@@ -563,12 +563,23 @@ export default class App extends Vue {
         differentQuery: query
       });
       uts = this.extractUTsFromWosJson(wosData);
+      if (uts.length === 0) {
+        return {
+          Data: {
+            Records: {
+              records: {
+                REC: []
+              }
+            }
+          }
+        };
+      }
       if (this.wos.addCitedReferences) {
         let recs: JSONArray;
         if (!this.wos.disableWosQuery) {
-          recs = (((wosData as JSONObject)["Records"] as JSONObject)[
-            "records"
-          ] as JSONObject)["REC"] as JSONArray;
+          recs = ((((wosData as JSONObject)["Data"] as JSONObject)[
+            "Records"
+          ] as JSONObject)["records"] as JSONObject)["REC"] as JSONArray;
         } else {
           recs = ((((wosData as JSONObject)["Data"] as JSONObject)[
             "Records"
@@ -583,9 +594,11 @@ export default class App extends Vue {
         }
         if (!this.wos.disableWosQuery) {
           wosData = {
-            Records: {
-              records: {
-                REC: recs
+            Data: {
+              Records: {
+                records: {
+                  REC: recs
+                }
               }
             }
           };
@@ -617,9 +630,9 @@ export default class App extends Vue {
       const icMap = this.convertIcResponseToMapJson(icData);
       let recs: JSONArray;
       if (!this.wos.disableWosQuery) {
-        recs = (((wosData as JSONObject)["Records"] as JSONObject)[
-          "records"
-        ] as JSONObject)["REC"] as JSONArray;
+        recs = ((((wosData as JSONObject)["Data"] as JSONObject)[
+          "Records"
+        ] as JSONObject)["records"] as JSONObject)["REC"] as JSONArray;
       } else {
         recs = ((((wosData as JSONObject)["Data"] as JSONObject)[
           "Records"
@@ -634,14 +647,27 @@ export default class App extends Vue {
         return rec as JSONValue;
       });
       finalData = {
-        Records: {
-          records: {
-            REC: recs
+        Data: {
+          Records: {
+            records: {
+              REC: recs
+            }
           }
         }
       };
     } else if (wosData && !icData) {
-      finalData = wosData;
+      const recs = ((((wosData as JSONObject)["Data"] as JSONObject)[
+        "Records"
+      ] as JSONObject)["records"] as JSONObject)["REC"] as JSONArray;
+      finalData = {
+        Data: {
+          Records: {
+            records: {
+              REC: recs
+            }
+          }
+        }
+      };
     } else if (!wosData && icData) {
       const icMap = this.convertIcResponseToMapJson(icData);
       const recs = Array.from(icMap.entries()).map(value => {
@@ -652,9 +678,11 @@ export default class App extends Vue {
         };
       });
       finalData = {
-        Records: {
-          records: {
-            REC: recs
+        Data: {
+          Records: {
+            records: {
+              REC: recs
+            }
           }
         }
       };
@@ -667,9 +695,13 @@ export default class App extends Vue {
     const allUts = search(wosData, wosUTs(!this.wos.disableWosQuery)) as Array<
       string
     >;
-    //filter only wos cc
-    const filteredUts = allUts.filter(value => value.startsWith("WOS:"));
-    return filteredUts.map(value => value.replace("WOS:", ""));
+    if (allUts) {
+      //filter only wos cc
+      const filteredUts = allUts.filter(value => value.startsWith("WOS:"));
+      return filteredUts.map(value => value.replace("WOS:", ""));
+    } else {
+      return [];
+    }
   }
 
   extractUTsFromWosXml(wosData: Document): string[] {

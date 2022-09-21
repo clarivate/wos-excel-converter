@@ -11,11 +11,7 @@ export default class XmlGenerator {
     this._writeStream = fs.createWriteStream(file, {
       encoding: "utf-8"
     });
-    this._writeStream.write(`
-<Records>
-<records>
-
-`);
+    this._writeStream.write(`<Records><records>`);
   }
 
   exportData(data: Document | null) {
@@ -29,10 +25,7 @@ export default class XmlGenerator {
   }
 
   commitAll() {
-    this._writeStream.write(`
-</records>
-</Records>
-    `);
+    this._writeStream.write(`</records></Records>`);
     this._writeStream.end();
   }
 }

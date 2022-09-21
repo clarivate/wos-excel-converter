@@ -11,17 +11,15 @@ export default class JsonGenerator {
     this._writeStream = fs.createWriteStream(file, {
       encoding: "utf-8"
     });
-    this._writeStream.write(`{
-    "Records": {
-      "records": {
-        "REC": [
-    `);
+    this._writeStream.write(`{ "Records": { "records": { "REC": [ `);
   }
 
   exportData(data: {
-    Data: { Records: { records: { REC: Array<JSONValue> } } };
+    Data: {
+      Records: { records: { REC: Array<JSONValue> | undefined | null } };
+    };
   }) {
-    data.Data.Records.records.REC.forEach(rec => {
+    data.Data.Records.records.REC?.forEach(rec => {
       let recString: string;
       if (this.first) {
         recString = JSON.stringify(rec, null, 2);
