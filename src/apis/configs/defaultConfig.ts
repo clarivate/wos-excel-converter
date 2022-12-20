@@ -81,6 +81,36 @@ export const defaultConfig: ExportConfig = {
         "dynamic_data.citation_related.tc_list_cc.function_tc[?func_class=='basis'].local_count[]|[0]"
     },
     {
+      name: "CT - Macro ID",
+      path:
+        'dynamic_data.citation_related.citation_topics."subj-group".subject[?"content-type"==\'macro\']."content-id"[]|[0]'
+    },
+    {
+      name: "CT - Macro name",
+      path:
+        'dynamic_data.citation_related.citation_topics."subj-group".subject[?"content-type"==\'macro\']."content"[]|[0]'
+    },
+    {
+      name: "CT - Meso ID",
+      path:
+        'dynamic_data.citation_related.citation_topics."subj-group".subject[?"content-type"==\'meso\']."content-id"[]|[0]'
+    },
+    {
+      name: "CT - Meso name",
+      path:
+        'dynamic_data.citation_related.citation_topics."subj-group".subject[?"content-type"==\'meso\']."content"[]|[0]'
+    },
+    {
+      name: "CT - Micro ID",
+      path:
+        'dynamic_data.citation_related.citation_topics."subj-group".subject[?"content-type"==\'micro\']."content-id"[]|[0]'
+    },
+    {
+      name: "CT - Micro name",
+      path:
+        'dynamic_data.citation_related.citation_topics."subj-group".subject[?"content-type"==\'micro\']."content"[]|[0]'
+    },
+    {
       name: "Keywords",
       path: "static_data.fullrecord_metadata.keywords.[keyword][]|concat(@,',')"
     },
