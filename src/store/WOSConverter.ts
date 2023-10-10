@@ -474,7 +474,7 @@ export default class WOSConverter extends VuexModule {
 
   @Mutation
   updateModifiedTimeSpan(timespan: string | null) {
-    ConverterStorageService.getInstance().modifiedTimeSpan = timespan || "";
+    ConverterStorageService.getInstance().modifiedTimeSpan = timespan;
     this._modifiedTimeSpan = ConverterStorageService.getInstance().modifiedTimeSpan;
   }
 

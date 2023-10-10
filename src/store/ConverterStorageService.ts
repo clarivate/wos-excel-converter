@@ -260,12 +260,12 @@ export default class ConverterStorageService {
     return this._chosenConfig.wosSearchDetails.timeSpan;
   }
 
-  set modifiedTimeSpan(timeSpan: string) {
+  set modifiedTimeSpan(timeSpan: string | null) {
     this._chosenConfig.wosSearchDetails.modifiedTimeSpan = timeSpan;
     this.updateStorageConfigs();
   }
 
-  get modifiedTimeSpan(): string {
+  get modifiedTimeSpan(): string | null {
     return this._chosenConfig.wosSearchDetails.modifiedTimeSpan;
   }
 
@@ -377,7 +377,7 @@ export interface WOSExpandedQueryDetails {
   lang: string;
   usrQuery: string;
   timeSpan: string;
-  modifiedTimeSpan: string;
+  modifiedTimeSpan: string | null;
 }
 
 export interface InCitesQueryDetails {

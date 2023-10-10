@@ -65,29 +65,29 @@ export default class WosExpanded {
     createdSpan: string | null = null,
     modifiedSpan: string | null = null
   ): Promise<QueryFeedBack> {
-    return this._axiosInstance
-      .post("", {
-        databaseId: databaseId,
-        usrQuery: usrQuery,
-        edition: edition,
-        lang: lang,
-        createdTimeSpan: createdSpan,
-        modifiedTimeSpan: modifiedSpan,
-        firstRecord: 1,
-        count: 0
-      })
-      .then(function(response) {
-        const queryResult = response.data["QueryResult"];
-        const queryFeedback: QueryFeedBack = {
-          recordsFound: Number(queryResult["RecordsFound"]),
-          queryId: Number(queryResult["QueryID"]),
-          remainingRecords: Number(
-            response.headers["x-rec-amtperyear-remaining"]
-          )
-        };
+    const params: Record<string, any> = {
+      databaseId: databaseId,
+      usrQuery: usrQuery,
+      edition: edition,
+      lang: lang,
+      createdTimeSpan: createdSpan,
+      firstRecord: 1,
+      count: 0
+    };
 
-        return queryFeedback;
-      });
+    if (databaseId !== "WOK" || modifiedSpan)
+      params.modifiedTimeSpan = modifiedSpan;
+
+    return this._axiosInstance.post("", params).then(function(response) {
+      const queryResult = response.data["QueryResult"];
+      const queryFeedback: QueryFeedBack = {
+        recordsFound: Number(queryResult["RecordsFound"]),
+        queryId: Number(queryResult["QueryID"]),
+        remainingRecords: Number(response.headers["x-rec-amtperyear-remaining"])
+      };
+
+      return queryFeedback;
+    });
   }
 
   runQueryIdRaw(
@@ -123,31 +123,22 @@ export default class WosExpanded {
     modifiedSpan: string | null = null,
     isXml = false
   ): Promise<AxiosResponse> {
-    let params: Record<string, string | number | null>;
-    if (!lang) {
-      params = {
-        databaseId: databaseId,
-        usrQuery: usrQuery,
-        edition: edition,
-        firstRecord: startRecord,
-        count: count,
-        createdTimeSpan: createdSpan,
-        modifiedTimeSpan: modifiedSpan,
-        sortField: "LD+D"
-      };
-    } else {
-      params = {
-        databaseId: databaseId,
-        usrQuery: usrQuery,
-        edition: edition,
-        lang: lang,
-        firstRecord: startRecord,
-        count: count,
-        createdTimeSpan: createdSpan,
-        modifiedTimeSpan: modifiedSpan,
-        sortField: "LD+D"
-      };
+    const params: Record<string, any> = {
+      databaseId: databaseId,
+      usrQuery: usrQuery,
+      edition: edition,
+      firstRecord: startRecord,
+      count: count,
+      createdTimeSpan: createdSpan,
+      sortField: "LD+D"
+    };
+    if (lang) {
+      params.lang = lang;
     }
+    if (databaseId !== "WOK" || modifiedSpan) {
+      params.modifiedSpan = modifiedSpan;
+    }
+
     return this._axiosInstance
       .post("", params, {
         headers: {
