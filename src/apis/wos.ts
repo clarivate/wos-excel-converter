@@ -65,7 +65,7 @@ export default class WosExpanded {
     createdSpan: string | null = null,
     modifiedSpan: string | null = null
   ): Promise<QueryFeedBack> {
-    const params: Record<string, any> = {
+    const params: Record<string, string | number | null> = {
       databaseId: databaseId,
       usrQuery: usrQuery,
       edition: edition,
@@ -123,7 +123,7 @@ export default class WosExpanded {
     modifiedSpan: string | null = null,
     isXml = false
   ): Promise<AxiosResponse> {
-    const params: Record<string, any> = {
+    const params: Record<string, string | number | null> = {
       databaseId: databaseId,
       usrQuery: usrQuery,
       edition: edition,

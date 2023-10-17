@@ -44,7 +44,20 @@
                 class="text--secondary pb-1"
                 style="font-size: 0.9em"
                 v-if="wos.createdTimeSpan"
-                >loadTimeSpan: {{ wos.createdTimeSpan }}
+                >createdTimeSpan: {{ wos.createdTimeSpan }}
+              </v-list-item-title>
+              <v-list-item-title
+                class="text--secondary pb-1"
+                style="font-size: 0.9em"
+                v-if="wos.modifiedTimeSpan"
+                >modifiedTimeSpan: {{ wos.modifiedTimeSpan }}
+              </v-list-item-title>
+              <v-list-item-title
+                class="text-warning pb-1"
+                style="font-size: 0.9em"
+                v-if="wos.addCitedReferences"
+                >Activating cited references leads to a long export time and
+                high memory usage.
               </v-list-item-title>
             </v-list>
           </v-col>
@@ -160,13 +173,13 @@
             <WosQuery />
             <v-switch
               v-model="disableWosQuery"
-              label="Disable query (you need to provide IDs by selecting a file)"
+              label="Disable query and use 'Plain file with IDs (UTF-8)' instead"
               :disabled="!wos.wosExpToken"
             >
             </v-switch>
             <v-switch
               v-model="addCitedReferences"
-              label="Add cited references (required for Web of Science default format)"
+              label="Add cited references (beta)"
               :disabled="!wos.wosExpToken || wos.wosDefault"
             >
             </v-switch>

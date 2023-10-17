@@ -241,12 +241,12 @@ export default class WOSConverter extends VuexModule {
     this._generationStarted = started;
   }
 
-  get chosenDirectory(): string | undefined {
+  get chosenDirectory(): string {
     return this._chosenDirectory;
   }
 
   @Mutation
-  updateChosenDirectory(dir: string | undefined) {
+  updateChosenDirectory(dir: string) {
     ConverterStorageService.getInstance().chosenDirectory = dir ? dir : "";
     this._chosenDirectory = ConverterStorageService.getInstance().chosenDirectory;
   }
@@ -676,9 +676,9 @@ export default class WOSConverter extends VuexModule {
             );
             this.context.commit("updateMessagesQuery", {
               msg:
-                "Web of Science API Query passed. Records found: <strong>" +
+                "Query passed. Records found: <strong>" +
                 format.format(feedback.recordsFound) +
-                "</strong>. You can export max 100k records through API.",
+                "</strong>. API allows max 100k records.",
               msgType: "warning"
             });
           } else if (feedback.recordsFound > feedback.remainingRecords) {
@@ -688,7 +688,7 @@ export default class WOSConverter extends VuexModule {
             );
             this.context.commit("updateMessagesQuery", {
               msg:
-                "Web of Science API Query passed. Records found: <strong>" +
+                "Query passed. Records found: <strong>" +
                 format.format(feedback.recordsFound) +
                 "</strong>. You do not have enough remaining records.",
               msgType: "warning"
@@ -700,7 +700,7 @@ export default class WOSConverter extends VuexModule {
             );
             this.context.commit("updateMessagesQuery", {
               msg:
-                "Web of Science API Query passed. Records found: <strong>" +
+                "Query passed. Records found: <strong>" +
                 format.format(feedback.recordsFound) +
                 "</strong>",
               msgType: "success"

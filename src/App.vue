@@ -218,8 +218,8 @@ export default class App extends Vue {
   private exportCounter = 0;
   private fileIsSaving = false;
   private part = 1;
-  private version = "unknowns";
-  currentDirectory: string | null = null;
+  private version = "unknown";
+  currentDirectory: string = os.homedir();
   utsForInCites: Array<string> = [];
   stopped = false;
 
@@ -386,11 +386,11 @@ export default class App extends Vue {
     );
   }
 
-  get chosenDirectory(): string | undefined {
+  get chosenDirectory(): string {
     return this.wos.chosenDirectory;
   }
 
-  set chosenDirectory(dir: string | undefined) {
+  set chosenDirectory(dir: string) {
     this.wos.updateChosenDirectory(dir);
   }
 

@@ -181,11 +181,11 @@ export default class ExportSettings extends Vue {
     this.wos.updateFileName(fileName);
   }
 
-  get chosenDirectory(): string | undefined {
+  get chosenDirectory(): string {
     return this.wos.chosenDirectory;
   }
 
-  set chosenDirectory(dir: string | undefined) {
+  set chosenDirectory(dir: string) {
     this.wos.updateChosenDirectory(dir);
   }
 

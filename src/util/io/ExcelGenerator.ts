@@ -30,7 +30,7 @@ export class ExcelGenerator {
 
     this._wosData = wosData;
     this._icData = icData;
-    this._exportConfig = adjustConfig(eConfig, wosData, icData);
+    this._exportConfig = adjustConfig(eConfig, this._wosData, this._icData);
     const options = {
       filename: excelFile,
       useStyles: false,
