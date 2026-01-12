@@ -75,8 +75,7 @@ export default class WosExpanded {
       count: 0
     }
 
-    if (databaseId !== 'WOK' || modifiedSpan)
-      params.modifiedTimeSpan = modifiedSpan
+    if (databaseId !== 'WOK' || modifiedSpan) params.modifiedTimeSpan = modifiedSpan
 
     return this._axiosInstance.post('', params).then(function (response) {
       const queryResult = response.data['QueryResult']
@@ -172,10 +171,7 @@ export default class WosExpanded {
       .catch((ex) => ex.response)
   }
 
-  async getAllReferences(
-    uniqueId: string,
-    databaseId: string
-  ): Promise<CitedReferences> {
+  async getAllReferences(uniqueId: string, databaseId: string): Promise<CitedReferences> {
     let start: number
     const count = 100
 
@@ -185,12 +181,7 @@ export default class WosExpanded {
     let recordsFound = count
 
     for (start = 1; start < recordsFound; start = start + count) {
-      const response = await this.citedReferencesWithRetries(
-        uniqueId,
-        databaseId,
-        start,
-        count
-      )
+      const response = await this.citedReferencesWithRetries(uniqueId, databaseId, start, count)
       if (response.status === 200) {
         const responseData = response.data as CitedReferencesResponse
         result.Data = result.Data.concat(responseData.Data)
@@ -218,20 +209,10 @@ export default class WosExpanded {
     count: number
   ): Promise<AxiosResponse> {
     let retries = 0
-    let response = await this.getCitedReferences(
-      uniqueId,
-      databaseId,
-      startRecord,
-      count
-    )
+    let response = await this.getCitedReferences(uniqueId, databaseId, startRecord, count)
     while (response.status >= 400 && retries < 3) {
       retries = retries + 1
-      response = await this.getCitedReferences(
-        uniqueId,
-        databaseId,
-        startRecord,
-        count
-      )
+      response = await this.getCitedReferences(uniqueId, databaseId, startRecord, count)
     }
     return response
   }

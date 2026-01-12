@@ -13,11 +13,7 @@ const initializeMainLogger = () => {
     preload: true
   })
 
-  const appLogFilePath = join(
-    app.getPath('userData'),
-    'logs',
-    'wosapiexporter.log'
-  )
+  const appLogFilePath = join(app.getPath('userData'), 'logs', 'wosapiexporter.log')
 
   log.transports.file.resolvePathFn = () =>
     join(app.getPath('userData'), 'logs', 'wosapiexporter.log')
@@ -26,7 +22,14 @@ const initializeMainLogger = () => {
   log.transports.console.format = '{h}:{i}:{s}.{ms} {text}'
   log.transports.console.level = 'silly'
 
+  console.log = log.log
+  console.error = log.error
+  console.warn = log.warn
+  console.info = log.info
+  console.debug = log.debug
+
   log.silly(`Start logging... (Path: ${appLogFilePath}) App is ready.`)
+  log.errorHandler.startCatching()
 }
 
 const installDevTron = async () => {
@@ -41,6 +44,15 @@ const installDevTron = async () => {
     // Do nothing
   }
 }
+
+app.on('second-instance', () => {
+  if (mainWindow) {
+    if (mainWindow.isMinimized()) {
+      mainWindow.restore()
+    }
+    mainWindow.focus()
+  }
+})
 
 app.on('ready', async () => {
   if (Constants.IS_DEV_ENV) {
@@ -78,11 +90,7 @@ app.on('window-all-closed', () => {
 
 app.on(
   'render-process-gone',
-  (
-    event: Event,
-    webContents: WebContents,
-    details: RenderProcessGoneDetails
-  ) => {
+  (event: Event, webContents: WebContents, details: RenderProcessGoneDetails) => {
     errorWindow = createErrorWindow(errorWindow, mainWindow, details)
   }
 )

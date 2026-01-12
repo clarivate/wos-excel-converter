@@ -1,4 +1,5 @@
-import { dialog, ipcMain, IpcMainEvent, shell } from 'electron'
+import { dialog, ipcMain, IpcMainEvent, shell, ipcRenderer } from 'electron'
+import log from 'electron-log/main'
 import Constants from './utils/Constants'
 import VersionChecker from './apis/version_checker'
 
@@ -7,6 +8,22 @@ import VersionChecker from './apis/version_checker'
  * */
 export default class IPCs {
   static initialize(): void {
+    ;['log', 'warn', 'error', 'info'].forEach((level) => {
+      const original = console[level]
+      console[level] = (...args) => {
+        ipcRenderer.send('renderer-log', { level, message: args.join(' ') })
+        original.apply(console, args)
+      }
+    })
+
+    ipcMain.on('renderer-log', (event, { level, message }) => {
+      if (log[level]) {
+        log[level](`[Renderer] ${message}`)
+      } else {
+        log.info(`[Renderer] ${message}`)
+      }
+    })
+
     // Get the application version
     ipcMain.handle('msgRequestGetVersion', (): string => {
       return Constants.APP_VERSION
@@ -18,29 +35,23 @@ export default class IPCs {
     })
 
     // Open url via web browser
-    ipcMain.on(
-      'msgOpenExternalLink',
-      async (event: IpcMainEvent, url: string) => {
-        await shell.openExternal(url)
-      }
-    )
+    ipcMain.on('msgOpenExternalLink', async (event: IpcMainEvent, url: string) => {
+      await shell.openExternal(url)
+    })
 
     // Open file
-    ipcMain.handle(
-      'msgOpenFile',
-      async (event: IpcMainEvent, filter: string) => {
-        const filters = []
-        if (filter === 'text') {
-          filters.push({ name: 'Text', extensions: ['txt', 'json'] })
-        } else if (filter === 'zip') {
-          filters.push({ name: 'Zip', extensions: ['zip'] })
-        }
-        const dialogResult = await dialog.showOpenDialog({
-          properties: ['openFile'],
-          filters
-        })
-        return dialogResult
+    ipcMain.handle('msgOpenFile', async (event: IpcMainEvent, filter: string) => {
+      const filters = []
+      if (filter === 'text') {
+        filters.push({ name: 'Text', extensions: ['txt', 'json'] })
+      } else if (filter === 'zip') {
+        filters.push({ name: 'Zip', extensions: ['zip'] })
       }
-    )
+      const dialogResult = await dialog.showOpenDialog({
+        properties: ['openFile'],
+        filters
+      })
+      return dialogResult
+    })
   }
 }

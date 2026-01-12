@@ -11,7 +11,7 @@ import log from 'electron-log/main'
 
 const options = {
   width: Constants.IS_DEV_ENV ? 1500 : 1200,
-  height: 650,
+  height: 830,
   tray: {
     // all optional values from DEFAULT_TRAY_OPTIONS can de defined here
     enabled: true,

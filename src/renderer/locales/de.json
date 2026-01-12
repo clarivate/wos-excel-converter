@@ -11,11 +11,30 @@
     "error": "Ein Fehler ist aufgetreten"
   },
   "menu": {
-    "change-theme": "Thema wechseln",
+    "change-theme": "Design wechseln",
     "change-language": "Sprache ändern",
     "increase-count": "Zählerstand um 1 erhöhen",
     "documentation": "dokumentieren",
     "github": "Quellcode",
     "open-file": "Öffnen Sie eine Textdatei"
+  },
+
+  "about": {
+    "desc1": "Dieses Tool ermöglicht es Ihnen, Web of Science-Daten aus APIs in Excel/CSV zu konvertieren und zu exportieren, indem Sie die",
+    "wos-api": "Web of Science API Expanded",
+    "and": "und",
+    "incites-api": "InCites API",
+    "paid-license": "Die APIs erfordern eine kostenpflichtige Lizenz. Bitte wenden Sie sich an",
+    "support": "Web of Science Support",
+    "or-visit": "oder besuchen Sie",
+    "dev-portal": "Developer Portal",
+    "to-learn-more": "um mehr über den Abonnementprozess zu erfahren.",
+    "desc2": "Die Initiative stammt vom Web of Science API Produktteam, um den API-Nutzern zu helfen, die als Tabellen dargestellten Daten leicht zu verstehen. Darüber hinaus können Sie die Daten problemlos in BI-Tools wie PowerBI oder Tableau importieren.",
+    "desc3": "Obwohl das Web of Science API Produktteam der Hauptbetreuer ist, begrüßen wir jeden Beitrag. Wenn Sie ein Problem gefunden haben oder eine Idee für eine Funktion haben, bitte",
+    "report": "melden Sie es auf Github",
+    "desc4": "anstatt den Clarivate Support zu kontaktieren.",
+    "desc5": "Dieses Tool verwendet Electron/Typescript/Vue. Wenn Sie mit diesen Technologien vertraut sind, können Sie gerne einen Pull-Request auf Github mit Ihren Ideen einreichen, wir würden uns freuen.",
+    "back": "Zurück",
+    "license-text": "Copyright (C) 2021 Web of Science(tm) - Clarivate Analytics\n\nDieses Programm ist freie Software: Sie können es weitergeben und/oder modifizieren unter den Bedingungen der GNU General Public License, wie von der Free Software Foundation veröffentlicht, entweder Version 3 der Lizenz oder (nach Ihrer Wahl) jede spätere Version.\n\nDieses Programm wird in der Hoffnung verbreitet, dass es nützlich ist, jedoch OHNE JEDE GEWÄHRLEISTUNG; sogar ohne die implizite Gewährleistung der MARKTGÄNGIGKEIT oder EIGNUNG FÜR EINEN BESTIMMTEN ZWECK. Weitere Details finden Sie in der GNU General Public License.\n\nSie sollten eine Kopie der GNU General Public License zusammen mit diesem Programm erhalten haben. Falls nicht, siehe https://www.gnu.org/licenses/."
   }
 }

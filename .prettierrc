@@ -13,7 +13,7 @@
   "requirePragma": false,
   "proseWrap": "never",
   "singleAttributePerLine": true,
-  "htmlWhitespaceSensitivity": "strict",
+  "htmlWhitespaceSensitivity": "css",
   "endOfLine": "lf",
-  "printWidth": 80
+  "printWidth": 100
 }

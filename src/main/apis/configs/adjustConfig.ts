@@ -6,9 +6,7 @@ const filterCcs = (
 ): ColumnCollectionConfig[] | undefined => {
   if (!ccs) return ccs
   const result = ccs.filter(filter)
-  result.forEach(
-    (cc) => (cc.columnCollection = filterCcs(cc.columnCollection, filter))
-  )
+  result.forEach((cc) => (cc.columnCollection = filterCcs(cc.columnCollection, filter)))
   return result
 }
 /**
@@ -24,17 +22,11 @@ const adjustConfig = (
 ): ExportConfig => {
   const result = Object.assign({}, exportConfig)
   if (wosData && !icData) {
-    result.columnCollection = filterCcs(
-      result.columnCollection,
-      (cc) => cc.api !== 'InCites'
-    )
+    result.columnCollection = filterCcs(result.columnCollection, (cc) => cc.api !== 'InCites')
     result.sheets = result.sheets?.filter((s) => s.api !== 'InCites')
   } else if (!wosData && icData) {
     result.columns = result.columns.filter((c) => c.path === 'UID')
-    result.columnCollection = filterCcs(
-      result.columnCollection,
-      (cc) => cc.api !== 'WOS'
-    )
+    result.columnCollection = filterCcs(result.columnCollection, (cc) => cc.api !== 'WOS')
     result.sheets = result.sheets?.filter((s) => s.api !== 'WOS')
   }
   return result

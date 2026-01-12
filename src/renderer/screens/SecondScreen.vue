@@ -1,8 +1,10 @@
 <script setup lang="tsx">
 import { useI18n } from 'vue-i18n'
 import { mdiEmoticonCoolOutline } from '@mdi/js'
+import { throwError } from '@/renderer/utils'
 
 const { t } = useI18n()
+throwError('SecondScreen component is not implemented yet')
 </script>
 
 <template>

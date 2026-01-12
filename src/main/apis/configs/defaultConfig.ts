@@ -483,8 +483,7 @@ export const defaultConfig: ExportConfig = {
     {
       sheetName: 'Names without Addresses',
       api: 'WOS',
-      mainPath:
-        'static_data.summary.names.[name][].{author: @}[?author.addr_no==`null`].author[]',
+      mainPath: 'static_data.summary.names.[name][].{author: @}[?author.addr_no==`null`].author[]',
       referenceColumns: ['Accession Number (UT)'],
       columns: [
         {

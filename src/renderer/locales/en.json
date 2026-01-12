@@ -1,4 +1,14 @@
 {
+  "header": {
+    "new-version": "New version {version} available!",
+    "current-version": "Version: {version}",
+    "developer-portal": "Developer Portal",
+    "api-exporter": "API Exporter"
+  },
+  "footer": {
+    "export": "Export",
+    "export-again": "Export again"
+  },
   "desc": {
     "welcome-title": "Hello Vutron! Everything is ready.",
     "welcome-desc": "You can now write cross-platform web applications. See changes in real time and build to multiple platforms with one command. If you're not already familiar with it, you can get help from the documentation page below, or run some pre-written example code.",
@@ -8,7 +18,6 @@
   "title": {
     "main": "Main Screen",
     "second": "Second Screen",
-    "developer-portal": "Developer Portal",
     "about": "About",
     "error": "Unknown Error"
   },
@@ -19,5 +28,23 @@
     "documentation": "Documentation",
     "github": "Source Code",
     "open-file": "Open a text file"
+  },
+  "about": {
+    "desc1": "This tool allows you to convert and export the Web of Science data from APIs to Excel/CSV by using the",
+    "wos-api": "Web of Science API Expanded",
+    "and": "and",
+    "incites-api": "InCites API",
+    "paid-license": "The APIs require a paid license. Please get in touch with",
+    "support": "Web of Science Support",
+    "or-visit": "or visit",
+    "dev-portal": "Developer Portal",
+    "to-learn-more": "to learn more about the subscription process.",
+    "desc2": "The initiative comes from the Web of Science API Product team to help the API users easily understand the data represented as tables. Furthermore, you can easily import to BI Tools, such as PowerBI or Tableau.",
+    "desc3": "Although the Web of Science API product team is the primary maintainer, we welcome anyone to contribute. If you found an issue or have an idea for a feature, please ",
+    "report": "report it in Github",
+    "desc4": "instead of contacting Clarivate Support.",
+    "desc5": "This tool uses Electron/Typescript/Vue. If you are familiar with those technologies, feel free to make a pull request in Github with your ideas, we would appreciate it.",
+    "back": "Back",
+    "license-text": "Copyright (C) 2021-2026 Web of Science(tm) - Clarivate Analytics<br/><br/>This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.<br/><br/>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.<br/><br/>You should have received a copy of the GNU General Public License along with this program. If not, see <a href=\"https://www.gnu.org/licenses/\">https://www.gnu.org/licenses/</a>."
   }
 }

@@ -17,3 +17,9 @@ export async function newVersion(): Promise<string> {
 export async function getAppVersion(): Promise<string> {
   return window.mainApi.invoke('msgRequestGetVersion')
 }
+
+export function throwError(msg: string) {
+  const error = new Error(msg)
+  console.error(error)
+  throw error
+}

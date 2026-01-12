@@ -1,3 +1,12 @@
+<script setup lang="tsx">
+import { useTheme } from 'vuetify/framework'
+
+const theme = useTheme()
+const currentClass = () => {
+  const current = theme.global.current.value
+  return current.dark ? 'wos-icon-white' : 'wos-icon-black'
+}
+</script>
 <template>
   <svg
     id="Layer_1"
@@ -7,10 +16,9 @@
     width="186.2319031px"
     height="26.8580761px"
     viewBox="0 0 186.2319031 26.8580761"
-    style="enable-background: new 0 0 186.2319031 26.8580761"
     xml:space="preserve"
   >
-    <g>
+    <g :class="currentClass()">
       <g>
         <path
           d="M181.9306488,3.3433063h-0.9777222v2.5707548h-1.0173798V3.3433063h-0.9777222V2.4400778h2.9728241V3.3433063z"
@@ -109,3 +117,11 @@
     </g>
   </svg>
 </template>
+<style scoped>
+.wos-icon-white {
+  fill: #ffffff;
+}
+.wos-icon-black {
+  fill: #000000;
+}
+</style>

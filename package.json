@@ -2,7 +2,7 @@
   "name": "wosapiexporter",
   "artifactName": "Web of Science API Exporter ${version}.${ext}",
   "appId": "com.clarivate.wosapiexporter",
-  "version": "1.0.0",
+  "version": "1.0.0-rc5",
   "description": "Exporting Web of Science APIs data in Excel/CSV/JSON/XML.",
   "homepage": "https://github.com/clarivate/wos-api-converter",
   "author": "Web of Science API",

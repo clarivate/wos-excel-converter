@@ -29,11 +29,7 @@ export default defineConfig(({ mode }) => {
     {
       entry: 'src/main/index.ts',
       onstart({ startup }) {
-        const debugArgs = [
-          '.',
-          '--inspect=9228',
-          '--remote-debugging-port=9229'
-        ]
+        const debugArgs = ['.', '--inspect=9228', '--remote-debugging-port=9229']
         startup(debugArgs)
       },
       vite: {

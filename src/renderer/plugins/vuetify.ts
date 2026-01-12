@@ -1,17 +1,5 @@
 import { createVuetify } from 'vuetify'
-import {
-  ko,
-  en,
-  zhHans,
-  zhHant,
-  de,
-  es,
-  ja,
-  fr,
-  ru,
-  pt,
-  nl
-} from 'vuetify/locale'
+import { en, de } from 'vuetify/locale'
 import { aliases, mdi } from 'vuetify/iconsets/mdi-svg'
 import 'vuetify/styles'
 
@@ -20,7 +8,7 @@ import WosIcon from '@/renderer/components/icons/WosIcon.vue'
 
 export default createVuetify({
   locale: {
-    messages: { ko, en, zhHans, zhHant, de, es, ja, fr, ru, pt, nl },
+    messages: { en, de },
     locale: 'en',
     fallback: 'en'
   },
@@ -53,6 +41,8 @@ export default createVuetify({
           info: '#2196F3',
           success: '#128902',
           warning: '#f89324',
+          wosIcon: '#000000',
+          background: '#FFFFFF',
           systembar: '#000000',
           clarivateIcon: '#FFFFFF'
         }
@@ -61,16 +51,15 @@ export default createVuetify({
       dark: {
         dark: true,
         colors: {
-          // brand colors slightly brightened for dark backgrounds
-          primary: '#5e33bf', // lighter than #5e33bf for better contrast on dark
-          secondary: '#bdbdbd', // light neutral for text/icons on dark
-          accent: '#22c10a', // a touch brighter than #16ab03
-          // status colors tuned for dark themes
-          error: '#cf6679', // Material dark error
-          info: '#64b5f6',
-          success: '#34c759',
-          warning: '#ffb74d',
-          systembar: '#333333'
+          primary: '#7e5ce6', // Lighter shade of your primary for visibility
+          secondary: '#424242', // Dark gray for secondary elements
+          accent: '#16ab03', // Keep accent as is for consistency
+          error: '#cf6679', // Standard dark theme error color
+          info: '#64B5F6', // Softer blue for info
+          success: '#4CAF50', // Brighter green for success
+          warning: '#FFB74D', // Warm orange for warning
+          wosIcon: '#FFFFFF', // White icons for dark background
+          background: '#555555' // Typical dark theme background
         }
       }
     }

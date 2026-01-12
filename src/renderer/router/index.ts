@@ -1,4 +1,4 @@
-import { MainScreen } from '@/renderer/screens'
+import { MainScreen, AboutScreen } from '@/renderer/screens'
 import { createRouter, createWebHashHistory } from 'vue-router'
 
 export default createRouter({
@@ -12,8 +12,15 @@ export default createRouter({
       }
     },
     {
+      path: '/about',
+      component: AboutScreen,
+      meta: {
+        titleKey: 'title.about'
+      }
+    },
+    {
       path: '/second',
-      component: () => import('@/renderer/screens/ErrorScreen.vue'),
+      component: () => import('@/renderer/screens/SecondScreen.vue'),
       meta: {
         titleKey: 'title.about'
       }
