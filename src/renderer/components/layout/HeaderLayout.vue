@@ -53,6 +53,9 @@ onMounted(() => {
       size="90"
     />
     <v-spacer />
+    <span class="pr-2">
+      {{ t('header.current-version', { version: currentVersion }) }}
+    </span>
     <v-btn
       size="small"
       :prepend-icon="mdiGift"
@@ -70,30 +73,44 @@ onMounted(() => {
     <v-spacer />
 
     <v-btn
-      text
+      icon
       size="small"
       variant="plain"
       density="compact"
       class="opacity-100"
-      :prepend-icon="mdiBrightness6"
       @click="handleChangeTheme"
     >
-      <strong> {{ t('menu.change-theme') }} </strong>
+      <v-icon
+        class="opacity-90"
+        :icon="mdiBrightness6"
+      />
+      <v-tooltip
+        activator="parent"
+        location="bottom"
+      >
+        {{ t('menu.change-theme') }}
+      </v-tooltip>
     </v-btn>
     <v-menu location="bottom">
       <template #activator="{ props }">
         <v-btn
-          text
+          class="ml-2 opacity-100"
+          icon
           size="small"
-          class="opacity-100"
           variant="plain"
           density="compact"
-          :prepend-icon="mdiTranslate"
           v-bind="props"
         >
-          <strong>
+          <v-icon
+            class="opacity-100"
+            :icon="mdiTranslate"
+          />
+          <v-tooltip
+            activator="parent"
+            location="bottom"
+          >
             {{ t('menu.change-language') }}
-          </strong>
+          </v-tooltip>
         </v-btn>
       </template>
       <v-list density="compact">
