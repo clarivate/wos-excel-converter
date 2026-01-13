@@ -6,17 +6,11 @@ export default createRouter({
   routes: [
     {
       path: '/',
-      component: MainScreen,
-      meta: {
-        titleKey: 'title.main'
-      }
+      component: MainScreen
     },
     {
       path: '/about',
-      component: AboutScreen,
-      meta: {
-        titleKey: 'title.about'
-      }
+      component: AboutScreen
     },
     {
       path: '/second',
@@ -27,10 +21,7 @@ export default createRouter({
     },
     {
       path: '/error',
-      component: () => import('@/renderer/screens/ErrorScreen.vue'),
-      meta: {
-        titleKey: 'title.error'
-      }
+      component: () => import('@/renderer/screens/ErrorScreen.vue')
     },
     {
       path: '/:pathMatch(.*)*',

@@ -9,9 +9,22 @@ import pinia from '@/renderer/plugins/pinia'
 // Add API key defined in contextBridge to window object type
 declare global {
   interface Window {
-    mainApi?: any
+    mainApi?: {
+      sendToLog: (level: string, message: string) => void
+      // ... other methods
+    }
   }
 }
+
+const levels = ['log', 'warn', 'error', 'info'] as const
+levels.forEach((level) => {
+  const original = console[level]
+  console[level] = (...args: any[]) => {
+    const message = args.map((a) => (typeof a === 'object' ? JSON.stringify(a) : a)).join(' ')
+    window.mainApi?.sendToLog(level, message)
+    original.apply(console, args)
+  }
+})
 
 const app = createApp(App)
 

@@ -51,15 +51,16 @@ export default createVuetify({
       dark: {
         dark: true,
         colors: {
-          primary: '#7e5ce6', // Lighter shade of your primary for visibility
-          secondary: '#424242', // Dark gray for secondary elements
-          accent: '#16ab03', // Keep accent as is for consistency
-          error: '#cf6679', // Standard dark theme error color
-          info: '#64B5F6', // Softer blue for info
-          success: '#4CAF50', // Brighter green for success
-          warning: '#FFB74D', // Warm orange for warning
-          wosIcon: '#FFFFFF', // White icons for dark background
-          background: '#555555' // Typical dark theme background
+          primary: '#7e5ce6',
+          secondary: '#736e6e',
+          accent: '#16ab03',
+          error: '#cf6679',
+          info: '#64B5F6',
+          success: '#4CAF50',
+          warning: '#FFB74D',
+          wosIcon: '#FFFFFF',
+          background: '#555555',
+          systembar: '#000000'
         }
       }
     }

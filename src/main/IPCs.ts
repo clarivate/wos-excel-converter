@@ -1,4 +1,4 @@
-import { dialog, ipcMain, IpcMainEvent, shell, ipcRenderer } from 'electron'
+import { dialog, ipcMain, IpcMainEvent, shell } from 'electron'
 import log from 'electron-log/main'
 import Constants from './utils/Constants'
 import VersionChecker from './apis/version_checker'
@@ -8,14 +8,6 @@ import VersionChecker from './apis/version_checker'
  * */
 export default class IPCs {
   static initialize(): void {
-    ;['log', 'warn', 'error', 'info'].forEach((level) => {
-      const original = console[level]
-      console[level] = (...args) => {
-        ipcRenderer.send('renderer-log', { level, message: args.join(' ') })
-        original.apply(console, args)
-      }
-    })
-
     ipcMain.on('renderer-log', (event, { level, message }) => {
       if (log[level]) {
         log[level](`[Renderer] ${message}`)

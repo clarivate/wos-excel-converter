@@ -50,5 +50,7 @@ contextBridge.exposeInMainWorld('mainApi', {
     }
 
     throw new Error(`Unknown ipc channel name: ${channel}`)
-  }
+  },
+  sendToLog: (level: string, message: string) =>
+    ipcRenderer.send('renderer-log', { level, message })
 })

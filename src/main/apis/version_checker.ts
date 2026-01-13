@@ -24,7 +24,7 @@ export default class VersionChecker {
       )
       return response.data['name'] as string
     } catch {
-      return '0.0.0'
+      return 'n/a'
     }
   }
 }

@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { mdiBrightness6, mdiGift, mdiInformation, mdiOpenInNew, mdiTranslate } from '@mdi/js'
 import { storeToRefs } from 'pinia'
 import { useAppVersionStore } from '@/renderer/store/appVersion'
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { openExternal } from '@/renderer/utils'
 import { useTheme } from 'vuetify/framework'
 
@@ -27,6 +27,10 @@ const { fetchVersions } = useAppVersionStore()
 const handleChangeTheme = (): void => {
   theme.change(theme.global.current.value.dark ? 'light' : 'dark')
 }
+
+const themeMode = computed(() => {
+  return theme.global.current.value.dark ? t('header.light-mode') : t('header.dark-mode')
+})
 
 const handleChangeLanguage = (val: string): void => {
   locale.value = val
@@ -73,44 +77,32 @@ onMounted(() => {
     <v-spacer />
 
     <v-btn
-      icon
+      text
       size="small"
       variant="plain"
       density="compact"
       class="opacity-100"
+      :prepend-icon="mdiBrightness6"
       @click="handleChangeTheme"
     >
-      <v-icon
-        class="opacity-90"
-        :icon="mdiBrightness6"
-      />
-      <v-tooltip
-        activator="parent"
-        location="bottom"
-      >
-        {{ t('menu.change-theme') }}
-      </v-tooltip>
+      <strong>
+        {{ themeMode }}
+      </strong>
     </v-btn>
     <v-menu location="bottom">
       <template #activator="{ props }">
         <v-btn
-          class="ml-2 opacity-100"
-          icon
+          class="opacity-100"
+          text
           size="small"
           variant="plain"
           density="compact"
+          :prepend-icon="mdiTranslate"
           v-bind="props"
         >
-          <v-icon
-            class="opacity-100"
-            :icon="mdiTranslate"
-          />
-          <v-tooltip
-            activator="parent"
-            location="bottom"
-          >
-            {{ t('menu.change-language') }}
-          </v-tooltip>
+          <strong>
+            {{ locale }}
+          </strong>
         </v-btn>
       </template>
       <v-list density="compact">
@@ -146,12 +138,12 @@ onMounted(() => {
       :prepend-icon="mdiInformation"
       @click="handleRoute('/about')"
     >
-      <strong>{{ t('title.about') }}</strong>
+      <strong>{{ t('header.about') }}</strong>
     </v-btn>
   </v-system-bar>
   <v-app-bar
     color="background"
-    density="compact"
+    density="comfortable"
     elevation="1"
   >
     <v-app-bar-title
@@ -159,11 +151,32 @@ onMounted(() => {
       @click="handleRoute('/')"
     >
       <v-icon
+        class="mb-2"
         icon="$wos"
-        size="200"
+        size="160"
       />
-      {{ t('header.api-exporter') }}
+      <span class="ml-2">
+        <strong>{{ t('header.api-exporter') }}</strong>
+      </span>
     </v-app-bar-title>
+    <v-spacer />
+    <v-chip-group
+      show-arrows
+      mandatory
+      style="max-width: 70%"
+      center-active
+      value="test"
+    >
+      <v-chip
+        class="primary white--text"
+        active-class="primary white--text"
+        key="test"
+      >
+        test1
+      </v-chip>
+      <v-chip active-class="primary">test1</v-chip>
+      <v-chip active-class="primary">test1</v-chip>
+    </v-chip-group>
   </v-app-bar>
 </template>
 <style scoped>

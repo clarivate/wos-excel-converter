@@ -17,6 +17,8 @@ const INCITES_URL = 'https://developer.clarivate.com/apis/incites'
 const SUPPORT_URL = 'https://support.clarivate.com/ScientificandAcademicResearch/s/?language=en_US'
 const DEVPORTAL_URL = 'https://developer.clarivate.com'
 const ISSUE_URL = 'https://github.com/clarivate/wos-excel-converter/issues/new/choose'
+
+console.error('Hello from AboutScreen')
 </script>
 
 <template>
