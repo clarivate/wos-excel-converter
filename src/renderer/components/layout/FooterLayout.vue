@@ -17,16 +17,19 @@ const isCurrentRoute = (path: string): boolean => {
     elevation="5"
     density="default"
     color="background"
+    class="d-flex justify-start pa-0"
   >
-    <v-row>
-      <v-col cols="2">
-        <v-btn
-          size="large"
-          color="primary"
-        >
-          {{ t('footer.export') }}
-        </v-btn>
-      </v-col>
+    <v-btn
+      size="large"
+      class="ma-0"
+      color="primary"
+      variant="flat"
+      rounded="0"
+    >
+      {{ t('footer.export') }}
+    </v-btn>
+    <v-row class="pa-2">
+      <v-col cols="2"> hi </v-col>
     </v-row>
   </v-footer>
 </template>

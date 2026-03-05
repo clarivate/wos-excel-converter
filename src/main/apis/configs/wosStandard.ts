@@ -1,4 +1,4 @@
-import { ExportConfig } from '../helper/ExportConfig'
+import { ExportConfig } from './ExportConfig'
 
 export const wosStandard: ExportConfig = {
   sheetName: 'ResearchOutput',

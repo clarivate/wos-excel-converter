@@ -2,7 +2,7 @@
 import { useI18n } from 'vue-i18n'
 import { openExternal } from '@/renderer/utils'
 import { useRouter } from 'vue-router'
-import { mdiOpenInNew } from '@mdi/js'
+import { mdiAlertBoxOutline, mdiArrowLeft, mdiOpenInNew } from '@mdi/js'
 import { storeToRefs } from 'pinia'
 import { useAppVersionStore } from '@/renderer/store/appVersion'
 
@@ -17,6 +17,7 @@ const INCITES_URL = 'https://developer.clarivate.com/apis/incites'
 const SUPPORT_URL = 'https://support.clarivate.com/ScientificandAcademicResearch/s/?language=en_US'
 const DEVPORTAL_URL = 'https://developer.clarivate.com'
 const ISSUE_URL = 'https://github.com/clarivate/wos-excel-converter/issues/new/choose'
+const GNU_LICENSE_URL = 'https://www.gnu.org/licenses/'
 
 console.error('Hello from AboutScreen')
 </script>
@@ -29,6 +30,22 @@ console.error('Hello from AboutScreen')
         lg="8"
       >
         <v-card-text>
+          <v-row class="allow-center">
+            <v-col>
+              <v-btn
+                text
+                variant="plain"
+                :prepend-icon="mdiArrowLeft"
+                @click="handleRoute('/')"
+              >
+                {{ t('about.back') }}
+              </v-btn>
+            </v-col>
+            <v-col class="text-disabled text-right">
+              {{ t('header.current-version', { version: currentVersion }) }}
+            </v-col>
+          </v-row>
+          <span class="text-h6">{{ t('about.title.this-tool') }}</span>
           <p>
             {{ t('about.desc1') }}
             <a @click="openExternal(EXPANDED_URL)">
@@ -65,9 +82,14 @@ console.error('Hello from AboutScreen')
             </a>
             {{ t('about.to-learn-more') }}
           </p>
-          <p>
-            {{ t('about.desc2') }}
-          </p>
+          <v-alert
+            :text="t('about.note-product-terms')"
+            :icon="mdiAlertBoxOutline"
+            variant="flat"
+          />
+          <span class="text-h6">{{ t('about.title.why') }}</span>
+          <p>{{ t('about.desc2') }}</p>
+          <span class="text-h6">{{ t('about.title.involve') }}</span>
           <p>
             {{ t('about.desc3') }}
             <a @click="openExternal(ISSUE_URL)">
@@ -79,20 +101,23 @@ console.error('Hello from AboutScreen')
             </a>
             {{ t('about.desc4') }} {{ t('about.desc5') }}
           </p>
-          <v-divider />
-          <br />
-
-          <p v-html="t('about.license-text')" />
-          <v-row class="justify-space-evenly">
-            <v-col>
-              <v-btn @click="handleRoute('/')">
-                {{ t('about.back') }}
-              </v-btn>
-            </v-col>
-            <v-col class="text-disabled">
-              {{ t('header.current-version', { version: currentVersion }) }}
-            </v-col>
-          </v-row>
+          <span class="text-h6">{{ t('about.title.copyright-and-license') }}</span>
+          <p>
+            {{ t('about.license-copyright', { year: new Date().getFullYear() }) }}
+          </p>
+          <p>{{ t('about.license-text1') }}</p>
+          <p>{{ t('about.license-text2') }}</p>
+          <p>
+            {{ t('about.license-text3') }}
+            <a @click="openExternal(GNU_LICENSE_URL)">
+              {{ GNU_LICENSE_URL }}
+              <v-icon
+                :icon="mdiOpenInNew"
+                size="small"
+              />
+            </a>
+            .
+          </p>
         </v-card-text>
       </v-col>
     </v-row>
@@ -100,7 +125,8 @@ console.error('Hello from AboutScreen')
 </template>
 <style scoped>
 p {
-  padding-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  padding-top: 0.5rem;
 }
 
 a {

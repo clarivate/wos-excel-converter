@@ -1,5 +1,5 @@
-const ConfigSchema = {
-  $schema: 'http://json-schema.org/draft-04/schema#',
+const ConverterConfigSchema = {
+  $schema: 'https://json-schema.org/draft/2020-12/schema',
   definitions: {
     column: {
       id: '#column',
@@ -152,4 +152,4 @@ const ConfigSchema = {
   additionalProperties: false,
   required: ['sheetName', 'rowArrayPath', 'columns', 'api']
 }
-export default ConfigSchema
+export default ConverterConfigSchema

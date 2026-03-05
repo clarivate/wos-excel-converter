@@ -9,24 +9,28 @@ import pinia from '@/renderer/plugins/pinia'
 // Add API key defined in contextBridge to window object type
 declare global {
   interface Window {
-    mainApi?: {
-      sendToLog: (level: string, message: string) => void
-      // ... other methods
-    }
+    mainApi?: any
   }
 }
 
 const levels = ['log', 'warn', 'error', 'info'] as const
 levels.forEach((level) => {
-  const original = console[level]
   console[level] = (...args: any[]) => {
     const message = args.map((a) => (typeof a === 'object' ? JSON.stringify(a) : a)).join(' ')
     window.mainApi?.sendToLog(level, message)
-    original.apply(console, args)
   }
 })
 
 const app = createApp(App)
+
+app.config.errorHandler = (err, instance, info) => {
+  // Extract message and stack trace
+  const errorMessage = err instanceof Error ? err.message : String(err)
+  const stackTrace = err instanceof Error ? err.stack : 'No stack trace available'
+
+  // Log it using your intercepted console.error (which goes to electron-log)
+  console.error(`[Error] ${errorMessage}\nInfo: ${info}\nStack: ${stackTrace}`)
+}
 
 app.use(vuetify).use(i18n).use(router).use(pinia)
 

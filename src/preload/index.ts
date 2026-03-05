@@ -10,9 +10,11 @@ const mainAvailChannels: string[] = [
   'msgRequestGetVersion',
   'msgOpenExternalLink',
   'msgOpenFile',
-  'msgRequestGetNewVersion'
+  'msgRequestGetNewVersion',
+  'msgOpenLogFile',
+  'msgThrowError'
 ]
-const rendererAvailChannels: string[] = []
+const rendererAvailChannels: string[] = ['onLog']
 
 contextBridge.exposeInMainWorld('mainApi', {
   send: (channel: string, ...data: any[]): void => {

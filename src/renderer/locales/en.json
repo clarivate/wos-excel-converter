@@ -1,6 +1,6 @@
 {
   "header": {
-    "new-version": "New version {version} available!",
+    "new-version": "Update available",
     "current-version": "Current Version: {version}",
     "developer-portal": "Developer Portal",
     "about": "About",
@@ -8,28 +8,40 @@
     "dark-mode": "Dark",
     "light-mode": "Light",
     "change-language": "Change Language",
-    "api-exporter": "API Exporter"
+    "api-exporter": "API Exporter",
+    "log": "Log"
   },
   "footer": {
     "export": "Export",
     "export-again": "Export again"
   },
+
   "about": {
-    "desc1": "This tool allows you to convert and export the Web of Science data from APIs to Excel/CSV by using the",
+    "back": "Back",
+    "title": {
+      "this-tool": "About This Tool",
+      "why": "Why We Built It",
+      "involve": "Get Involved",
+      "copyright-and-license": "Copyright and License"
+    },
+    "desc1": "This tool helps you convert and export Web of Science data from APIs into Excel or CSV files. It works with the",
     "wos-api": "Web of Science API Expanded",
     "and": "and",
     "incites-api": "InCites API",
-    "paid-license": "The APIs require a paid license. Please get in touch with",
+    "paid-license": "Please note that these APIs require a paid license. To learn more about subscriptions, contact",
     "support": "Web of Science Support",
     "or-visit": "or visit",
     "dev-portal": "Developer Portal",
-    "to-learn-more": "to learn more about the subscription process.",
-    "desc2": "The initiative comes from the Web of Science API Product team to help the API users easily understand the data represented as tables. Furthermore, you can easily import to BI Tools, such as PowerBI or Tableau.",
-    "desc3": "Although the Web of Science API product team is the primary maintainer, we welcome anyone to contribute. If you found an issue or have an idea for a feature, please ",
-    "report": "report it in Github",
+    "to-learn-more": "for details.",
+    "desc2": "The Web of Science API Product Team created this tool to make it easier for API users to work with data in a structured, table-based format. The exported files can be easily used for reporting, visualization, or integration with data analytics platforms. The tool is free and open-source under the GPL-3.0 license.",
+    "desc3": "Although the Web of Science API Product Team maintains the tool, we welcome contributions from the community! If you find an issue or have an idea for a new feature, please",
+    "report": "report it on GitHub",
     "desc4": "instead of contacting Clarivate Support.",
-    "desc5": "This tool uses Electron/Typescript/Vue. If you are familiar with those technologies, feel free to make a pull request in Github with your ideas, we would appreciate it.",
-    "back": "Back",
-    "license-text": "Copyright (C) 2021-2026 Web of Science(tm) - Clarivate Analytics<br/><br/>This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.<br/><br/>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.<br/><br/>You should have received a copy of the GNU General Public License along with this program. If not, see <a href=\"https://www.gnu.org/licenses/\">https://www.gnu.org/licenses/</a>."
+    "desc5": "The tool is built with Electron, TypeScript, and Vue. If you are familiar with these technologies, feel free to submit a pull request with your improvements or ideas. Your contributions are highly appreciated!",
+    "license-copyright": "Copyright © 2021-{year} Web of Science™  - Clarivate Analytics",
+    "license-text1": "This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.",
+    "license-text2": "This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.",
+    "license-text3": "You should have received a copy of the GNU General Public License along with this program. If not, see ",
+    "note-product-terms": "Your use cases must comply with Web of Science product terms, as this tool does not intend to replace or modify them in any way."
   }
 }

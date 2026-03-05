@@ -1,6 +1,7 @@
 import { join, dirname, resolve } from 'path'
-import { version, debug } from '../../../package.json'
+import { name, version, debug } from '../../../package.json'
 import { fileURLToPath } from 'url'
+import { app } from 'electron'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -27,16 +28,19 @@ export default class Constants {
    * END OF FEATURES
    * ------------------------------------------------------ */
 
-  // Display app name (uppercase first letter)
-  static APP_NAME = 'Web of Science API Converter'
+  static APP_NAME = 'Web of Science API Exporter'
 
   static APP_VERSION = version
+
+  static USER_AGENT = name + '/' + version
 
   static IS_DEV_ENV = process.env.NODE_ENV === 'development'
 
   static PUBLIC_PATH = Constants.IS_DEV_ENV
     ? resolve(__dirname, '../../src/public')
     : resolve(__dirname, '..')
+
+  static LOG_FILE_PATH = join(app.getPath('userData'), 'logs', 'wosapiexporter.log')
 
   static IS_MAC = process.platform === 'darwin'
 
@@ -51,7 +55,7 @@ export default class Constants {
     enabled: false,
     trayWindow: false,
     menu: false,
-    tooltip: 'Web of Science API Converter',
+    tooltip: 'Web of Science API Exporter',
     margin: { x: 0, y: 0 },
     showAtStartup: false
   }

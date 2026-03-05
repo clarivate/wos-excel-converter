@@ -30,6 +30,7 @@ export default createVuetify({
     }
   },
   theme: {
+    defaultTheme: 'system',
     themes: {
       light: {
         dark: false,

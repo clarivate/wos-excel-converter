@@ -9,12 +9,14 @@ import IPCs from './IPCs'
 import { createTray, hideWindow, showWindow } from './tray'
 import log from 'electron-log/main'
 
+app.commandLine.appendSwitch('js-flags', '--max-old-space-size=1024')
+
 const options = {
   width: Constants.IS_DEV_ENV ? 1500 : 1200,
   height: 830,
   tray: {
     // all optional values from DEFAULT_TRAY_OPTIONS can de defined here
-    enabled: true,
+    enabled: false,
     menu: false, // true, to use a tray menu ; false to toggle visibility on click on tray icon
     trayWindow: false // true, to use a tray floating window attached to top try icon
   }
@@ -72,6 +74,8 @@ export const createMainWindow = async (): Promise<BrowserWindow> => {
     }
   }
   const mainWindow = new BrowserWindow(opt)
+
+  mainWindow.webContents.setUserAgent(Constants.USER_AGENT)
 
   mainWindow.setMenu(null)
 

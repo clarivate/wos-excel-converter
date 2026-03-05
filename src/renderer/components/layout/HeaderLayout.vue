@@ -1,7 +1,14 @@
 <script setup lang="tsx">
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { mdiBrightness6, mdiGift, mdiInformation, mdiOpenInNew, mdiTranslate } from '@mdi/js'
+import {
+  mdiBrightness6,
+  mdiInformation,
+  mdiOpenInNew,
+  mdiTranslate,
+  mdiDownload,
+  mdiConsoleLine
+} from '@mdi/js'
 import { storeToRefs } from 'pinia'
 import { useAppVersionStore } from '@/renderer/store/appVersion'
 import { computed, onMounted, ref } from 'vue'
@@ -56,24 +63,6 @@ onMounted(() => {
       icon="$clarivate"
       size="90"
     />
-    <v-spacer />
-    <span class="pr-2">
-      {{ t('header.current-version', { version: currentVersion }) }}
-    </span>
-    <v-btn
-      size="small"
-      :prepend-icon="mdiGift"
-      rounded
-      density="comfortable"
-      color="success"
-      v-if="versionAlert"
-      @click="openExternal('https://github.com/clarivate/wos-excel-converter/releases/latest')"
-    >
-      <strong>
-        {{ t('header.new-version', { version: latestVersion }) }}
-      </strong>
-    </v-btn>
-
     <v-spacer />
 
     <v-btn
@@ -139,6 +128,30 @@ onMounted(() => {
       @click="handleRoute('/about')"
     >
       <strong>{{ t('header.about') }}</strong>
+    </v-btn>
+    <v-btn
+      text
+      size="small"
+      variant="plain"
+      class="opacity-100"
+      density="compact"
+      :prepend-icon="mdiConsoleLine"
+      @click="handleRoute('/log')"
+    >
+      <strong>{{ t('header.log') }}</strong>
+    </v-btn>
+    <v-btn
+      size="small"
+      :prepend-icon="mdiDownload"
+      rounded
+      density="comfortable"
+      color="success"
+      v-if="versionAlert"
+      @click="openExternal('https://github.com/clarivate/wos-excel-converter/releases/latest')"
+    >
+      <strong>
+        {{ t('header.new-version') }}
+      </strong>
     </v-btn>
   </v-system-bar>
   <v-app-bar
