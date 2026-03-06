@@ -62,11 +62,13 @@ onMounted(() => {
 </script>
 <template>
   <v-system-bar
+    id="header-system-bar"
     color="systembar"
     density="compact"
     app
   >
     <v-icon
+      id="clarivate-icon"
       class="clarivateIcon opacity-100"
       icon="$clarivate"
       size="90"
@@ -74,6 +76,7 @@ onMounted(() => {
     <v-spacer />
 
     <v-btn
+      id="theme-toggle-btn"
       text
       size="small"
       variant="plain"
@@ -89,6 +92,7 @@ onMounted(() => {
     <v-menu location="bottom">
       <template #activator="{ props }">
         <v-btn
+          id="language-selector-btn"
           class="opacity-100"
           text
           size="small"
@@ -102,7 +106,10 @@ onMounted(() => {
           </strong>
         </v-btn>
       </template>
-      <v-list density="compact">
+      <v-list
+        id="language-menu-list"
+        density="compact"
+      >
         <v-list-item
           dense
           density="compact"
@@ -116,6 +123,7 @@ onMounted(() => {
       </v-list>
     </v-menu>
     <v-btn
+      id="developer-portal-btn"
       text
       size="small"
       variant="plain"
@@ -127,6 +135,7 @@ onMounted(() => {
       <strong>{{ t('header.developer-portal') }}</strong>
     </v-btn>
     <v-btn
+      id="about-btn"
       text
       size="small"
       variant="plain"
@@ -138,6 +147,7 @@ onMounted(() => {
       <strong>{{ t('header.about') }}</strong>
     </v-btn>
     <v-btn
+      id="log-btn"
       text
       size="small"
       variant="plain"
@@ -149,6 +159,7 @@ onMounted(() => {
       <strong>{{ t('header.log') }}</strong>
     </v-btn>
     <v-btn
+      id="version-update-btn"
       size="small"
       :prepend-icon="mdiDownload"
       rounded
@@ -163,15 +174,18 @@ onMounted(() => {
     </v-btn>
   </v-system-bar>
   <v-app-bar
+    id="header-app-bar"
     color="background"
     density="comfortable"
     elevation="1"
   >
     <v-app-bar-title
+      id="wos-title"
       class="cursor-pointer"
       @click="handleRoute('/')"
     >
       <v-icon
+        id="wos-icon"
         class="mb-2"
         icon="$wos"
         size="160"
@@ -182,6 +196,7 @@ onMounted(() => {
     </v-app-bar-title>
     <v-spacer />
     <v-chip-group
+      id="config-chip-group"
       show-arrows
       mandatory
       style="max-width: 70%"
