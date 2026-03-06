@@ -12,7 +12,10 @@ const mainAvailChannels: string[] = [
   'msgOpenFile',
   'msgRequestGetNewVersion',
   'msgOpenLogFile',
-  'msgThrowError'
+  'msgThrowError',
+  'msgRequestGetAllConfigNames',
+  'msgRequestGetConfigName',
+  'msgRequestChangeConfig'
 ]
 const rendererAvailChannels: string[] = ['onLog']
 

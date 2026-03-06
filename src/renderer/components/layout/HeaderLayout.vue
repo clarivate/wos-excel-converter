@@ -11,6 +11,7 @@ import {
 } from '@mdi/js'
 import { storeToRefs } from 'pinia'
 import { useAppVersionStore } from '@/renderer/store/appVersion'
+import { useConfigsStore } from '@/renderer/store/configs'
 import { computed, onMounted, ref } from 'vue'
 import { openExternal } from '@/renderer/utils'
 import { useTheme } from 'vuetify/framework'
@@ -30,6 +31,8 @@ const versionAlert = ref(false)
 
 const { currentVersion, latestVersion } = storeToRefs(useAppVersionStore())
 const { fetchVersions } = useAppVersionStore()
+const { configNames, selectedConfigName } = storeToRefs(useConfigsStore())
+const { fetchConfigs, changeConfig } = useConfigsStore()
 
 const handleChangeTheme = (): void => {
   theme.change(theme.global.current.value.dark ? 'light' : 'dark')
@@ -43,8 +46,13 @@ const handleChangeLanguage = (val: string): void => {
   locale.value = val
 }
 
+const handleChangeConfig = async (configName: string): Promise<void> => {
+  await changeConfig(configName)
+}
+
 onMounted(() => {
   languages.value = availableLocales
+  fetchConfigs()
   fetchVersions().then(() => {
     versionAlert.value =
       latestVersion.value !== 'n/a' && currentVersion.value !== latestVersion.value
@@ -178,17 +186,18 @@ onMounted(() => {
       mandatory
       style="max-width: 70%"
       center-active
-      value="test"
+      selected-class="bg-primary text-white"
+      :model-value="selectedConfigName"
+      @update:model-value="handleChangeConfig"
     >
       <v-chip
-        class="primary white--text"
+        v-for="configName in configNames"
+        :key="configName"
+        :value="configName"
         active-class="primary white--text"
-        key="test"
       >
-        test1
+        {{ configName }}
       </v-chip>
-      <v-chip active-class="primary">test1</v-chip>
-      <v-chip active-class="primary">test1</v-chip>
     </v-chip-group>
   </v-app-bar>
 </template>

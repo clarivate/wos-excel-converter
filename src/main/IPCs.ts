@@ -3,12 +3,15 @@ import log from 'electron-log/main'
 import Constants from './utils/Constants'
 import VersionChecker from './apis/version_checker'
 import { join } from 'path'
+import ConfigStore from './apis/configs/store'
 
 /*
  * IPC Communications
  * */
 export default class IPCs {
   static initialize(): void {
+    const configStore = ConfigStore.getInstance()
+
     log.hooks.push((message, transport) => {
       if (transport === log.transports.file) {
         if (typeof log.transports.file.format === 'string') {
@@ -51,6 +54,19 @@ export default class IPCs {
     // Fetch the latest version from GitHub
     ipcMain.handle('msgRequestGetNewVersion', async (): Promise<string> => {
       return await VersionChecker.getInstance().getCurrentVersion()
+    })
+
+    // Config management
+    ipcMain.handle('msgRequestGetAllConfigNames', async (): Promise<string[]> => {
+      return await configStore.getAllConfigNames()
+    })
+
+    ipcMain.handle('msgRequestGetConfigName', async (): Promise<string> => {
+      return await configStore.getConfigName()
+    })
+
+    ipcMain.handle('msgRequestChangeConfig', async (_event, configName: string): Promise<void> => {
+      await configStore.changeConfig(configName)
     })
 
     ipcMain.handle('msgThrowError', (_event, msg: string): void => {

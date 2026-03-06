@@ -3,16 +3,16 @@
 <img src="doc/screenshot.png" alt="Example screenshot" style="width:900px;"/>
 
 ### About This Tool
+
 This tool helps you convert and export Web of Science data from APIs into Excel or CSV files. It works with the Web of Science API Expanded and InCites API. Please note that these APIs require a paid license. To learn more about subscriptions, visit the Developer Portal or contact Web of Science Support.
 
 ### Why We Built It
+
 The Web of Science API Product Team created this tool to make it easier for API users to work with data in a structured, table-based format. The exported files can be easily used for reporting, visualization, or integration with data analytics platforms. The tool is free and open-source under the GPL-3.0 license.
 
 ### Get Involved
 
-Although the Web of Science API Product Team maintains the tool, we welcome contributions from the community! If you find an issue or have an idea for a new feature, please report it on GitHub instead of contacting Clarivate Support.
-The tool is built with Electron, TypeScript, and Vue. If you are familiar with these technologies, feel free to submit a pull request with your improvements or ideas. Your contributions are highly appreciated!
-Download and Install:
+Although the Web of Science API Product Team maintains the tool, we welcome contributions from the community! If you find an issue or have an idea for a new feature, please report it on GitHub instead of contacting Clarivate Support. The tool is built with Electron, TypeScript, and Vue. If you are familiar with these technologies, feel free to submit a pull request with your improvements or ideas. Your contributions are highly appreciated! Download and Install:
 
 - [Windows](https://github.com/clarivate/wos-excel-converter/releases/download/v1.0.0-rc4/wos-api-exporter-setup-1.0.0-rc4.exe)
 - [Mac](https://github.com/clarivate/wos-excel-converter/releases/download/v1.0.0-rc4/wos-api-exporter-1.0.0-rc4.dmg)

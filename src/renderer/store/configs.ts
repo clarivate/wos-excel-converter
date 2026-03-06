@@ -1,25 +1,29 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { getAppVersion, newVersion } from '@/renderer/utils'
 
-export const useConfigs = defineStore('configs', () => {
-  const currentVersion = ref('n/a')
-  const latestVersion = ref('n/a')
+export const useConfigsStore = defineStore('configs', () => {
+  const configNames = ref<string[]>([])
+  const selectedConfigName = ref('')
 
-  async function fetchVersions() {
-    if (latestVersion.value === 'n/a') {
-      latestVersion.value = await newVersion()
-      console.log('Fetched latest version: ' + latestVersion.value)
-    }
-    if (currentVersion.value === 'n/a') {
-      currentVersion.value = await getAppVersion()
-      console.log('Fetched current version: ' + currentVersion.value)
-    }
+  async function fetchConfigs(): Promise<void> {
+    const [names, current] = await Promise.all([
+      window.mainApi.invoke('msgRequestGetAllConfigNames'),
+      window.mainApi.invoke('msgRequestGetConfigName')
+    ])
+    configNames.value = names
+    selectedConfigName.value = current
+  }
+
+  async function changeConfig(configName: string): Promise<void> {
+    if (!configName || configName === selectedConfigName.value) return
+    await window.mainApi.invoke('msgRequestChangeConfig', configName)
+    selectedConfigName.value = configName
   }
 
   return {
-    currentVersion,
-    latestVersion,
-    fetchVersions
+    configNames,
+    selectedConfigName,
+    fetchConfigs,
+    changeConfig
   }
 })
