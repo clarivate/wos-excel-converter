@@ -1,6 +1,9 @@
 <script setup lang="tsx">
 import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { openLogFile, throwError, getLogLines, getLogFileSize } from '@/renderer/utils'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const logs = ref('')
 const logFileSize = ref('')
@@ -93,7 +96,7 @@ onBeforeUnmount(() => {
           prepend-icon="mdi-file-document-outline"
           @click="openLog"
         >
-          Open Log File
+          {{ t('log.open-log-file') }}
         </v-btn>
         <v-btn
           variant="text"
@@ -102,7 +105,7 @@ onBeforeUnmount(() => {
           prepend-icon="mdi-file-document-outline"
           @click="throwError('Opps', false)"
         >
-          Throw renderer error
+          {{ t('log.throw-renderer-error') }}
         </v-btn>
         <v-btn
           variant="text"
@@ -111,12 +114,12 @@ onBeforeUnmount(() => {
           prepend-icon="mdi-file-document-outline"
           @click="throwError('Ops...', true)"
         >
-          Throw main error
+          {{ t('log.throw-main-error') }}
         </v-btn>
         <v-textarea
           ref="textareaRef"
           v-model="logs"
-          :label="`Application Logs - File Size: ${logFileSize}`"
+          :label="t('log.application-logs-label', { size: logFileSize })"
           readonly
           variant="outlined"
           no-resize

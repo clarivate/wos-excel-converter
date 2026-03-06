@@ -16,6 +16,13 @@
     "export-again": "Export again"
   },
 
+  "log": {
+    "open-log-file": "Open Log File",
+    "throw-renderer-error": "Throw Renderer Error",
+    "throw-main-error": "Throw Main Error",
+    "application-logs-label": "Application Logs - File Size: {size}"
+  },
+
   "about": {
     "back": "Back",
     "title": {

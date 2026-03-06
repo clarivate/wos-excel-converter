@@ -1,6 +1,6 @@
 {
   "header": {
-    "new-version": "Neue Version {version} verfügbar!",
+    "new-version": "Update verfügbar",
     "current-version": "Aktuelle Version: {version}",
     "developer-portal": "Developer Portal",
     "about": "Info",
@@ -8,28 +8,47 @@
     "dark-mode": "Dunkel",
     "light-mode": "Hell",
     "change-language": "Sprache ändern",
-    "api-exporter": "API-Exporter"
+    "api-exporter": "API-Exporter",
+    "log": "Log"
   },
   "footer": {
     "export": "Exportieren",
     "export-again": "Erneut exportieren"
   },
+
+  "log": {
+    "open-log-file": "Log-Datei öffnen",
+    "throw-renderer-error": "Renderer-Fehler auslösen",
+    "throw-main-error": "Main-Fehler auslösen",
+    "application-logs-label": "Anwendungsprotokolle - Dateigröße: {size}"
+  },
+
   "about": {
-    "desc1": "Dieses Tool ermöglicht es Ihnen, Web of Science-Daten aus APIs in Excel/CSV zu konvertieren und zu exportieren, indem Sie die",
+    "back": "Zurück",
+    "title": {
+      "this-tool": "Über dieses Tool",
+      "why": "Warum wir es gebaut haben",
+      "involve": "Mitmachen",
+      "copyright-and-license": "Urheberrecht und Lizenz"
+    },
+    "desc1": "Dieses Tool hilft Ihnen, Web of Science-Daten aus APIs in Excel- oder CSV-Dateien zu konvertieren und zu exportieren. Es funktioniert mit der",
     "wos-api": "Web of Science API Expanded",
     "and": "und",
     "incites-api": "InCites API",
-    "paid-license": "Die APIs erfordern eine kostenpflichtige Lizenz. Bitte wenden Sie sich an",
+    "paid-license": "Bitte beachten Sie, dass diese APIs eine kostenpflichtige Lizenz erfordern. Um mehr über Abonnements zu erfahren, kontaktieren Sie",
     "support": "Web of Science Support",
     "or-visit": "oder besuchen Sie",
     "dev-portal": "Developer Portal",
-    "to-learn-more": "um mehr über den Abonnementprozess zu erfahren.",
-    "desc2": "Die Initiative stammt vom Web of Science API-Produktteam, um API-Nutzern zu helfen, die als Tabellen dargestellten Daten leicht zu verstehen. Darüber hinaus können Sie die Daten einfach in BI-Tools wie PowerBI oder Tableau importieren.",
-    "desc3": "Obwohl das Web of Science API-Produktteam der Hauptbetreuer ist, freuen wir uns über Beiträge von allen. Wenn Sie ein Problem gefunden haben oder eine Idee für eine Funktion haben, bitte",
-    "report": "melden Sie es auf Github",
+    "to-learn-more": "für Details.",
+    "desc2": "Das Web of Science API-Produktteam hat dieses Tool erstellt, um API-Benutzern die Arbeit mit Daten in einem strukturierten, tabellenbasierten Format zu erleichtern. Die exportierten Dateien können einfach für Berichte, Visualisierung oder Integration mit Datenanalyseplattformen verwendet werden. Das Tool ist kostenlos und Open-Source unter der GPL-3.0-Lizenz.",
+    "desc3": "Obwohl das Web of Science API-Produktteam das Tool pflegt, freuen wir uns über Beiträge aus der Community! Wenn Sie ein Problem finden oder eine Idee für eine neue Funktion haben, bitte",
+    "report": "melden Sie es auf GitHub",
     "desc4": "anstatt den Clarivate Support zu kontaktieren.",
-    "desc5": "Dieses Tool verwendet Electron/Typescript/Vue. Wenn Sie mit diesen Technologien vertraut sind, können Sie gerne einen Pull-Request auf Github mit Ihren Ideen einreichen. Wir würden uns freuen.",
-    "back": "Zurück",
-    "license-text": "Copyright (C) 2021-2026 Web of Science(tm) - Clarivate Analytics<br/><br/>This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.<br/><br/>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.<br/><br/>You should have received a copy of the GNU General Public License along with this program. If not, see <a href=\"https://www.gnu.org/licenses/\">https://www.gnu.org/licenses/</a>."
+    "desc5": "Das Tool ist mit Electron, TypeScript und Vue gebaut. Wenn Sie mit diesen Technologien vertraut sind, können Sie gerne einen Pull-Request mit Ihren Verbesserungen oder Ideen einreichen. Ihre Beiträge werden sehr geschätzt!",
+    "license-copyright": "Copyright © 2021-{year} Web of Science™  - Clarivate Analytics",
+    "license-text1": "This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.",
+    "license-text2": "This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.",
+    "license-text3": "You should have received a copy of the GNU General Public License along with this program. If not, see ",
+    "note-product-terms": "Ihre Anwendungsfälle müssen den Produktbedingungen von Web of Science entsprechen, da dieses Tool diese in keiner Weise ersetzen oder ändern soll."
   }
 }
