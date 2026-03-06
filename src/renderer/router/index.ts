@@ -1,4 +1,4 @@
-import { MainScreen, AboutScreen, ErrorScreen } from '@/renderer/screens'
+import { MainScreen, AboutScreen, LogScreen } from '@/renderer/screens'
 import { createRouter, createWebHashHistory } from 'vue-router'
 
 export default createRouter({
@@ -14,11 +14,11 @@ export default createRouter({
     },
     {
       path: '/log',
-      component: ErrorScreen
+      component: LogScreen
     },
     {
       path: '/error',
-      component: () => import('@/renderer/screens/ErrorScreen.vue')
+      component: () => import('@/renderer/screens/LogScreen.vue')
     },
     {
       path: '/:pathMatch(.*)*',

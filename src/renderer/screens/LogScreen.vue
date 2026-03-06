@@ -1,8 +1,9 @@
 <script setup lang="tsx">
 import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
-import { openLogFile, throwError } from '@/renderer/utils'
+import { openLogFile, throwError, getLogLines, getLogFileSize } from '@/renderer/utils'
 
 const logs = ref('')
+const logFileSize = ref('')
 const textareaRef = ref<any>(null)
 const MAX_LINES = 100
 
@@ -26,12 +27,44 @@ const handleLog = (_event: any, message: string) => {
     }
   })
 }
+
+const loadInitialLogs = async () => {
+  try {
+    const logContent = await getLogLines(MAX_LINES)
+    if (logContent.trim()) {
+      logs.value = logContent
+      // Auto-scroll to bottom after loading
+      nextTick(() => {
+        if (textareaRef.value?.$el) {
+          const textarea = textareaRef.value.$el.querySelector('textarea')
+          if (textarea) {
+            textarea.scrollTop = textarea.scrollHeight
+          }
+        }
+      })
+    }
+  } catch (error) {
+    console.error('Failed to load log lines:', error)
+  }
+}
+
+const loadLogFileSize = async () => {
+  try {
+    logFileSize.value = await getLogFileSize()
+  } catch (error) {
+    console.error('Failed to load log file size:', error)
+    logFileSize.value = 'Unknown'
+  }
+}
+
 const openLog = () => {
   console.info('Opening log file')
   openLogFile()
 }
 
 onMounted(() => {
+  loadInitialLogs()
+  loadLogFileSize()
   window.mainApi.on('onLog', handleLog)
 })
 
@@ -76,14 +109,14 @@ onBeforeUnmount(() => {
           color="primary"
           size="small"
           prepend-icon="mdi-file-document-outline"
-          @click="throwError('Opps', true)"
+          @click="throwError('Ops...', true)"
         >
           Throw main error
         </v-btn>
         <v-textarea
           ref="textareaRef"
           v-model="logs"
-          label="Application Logs"
+          :label="`Application Logs - File Size: ${logFileSize}`"
           readonly
           variant="outlined"
           no-resize

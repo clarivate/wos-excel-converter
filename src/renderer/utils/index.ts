@@ -22,6 +22,14 @@ export async function getAppVersion(): Promise<string> {
   return window.mainApi.invoke('msgRequestGetVersion')
 }
 
+export async function getLogLines(lines: number = 100): Promise<string> {
+  return window.mainApi.invoke('msgRequestLogLines', lines)
+}
+
+export async function getLogFileSize(): Promise<string> {
+  return window.mainApi.invoke('msgRequestLogFileSize')
+}
+
 export function throwError(msg: string, main: boolean = true) {
   if (main) window.mainApi.invoke('msgThrowError', msg)
   else throw new Error(msg)

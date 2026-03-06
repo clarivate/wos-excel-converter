@@ -1,5 +1,5 @@
-import ErrorScreen from '@/renderer/screens/ErrorScreen.vue'
+import LogScreen from '@/renderer/screens/LogScreen.vue'
 import MainScreen from '@/renderer/screens/MainScreen.vue'
 import AboutScreen from '@/renderer/screens/AboutScreen.vue'
 
-export { ErrorScreen, MainScreen, AboutScreen }
+export { LogScreen, MainScreen, AboutScreen }

@@ -1,9 +1,9 @@
-import { app, BrowserWindow, dialog, ipcMain, IpcMainEvent, shell } from 'electron'
+import { BrowserWindow, dialog, ipcMain, IpcMainEvent, shell } from 'electron'
 import log from 'electron-log/main'
 import Constants from './utils/Constants'
 import VersionChecker from './apis/version_checker'
-import { join } from 'path'
 import ConfigStore from './apis/configs/store'
+import { LogManager, LOG_CONFIG } from './utils/LogManager'
 
 /*
  * IPC Communications
@@ -28,6 +28,9 @@ export default class IPCs {
           BrowserWindow.getAllWindows().forEach((win) => {
             win.webContents.send('onLog', text)
           })
+
+          // Check if log file needs archiving
+          LogManager.checkAndArchiveLogFile()
         }
       }
       return message
@@ -42,8 +45,23 @@ export default class IPCs {
 
     // Open the application log file
     ipcMain.on('msgOpenLogFile', async () => {
-      const logPath = join(app.getPath('userData'), 'logs', 'wosapiexporter.log')
-      await shell.openPath(logPath)
+      await shell.openPath(LOG_CONFIG.LOG_FILE_PATH)
+    })
+
+    // Read the last N lines from the log file
+    ipcMain.handle(
+      'msgRequestLogLines',
+      async (
+        _event: IpcMainEvent,
+        lines: number = LOG_CONFIG.MAX_LINES_TO_READ
+      ): Promise<string> => {
+        return LogManager.readLastLines(lines)
+      }
+    )
+
+    // Get log file size
+    ipcMain.handle('msgRequestLogFileSize', async (_event: IpcMainEvent): Promise<string> => {
+      return LogManager.getLogFileSize()
     })
 
     // Get the application version
