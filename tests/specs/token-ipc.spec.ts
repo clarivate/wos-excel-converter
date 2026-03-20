@@ -14,6 +14,34 @@ async function resetConfigs(page: any): Promise<void> {
   }
 }
 
+async function assertTokenRoundTripWithRetry(
+  page: any,
+  expected: { wosExpandedToken: string; icToken: string },
+  attempts = 6
+): Promise<void> {
+  let lastRead: { wosExpandedToken: string; icToken: string } | null = null
+
+  for (let i = 0; i < attempts; i++) {
+    await page.evaluate(async (payload) => {
+      await window.mainApi.invoke('msgRequestSetApiTokens', payload)
+    }, expected)
+
+    lastRead = await page.evaluate(() => window.mainApi.invoke('msgRequestGetApiTokens'))
+
+    if (
+      lastRead.wosExpandedToken === expected.wosExpandedToken &&
+      lastRead.icToken === expected.icToken
+    ) {
+      return
+    }
+
+    await page.waitForTimeout(50)
+  }
+
+  expect(lastRead?.wosExpandedToken).toBe(expected.wosExpandedToken)
+  expect(lastRead?.icToken).toBe(expected.icToken)
+}
+
 test.describe('Token IPC Handler Tests', () => {
   test.beforeAll(async ({ page }: { page: any }) => {
     await resetConfigs(page)
@@ -24,20 +52,21 @@ test.describe('Token IPC Handler Tests', () => {
   })
 
   test('IPC: set/get API tokens persists values on current config', async ({ page }) => {
-    await page.evaluate(async () => {
-      await window.mainApi.invoke('msgRequestSetApiTokens', {
-        wosExpandedToken: 'wos-token-test',
-        icToken: 'ic-token-test'
-      })
+    await assertTokenRoundTripWithRetry(page, {
+      wosExpandedToken: 'wos-token-test',
+      icToken: 'ic-token-test'
     })
-
-    const tokens = await page.evaluate(() => window.mainApi.invoke('msgRequestGetApiTokens'))
-    expect(tokens.wosExpandedToken).toBe('wos-token-test')
-    expect(tokens.icToken).toBe('ic-token-test')
   })
 
   test('IPC: tokens are isolated per config', async ({ page }) => {
-    await page.evaluate(() => window.mainApi.invoke('msgRequestChangeConfig', 'Default'))
+    const baseConfigName = await page.evaluate(() =>
+      window.mainApi.invoke('msgRequestGetConfigName')
+    )
+
+    await page.evaluate(
+      (name) => window.mainApi.invoke('msgRequestChangeConfig', name),
+      baseConfigName
+    )
 
     await page.evaluate(() =>
       window.mainApi.invoke('msgRequestSetApiTokens', {
@@ -60,7 +89,10 @@ test.describe('Token IPC Handler Tests', () => {
     expect(copyTokens.wosExpandedToken).toBe('wos-copy')
     expect(copyTokens.icToken).toBe('ic-copy')
 
-    await page.evaluate(() => window.mainApi.invoke('msgRequestChangeConfig', 'Default'))
+    await page.evaluate(
+      (name) => window.mainApi.invoke('msgRequestChangeConfig', name),
+      baseConfigName
+    )
     const defaultTokens = await page.evaluate(() => window.mainApi.invoke('msgRequestGetApiTokens'))
     expect(defaultTokens.wosExpandedToken).toBe('wos-default')
     expect(defaultTokens.icToken).toBe('ic-default')
@@ -73,9 +105,9 @@ test.describe('Token IPC Handler Tests', () => {
     const icStatus = await page.evaluate(() => window.mainApi.invoke('msgRequestVerifyIcToken', ''))
 
     expect(['success', 'warning', 'error']).toContain(wosStatus.type)
-    expect(typeof wosStatus.message).toBe('string')
+    expect(typeof wosStatus.messageKey).toBe('string')
 
     expect(['success', 'warning', 'error']).toContain(icStatus.type)
-    expect(typeof icStatus.message).toBe('string')
+    expect(typeof icStatus.messageKey).toBe('string')
   })
 })

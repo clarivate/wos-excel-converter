@@ -29,7 +29,17 @@
     "title": "API-Token",
     "request": "Token anfordern",
     "wos-label": "Web of Science API Expanded Token",
-    "ic-label": "InCites API Token"
+    "ic-label": "InCites API Token",
+    "verify-wos-title": "Token mit den Web of Science API-Servern (neu) validieren",
+    "verify-ic-title": "Token mit den InCites API-Servern (neu) validieren",
+    "validation": {
+      "wos-empty": "Geben Sie ein Web of Science API Expanded Token ein, um es zu validieren.",
+      "wos-success": "Web of Science Token ist gültig. Verbleibende Datensatze pro {period}: {remaining}.",
+      "wos-error": "Web of Science Token-Validierung fehlgeschlagen: {error}",
+      "ic-empty": "Geben Sie ein InCites API Token ein, um es zu validieren.",
+      "ic-success": "InCites Token ist gültig. Verbleibende Anfragen pro Tag: {remainingPerDay}.",
+      "ic-error": "InCites Token-Validierung fehlgeschlagen: {error}"
+    }
   },
 
   "log": {

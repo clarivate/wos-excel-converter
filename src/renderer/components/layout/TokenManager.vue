@@ -12,9 +12,11 @@ const { selectedConfigName } = storeToRefs(configStore)
 const {
   wosExpandedToken,
   icToken,
-  wosTokenMessage,
+  wosTokenMessageKey,
+  wosTokenMessageParams,
   wosTokenMessageType,
-  icTokenMessage,
+  icTokenMessageKey,
+  icTokenMessageParams,
   icTokenMessageType,
   validationProgress,
   atLeastOneTokenValid,
@@ -29,6 +31,14 @@ const statusIcon = computed(() =>
   combinedStatusIcon.value === 'success' ? mdiCheckCircle : mdiAlert
 )
 const statusColor = computed(() => combinedStatusColor.value)
+const wosTokenMessage = computed(() => {
+  if (!wosTokenMessageKey.value) return null
+  return t(wosTokenMessageKey.value, wosTokenMessageParams.value ?? {})
+})
+const icTokenMessage = computed(() => {
+  if (!icTokenMessageKey.value) return null
+  return t(icTokenMessageKey.value, icTokenMessageParams.value ?? {})
+})
 const scheduleWosVerification = (): void => {
   if (wosVerifyTimer) clearTimeout(wosVerifyTimer)
   wosVerifyTimer = setTimeout(() => {
@@ -140,7 +150,7 @@ watch(selectedConfigName, async () => {
             icon
             variant="outlined"
             class="mt-4 ml-4"
-            title="(Re-)Validate token with Web of Science API servers"
+            :title="t('token.verify-wos-title')"
             @click="tokensStore.verifyWosToken()"
           >
             <v-icon :icon="mdiRefresh" />
@@ -179,7 +189,7 @@ watch(selectedConfigName, async () => {
             icon
             variant="outlined"
             class="mt-4 ml-4"
-            title="(Re-)Validate token with Web of Science API servers"
+            :title="t('token.verify-ic-title')"
             @click="tokensStore.verifyIcToken()"
           >
             <v-icon :icon="mdiRefresh" />

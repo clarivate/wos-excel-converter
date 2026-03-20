@@ -48,7 +48,8 @@ export interface MainApi {
       tokenOverride?: string
     ): Promise<{
       type: 'success' | 'warning' | 'error'
-      message: string
+      messageKey: string
+      messageParams?: Record<string, string | number>
       period: 'Year' | 'Month' | null
       remaining: number | null
     }>
@@ -57,7 +58,8 @@ export interface MainApi {
       tokenOverride?: string
     ): Promise<{
       type: 'success' | 'warning' | 'error'
-      message: string
+      messageKey: string
+      messageParams?: Record<string, string | number>
       remainingPerDay: number | null
     }>
     (channel: string, ...data: any[]): Promise<any>

@@ -4,11 +4,6 @@ import '../../src/types/mainApi.d.ts'
 test.beforeAll(beforeAll)
 test.afterAll(afterAll)
 
-/**
- * Helper: reset the app back to a single "Default" config.
- * Keeps deleting the current config until only one remains.
- * The single-config protection in deleteCurrent recreates "Default".
- */
 async function resetConfigs(page: any): Promise<void> {
   let names: string[] = await page.evaluate(() =>
     window.mainApi.invoke('msgRequestGetAllConfigNames')
@@ -19,14 +14,26 @@ async function resetConfigs(page: any): Promise<void> {
   }
 }
 
+async function ensureDefaultBaseline(page: any): Promise<void> {
+  await resetConfigs(page)
+  const current = await page.evaluate(() => window.mainApi.invoke('msgRequestGetConfigName'))
+  if (current !== 'Default') {
+    await page.evaluate(() => window.mainApi.invoke('msgRequestRenameConfig', 'Default'))
+  }
+}
+
 test.describe('Config IPC Handler Tests', () => {
-  // Ensure a clean single-"Default" state before and after the whole suite
+  // Ensure a clean state before and after the whole suite
   test.beforeAll(async ({ page }: { page: any }) => {
-    await resetConfigs(page)
+    await ensureDefaultBaseline(page)
+  })
+
+  test.beforeEach(async ({ page }: { page: any }) => {
+    await ensureDefaultBaseline(page)
   })
 
   test.afterAll(async ({ page }: { page: any }) => {
-    await resetConfigs(page)
+    await ensureDefaultBaseline(page)
   })
 
   // -------------------------------------------------------------------------
@@ -86,7 +93,7 @@ test.describe('Config IPC Handler Tests', () => {
     util
   }) => {
     try {
-      // Current is "Default Copy"
+      await page.evaluate(() => window.mainApi.invoke('msgRequestCopyConfig'))
       const newName = await page.evaluate(() => window.mainApi.invoke('msgRequestCopyConfig'))
       expect(newName).toBe('Default Copy1')
       expect(newName).not.toContain('Copy Copy')
@@ -103,7 +110,7 @@ test.describe('Config IPC Handler Tests', () => {
   // @ts-expect-error: util not typed in playwright
   test('IPC: msgRequestRenameConfig renames the current config', async ({ page, util }) => {
     try {
-      // Current is "Default Copy1" – rename it
+      await page.evaluate(() => window.mainApi.invoke('msgRequestCopyConfig'))
       await page.evaluate(() => window.mainApi.invoke('msgRequestRenameConfig', 'Renamed Config'))
       const current = await page.evaluate(() => window.mainApi.invoke('msgRequestGetConfigName'))
       expect(current).toBe('Renamed Config')
@@ -124,7 +131,7 @@ test.describe('Config IPC Handler Tests', () => {
   // @ts-expect-error: util not typed in playwright
   test('IPC: msgRequestChangeConfig switches the active config', async ({ page, util }) => {
     try {
-      // Configs: ["Default", "Default Copy", "Renamed Config"]
+      await page.evaluate(() => window.mainApi.invoke('msgRequestCopyConfig'))
       await page.evaluate(() => window.mainApi.invoke('msgRequestChangeConfig', 'Default'))
       const current = await page.evaluate(() => window.mainApi.invoke('msgRequestGetConfigName'))
       expect(current).toBe('Default')
@@ -141,17 +148,24 @@ test.describe('Config IPC Handler Tests', () => {
   // @ts-expect-error: util not typed in playwright
   test('IPC: deleting a middle config selects the same-index successor', async ({ page, util }) => {
     try {
-      // State: ["Default", "Default Copy", "Renamed Config"], current = "Default"
-      // Switch to "Default Copy" (index 1) and delete it
-      await page.evaluate(() => window.mainApi.invoke('msgRequestChangeConfig', 'Default Copy'))
+      // Build deterministic state with two generated copy names.
+      const firstCopy = await page.evaluate(() => window.mainApi.invoke('msgRequestCopyConfig'))
+      await page.evaluate(() => window.mainApi.invoke('msgRequestChangeConfig', 'Default'))
+      const secondCopy = await page.evaluate(() => window.mainApi.invoke('msgRequestCopyConfig'))
+
+      // Switch to the first copy (middle index) and delete it.
+      await page.evaluate(
+        (name) => window.mainApi.invoke('msgRequestChangeConfig', name),
+        firstCopy
+      )
       await page.evaluate(() => window.mainApi.invoke('msgRequestDeleteConfig'))
 
-      // Remaining: ["Default", "Renamed Config"]; same index 1 → "Renamed Config"
+      // Same-index successor should be the second generated copy.
       const current = await page.evaluate(() => window.mainApi.invoke('msgRequestGetConfigName'))
-      expect(current).toBe('Renamed Config')
+      expect(current).toBe(secondCopy)
 
       const names = await page.evaluate(() => window.mainApi.invoke('msgRequestGetAllConfigNames'))
-      expect(names).not.toContain('Default Copy')
+      expect(names).not.toContain(firstCopy)
       await util.captureScreenshot(page, 'config-ipc-delete-middle')
     } catch (error) {
       throw await util.onTestError(error)
@@ -161,7 +175,8 @@ test.describe('Config IPC Handler Tests', () => {
   // @ts-expect-error: util not typed in playwright
   test('IPC: deleting the last config selects index-1', async ({ page, util }) => {
     try {
-      // State: ["Default", "Renamed Config"], current = "Renamed Config" (last, index 1)
+      // State: ["Default", "Default Copy"], current = "Default Copy" (last, index 1)
+      await page.evaluate(() => window.mainApi.invoke('msgRequestCopyConfig'))
       await page.evaluate(() => window.mainApi.invoke('msgRequestDeleteConfig'))
 
       // Remaining: ["Default"]; was last → index-1 = 0 → "Default"

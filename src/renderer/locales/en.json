@@ -29,7 +29,17 @@
     "title": "API Tokens",
     "request": "Request a Token",
     "wos-label": "Web of Science API Expanded Token",
-    "ic-label": "InCites API Token"
+    "ic-label": "InCites API Token",
+    "verify-wos-title": "(Re-)Validate token with Web of Science API servers",
+    "verify-ic-title": "(Re-)Validate token with InCites API servers",
+    "validation": {
+      "wos-empty": "Enter a Web of Science API Expanded token to validate it.",
+      "wos-success": "Web of Science token is valid. Remaining records per {period}: {remaining}.",
+      "wos-error": "Web of Science token validation failed: {error}",
+      "ic-empty": "Enter an InCites API token to validate it.",
+      "ic-success": "InCites token is valid. Remaining requests per day: {remainingPerDay}.",
+      "ic-error": "InCites token validation failed: {error}"
+    }
   },
 
   "log": {

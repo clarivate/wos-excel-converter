@@ -136,7 +136,8 @@ export default class IPCs {
         tokenOverride?: string
       ): Promise<{
         type: 'success' | 'warning' | 'error'
-        message: string
+        messageKey: string
+        messageParams?: Record<string, string | number>
         period: 'Year' | 'Month' | null
         remaining: number | null
       }> => {
@@ -144,7 +145,7 @@ export default class IPCs {
         if (!token?.trim()) {
           return {
             type: 'warning',
-            message: 'Enter a Web of Science API Expanded token to validate it.',
+            messageKey: 'token.validation.wos-empty',
             period: null,
             remaining: null
           }
@@ -154,14 +155,21 @@ export default class IPCs {
           const [period, remaining] = await WosExpanded.getInstance(token)!.verifyKey()
           return {
             type: 'success',
-            message: `Web of Science token is valid. Remaining records per ${period.toLowerCase()}: ${remaining}.`,
+            messageKey: 'token.validation.wos-success',
+            messageParams: {
+              period: period.toLowerCase(),
+              remaining
+            },
             period,
             remaining
           }
         } catch (error: unknown) {
           return {
             type: 'error',
-            message: `Web of Science token validation failed: ${safeErrorMessage(error)}`,
+            messageKey: 'token.validation.wos-error',
+            messageParams: {
+              error: safeErrorMessage(error)
+            },
             period: null,
             remaining: null
           }
@@ -176,14 +184,15 @@ export default class IPCs {
         tokenOverride?: string
       ): Promise<{
         type: 'success' | 'warning' | 'error'
-        message: string
+        messageKey: string
+        messageParams?: Record<string, string | number>
         remainingPerDay: number | null
       }> => {
         const token = tokenOverride ?? (await configStore.getIcToken())
         if (!token?.trim()) {
           return {
             type: 'warning',
-            message: 'Enter an InCites API token to validate it.',
+            messageKey: 'token.validation.ic-empty',
             remainingPerDay: null
           }
         }
@@ -192,13 +201,19 @@ export default class IPCs {
           const remainingPerDay = await InCites.getInstance(token)!.verifyKey()
           return {
             type: 'success',
-            message: `InCites token is valid. Remaining requests per day: ${remainingPerDay}.`,
+            messageKey: 'token.validation.ic-success',
+            messageParams: {
+              remainingPerDay
+            },
             remainingPerDay
           }
         } catch (error: unknown) {
           return {
             type: 'error',
-            message: `InCites token validation failed: ${safeErrorMessage(error)}`,
+            messageKey: 'token.validation.ic-error',
+            messageParams: {
+              error: safeErrorMessage(error)
+            },
             remainingPerDay: null
           }
         }

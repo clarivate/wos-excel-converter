@@ -2,14 +2,17 @@ import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 
 type TokenMessageType = 'success' | 'warning' | 'error'
+type TokenMessageParams = Record<string, string | number>
 
 export const useTokensStore = defineStore('tokens', () => {
   const wosExpandedToken = ref('')
   const icToken = ref('')
 
-  const wosTokenMessage = ref<string | null>(null)
+  const wosTokenMessageKey = ref<string | null>(null)
+  const wosTokenMessageParams = ref<TokenMessageParams | undefined>(undefined)
   const wosTokenMessageType = ref<TokenMessageType | null>(null)
-  const icTokenMessage = ref<string | null>(null)
+  const icTokenMessageKey = ref<string | null>(null)
+  const icTokenMessageParams = ref<TokenMessageParams | undefined>(undefined)
   const icTokenMessageType = ref<TokenMessageType | null>(null)
 
   const wosValidationInProgress = ref(false)
@@ -49,9 +52,11 @@ export const useTokensStore = defineStore('tokens', () => {
     icToken.value = tokens.icToken ?? ''
 
     // Clear stale status when switching between configs.
-    wosTokenMessage.value = null
+    wosTokenMessageKey.value = null
+    wosTokenMessageParams.value = undefined
     wosTokenMessageType.value = null
-    icTokenMessage.value = null
+    icTokenMessageKey.value = null
+    icTokenMessageParams.value = undefined
     icTokenMessageType.value = null
   }
 
@@ -68,7 +73,8 @@ export const useTokensStore = defineStore('tokens', () => {
   async function verifyWosToken(tokenOverride?: string): Promise<void> {
     const token = tokenOverride ?? wosExpandedToken.value
     if (!token.trim()) {
-      wosTokenMessage.value = null
+      wosTokenMessageKey.value = null
+      wosTokenMessageParams.value = undefined
       wosTokenMessageType.value = null
       return
     }
@@ -76,7 +82,8 @@ export const useTokensStore = defineStore('tokens', () => {
     wosValidationInProgress.value = true
     try {
       const result = await window.mainApi.invoke('msgRequestVerifyWosToken', token)
-      wosTokenMessage.value = result.message
+      wosTokenMessageKey.value = result.messageKey
+      wosTokenMessageParams.value = result.messageParams
       wosTokenMessageType.value = result.type
     } finally {
       wosValidationInProgress.value = false
@@ -86,7 +93,8 @@ export const useTokensStore = defineStore('tokens', () => {
   async function verifyIcToken(tokenOverride?: string): Promise<void> {
     const token = tokenOverride ?? icToken.value
     if (!token.trim()) {
-      icTokenMessage.value = null
+      icTokenMessageKey.value = null
+      icTokenMessageParams.value = undefined
       icTokenMessageType.value = null
       return
     }
@@ -94,7 +102,8 @@ export const useTokensStore = defineStore('tokens', () => {
     icValidationInProgress.value = true
     try {
       const result = await window.mainApi.invoke('msgRequestVerifyIcToken', token)
-      icTokenMessage.value = result.message
+      icTokenMessageKey.value = result.messageKey
+      icTokenMessageParams.value = result.messageParams
       icTokenMessageType.value = result.type
     } finally {
       icValidationInProgress.value = false
@@ -112,9 +121,11 @@ export const useTokensStore = defineStore('tokens', () => {
   return {
     wosExpandedToken,
     icToken,
-    wosTokenMessage,
+    wosTokenMessageKey,
+    wosTokenMessageParams,
     wosTokenMessageType,
-    icTokenMessage,
+    icTokenMessageKey,
+    icTokenMessageParams,
     icTokenMessageType,
     validationProgress,
     wosTokenSucceeded,
