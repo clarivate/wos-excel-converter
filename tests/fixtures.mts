@@ -39,13 +39,21 @@ export const beforeAll = async () => {
   page.on('console', console.log)
   page.on('pageerror', console.log)
 
-  const evaluateResult = await appElectron.evaluate(async ({ app, BrowserWindow }) => {
-    const currentWindow = BrowserWindow.getFocusedWindow()
+  // Bind to the actual launched page window; focused window can be null/flaky in test runs.
+  const browserWindowHandle = await appElectron.browserWindow(page)
+  const hasWindow = await browserWindowHandle.evaluate((windowInstance: any) => {
+    if (!windowInstance || windowInstance.isDestroyed?.()) {
+      return false
+    }
 
-    // Fix window position for testing
-    currentWindow.setPosition(50, 50)
-    currentWindow.setSize(1080, 560)
+    windowInstance.setPosition(50, 50)
+    windowInstance.setSize(1080, 560)
+    return true
+  })
 
+  base.expect(hasWindow, 'failed to resolve a valid BrowserWindow for the first page').toBe(true)
+
+  const evaluateResult = await appElectron.evaluate(async ({ app }) => {
     return {
       packaged: app.isPackaged,
       dataPath: app.getPath('userData')

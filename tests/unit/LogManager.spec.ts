@@ -23,6 +23,13 @@ test.describe('LogManager Unit Tests', () => {
     }
   })
 
+  test.beforeEach(() => {
+    // Ensure test log directory exists before each test
+    if (!existsSync(testLogDir)) {
+      mkdirSync(testLogDir, { recursive: true })
+    }
+  })
+
   test.afterEach(() => {
     // Clean up test file after each test
     try {

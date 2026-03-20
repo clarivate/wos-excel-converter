@@ -135,13 +135,7 @@ onBeforeUnmount(() => {
           bg-color="background"
           color="primary"
           hide-details
-        >
-          <template #label>
-            <span id="application-logs-label">
-              {{ t('log.application-logs-label', { size: logFileSize }) }}
-            </span>
-          </template>
-        </v-textarea>
+        />
       </v-col>
     </v-row>
   </v-container>

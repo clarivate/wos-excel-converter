@@ -18,8 +18,6 @@ const SUPPORT_URL = 'https://support.clarivate.com/ScientificandAcademicResearch
 const DEVPORTAL_URL = 'https://developer.clarivate.com'
 const ISSUE_URL = 'https://github.com/clarivate/wos-excel-converter/issues/new/choose'
 const GNU_LICENSE_URL = 'https://www.gnu.org/licenses/'
-
-console.error('Hello from AboutScreen')
 </script>
 
 <template>
@@ -48,7 +46,10 @@ console.error('Hello from AboutScreen')
           <span class="text-h6">{{ t('about.title.this-tool') }}</span>
           <p>
             {{ t('about.desc1') }}
-            <a @click="openExternal(EXPANDED_URL)">
+            <a
+              class="text-info"
+              @click="openExternal(EXPANDED_URL)"
+            >
               {{ t('about.wos-api') }}
               <v-icon
                 :icon="mdiOpenInNew"
@@ -56,7 +57,10 @@ console.error('Hello from AboutScreen')
               />
             </a>
             {{ t('about.and') }}
-            <a @click="openExternal(INCITES_URL)">
+            <a
+              class="text-info"
+              @click="openExternal(INCITES_URL)"
+            >
               {{ t('about.incites-api') }}
               <v-icon
                 :icon="mdiOpenInNew"
@@ -65,7 +69,10 @@ console.error('Hello from AboutScreen')
             </a>
             .
             {{ t('about.paid-license') }}
-            <a @click="openExternal(SUPPORT_URL)">
+            <a
+              class="text-info"
+              @click="openExternal(SUPPORT_URL)"
+            >
               {{ t('about.support') }}
               <v-icon
                 :icon="mdiOpenInNew"
@@ -73,7 +80,10 @@ console.error('Hello from AboutScreen')
               />
             </a>
             {{ t('about.or-visit') }}
-            <a @click="openExternal(DEVPORTAL_URL)">
+            <a
+              class="text-info"
+              @click="openExternal(DEVPORTAL_URL)"
+            >
               {{ t('about.dev-portal') }}
               <v-icon
                 :icon="mdiOpenInNew"
@@ -92,7 +102,10 @@ console.error('Hello from AboutScreen')
           <span class="text-h6">{{ t('about.title.involve') }}</span>
           <p>
             {{ t('about.desc3') }}
-            <a @click="openExternal(ISSUE_URL)">
+            <a
+              class="text-info"
+              @click="openExternal(ISSUE_URL)"
+            >
               {{ t('about.report') }}
               <v-icon
                 :icon="mdiOpenInNew"
@@ -109,7 +122,10 @@ console.error('Hello from AboutScreen')
           <p>{{ t('about.license-text2') }}</p>
           <p>
             {{ t('about.license-text3') }}
-            <a @click="openExternal(GNU_LICENSE_URL)">
+            <a
+              class="text-info"
+              @click="openExternal(GNU_LICENSE_URL)"
+            >
               {{ GNU_LICENSE_URL }}
               <v-icon
                 :icon="mdiOpenInNew"
@@ -130,7 +146,6 @@ p {
 }
 
 a {
-  color: rgb(var(--v-theme-info));
   cursor: pointer;
 }
 </style>

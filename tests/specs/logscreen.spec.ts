@@ -60,7 +60,9 @@ test.describe('LogScreen Component Tests', () => {
       await logButton.click()
       await page.waitForTimeout(1000) // Give time for logs to load
 
-      const textarea = page.locator('#application-logs-textarea textarea').first()
+      const textarea = page
+        .locator('textarea#application-logs-textarea, .log-textarea textarea')
+        .first()
       await expect(textarea, 'Confirm log textarea is visible').toBeVisible()
 
       // Check if textarea has readonly or disabled attribute
@@ -87,7 +89,9 @@ test.describe('LogScreen Component Tests', () => {
       await logButton.click()
       await page.waitForTimeout(1000)
 
-      const labelText = await page.locator('#application-logs-label').textContent()
+      // Get the label by id
+      const label = page.locator('#application-logs-textarea-label')
+      const labelText = await label.textContent()
 
       expect(labelText, 'Confirm label contains file size info').toBeTruthy()
       expect(labelText, 'Confirm file size is displayed in label').toMatch(
@@ -124,7 +128,9 @@ test.describe('LogScreen Component Tests', () => {
       await expect(page.locator('#open-log-file-btn')).toContainText('Open Log File')
       await expect(page.locator('#throw-renderer-error-btn')).toContainText('Throw Renderer Error')
       await expect(page.locator('#throw-main-error-btn')).toContainText('Throw Main Error')
-      await expect(page.locator('#application-logs-label')).toContainText('Application Logs')
+      await expect(page.locator('#application-logs-textarea-label')).toContainText(
+        'Application Logs'
+      )
 
       await util.captureScreenshot(page, 'logscreen-english')
     } catch (error) {
@@ -158,7 +164,9 @@ test.describe('LogScreen Component Tests', () => {
         'Renderer-Fehler auslösen'
       )
       await expect(page.locator('#throw-main-error-btn')).toContainText('Main-Fehler auslösen')
-      await expect(page.locator('#application-logs-label')).toContainText('Anwendungsprotokolle')
+      await expect(page.locator('#application-logs-textarea-label')).toContainText(
+        'Anwendungsprotokolle'
+      )
 
       await util.captureScreenshot(page, 'logscreen-german')
     } catch (error) {
@@ -175,7 +183,9 @@ test.describe('LogScreen Component Tests', () => {
       await page.waitForTimeout(500)
 
       // Get initial log content
-      const textarea = page.locator('#application-logs-textarea textarea').first()
+      const textarea = page
+        .locator('textarea#application-logs-textarea, .log-textarea textarea')
+        .first()
       const initialContent = await textarea.inputValue()
       const initialLineCount = initialContent.split('\n').length
 
