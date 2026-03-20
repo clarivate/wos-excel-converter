@@ -22,7 +22,7 @@
     "copy": "Kopieren",
     "delete": "Löschen",
     "name-exists": "existiert bereits",
-    "name-validation": "Mindestens ein Zeichen und maximal 25 Zeichen erforderlich"
+    "name-validation": "Mindestens ein Zeichen und maximal 32 Zeichen erforderlich"
   },
 
   "log": {

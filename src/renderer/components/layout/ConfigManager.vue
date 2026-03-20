@@ -56,11 +56,6 @@ const handleDeleteConfig = async (): Promise<void> => {
     console.error('Error deleting config:', error)
   }
 }
-
-const handleCancel = (): void => {
-  configName.value = selectedConfigName.value
-  editName.value = false
-}
 </script>
 
 <template>
@@ -75,9 +70,9 @@ const handleCancel = (): void => {
         <v-btn
           id="config-edit-name-btn"
           icon
-          size="small"
-          class="ml-2"
+          class="ml-2 opacity-100"
           variant="plain"
+          density="compact"
           @click="editName = true"
         >
           <v-icon
@@ -91,13 +86,14 @@ const handleCancel = (): void => {
           id="config-name-field"
           v-model="configName"
           class="text-h5"
-          counter="25"
+          variant="underlined"
+          counter="32"
           :rules="[
-            (v: string) =>
-              (v.length > 0 && v.length <= 25) || t('config.name-validation'),
-            (v: string) =>
-              (v === selectedConfigName || !configNames.includes(v)) ||
-              (v + ' ' + t('config.name-exists'))
+            (v) => (v.length > 0 && v.length <= 32) || t('config.name-validation'),
+            (v) =>
+              v === selectedConfigName ||
+              !configNames.includes(v) ||
+              v + ' ' + t('config.name-exists')
           ]"
           @keyup.enter="handleEditName"
         >
@@ -105,21 +101,13 @@ const handleCancel = (): void => {
             <v-btn
               id="config-done-btn"
               text
-              size="small"
-              class="text-none"
+              class="ml-2 opacity-100"
+              variant="plain"
+              density="compact"
               @click="handleEditName"
               :disabled="!isValidName"
             >
               {{ t('config.done') }}
-            </v-btn>
-            <v-btn
-              id="config-cancel-btn"
-              text
-              size="small"
-              class="text-none"
-              @click="handleCancel"
-            >
-              Cancel
             </v-btn>
           </template>
         </v-text-field>
@@ -130,7 +118,9 @@ const handleCancel = (): void => {
         <v-btn
           id="config-copy-btn"
           text
-          size="small"
+          class="ml-2 opacity-100"
+          variant="plain"
+          density="compact"
           @click="handleCopyConfig"
         >
           <v-icon
@@ -144,8 +134,10 @@ const handleCancel = (): void => {
           v-if="configNames.length > 1"
           id="config-delete-btn"
           text
-          size="small"
           color="red"
+          class="ml-2 opacity-100"
+          variant="plain"
+          density="compact"
           @click="handleDeleteConfig"
         >
           <v-icon

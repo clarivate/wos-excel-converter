@@ -22,7 +22,7 @@
     "copy": "Copy",
     "delete": "Delete",
     "name-exists": "already exists",
-    "name-validation": "At least one character and maximum 25 characters are allowed"
+    "name-validation": "At least one character and maximum 32 characters are allowed"
   },
 
   "log": {
