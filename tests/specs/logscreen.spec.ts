@@ -33,19 +33,17 @@ test.describe('LogScreen Component Tests', () => {
       await logButton.click()
       await page.waitForTimeout(500)
 
-      // Check for "Open Log File" button
-      const openLogFileBtn = page.getByText(/Open Log File|Log-Datei öffnen/i)
+      // Check for log action buttons using stable ids
+      const openLogFileBtn = page.locator('#open-log-file-btn')
       await expect(openLogFileBtn, 'Confirm Open Log File button is visible').toBeVisible()
 
-      // Check for "Throw Renderer Error" button
-      const throwRendererErrorBtn = page.getByText(/Throw Renderer Error|Renderer-Fehler auslösen/i)
+      const throwRendererErrorBtn = page.locator('#throw-renderer-error-btn')
       await expect(
         throwRendererErrorBtn,
         'Confirm Throw Renderer Error button is visible'
       ).toBeVisible()
 
-      // Check for "Throw Main Error" button
-      const throwMainErrorBtn = page.getByText(/Throw Main Error|Main-Fehler auslösen/i)
+      const throwMainErrorBtn = page.locator('#throw-main-error-btn')
       await expect(throwMainErrorBtn, 'Confirm Throw Main Error button is visible').toBeVisible()
 
       await util.captureScreenshot(page, 'logscreen-buttons')
@@ -62,8 +60,7 @@ test.describe('LogScreen Component Tests', () => {
       await logButton.click()
       await page.waitForTimeout(1000) // Give time for logs to load
 
-      // Find the textarea (should be a v-textarea component)
-      const textarea = page.locator('textarea').first()
+      const textarea = page.locator('#application-logs-textarea textarea').first()
       await expect(textarea, 'Confirm log textarea is visible').toBeVisible()
 
       // Check if textarea has readonly or disabled attribute
@@ -90,14 +87,7 @@ test.describe('LogScreen Component Tests', () => {
       await logButton.click()
       await page.waitForTimeout(1000)
 
-      // Find the label that should contain file size
-      // In English: "Application Logs - File Size: X KB/MB"
-      // In German: "Anwendungsprotokolle - Dateigröße: X KB/MB"
-      const labelText = await page
-        .locator('label')
-        .filter({ hasText: /File Size|Dateigröße/i })
-        .first()
-        .textContent()
+      const labelText = await page.locator('#application-logs-label').textContent()
 
       expect(labelText, 'Confirm label contains file size info').toBeTruthy()
       expect(labelText, 'Confirm file size is displayed in label').toMatch(
@@ -130,16 +120,11 @@ test.describe('LogScreen Component Tests', () => {
       await logButton.click()
       await page.waitForTimeout(500)
 
-      // Verify English text
-      await expect(page.getByText('Open Log File')).toBeVisible()
-      await expect(page.getByText('Throw Renderer Error')).toBeVisible()
-      await expect(page.getByText('Throw Main Error')).toBeVisible()
-
-      const label = await page
-        .locator('label')
-        .filter({ hasText: /Application Logs/i })
-        .first()
-      await expect(label).toBeVisible()
+      // Verify English text on id-anchored controls
+      await expect(page.locator('#open-log-file-btn')).toContainText('Open Log File')
+      await expect(page.locator('#throw-renderer-error-btn')).toContainText('Throw Renderer Error')
+      await expect(page.locator('#throw-main-error-btn')).toContainText('Throw Main Error')
+      await expect(page.locator('#application-logs-label')).toContainText('Application Logs')
 
       await util.captureScreenshot(page, 'logscreen-english')
     } catch (error) {
@@ -167,17 +152,13 @@ test.describe('LogScreen Component Tests', () => {
       await logButton.click()
       await page.waitForTimeout(500)
 
-      // Verify German text
-      await expect(page.getByText('Log-Datei öffnen')).toBeVisible()
-      await expect(page.getByText('Renderer-Fehler auslösen')).toBeVisible()
-      await expect(page.getByText('Main-Fehler auslösen')).toBeVisible()
-
-      // Check label exists (may be hidden by Vuetify CSS)
-      const labelCount = await page
-        .locator('label')
-        .filter({ hasText: /Anwendungsprotokolle/i })
-        .count()
-      expect(labelCount, 'Confirm German label exists').toBeGreaterThan(0)
+      // Verify German text on id-anchored controls
+      await expect(page.locator('#open-log-file-btn')).toContainText('Log-Datei öffnen')
+      await expect(page.locator('#throw-renderer-error-btn')).toContainText(
+        'Renderer-Fehler auslösen'
+      )
+      await expect(page.locator('#throw-main-error-btn')).toContainText('Main-Fehler auslösen')
+      await expect(page.locator('#application-logs-label')).toContainText('Anwendungsprotokolle')
 
       await util.captureScreenshot(page, 'logscreen-german')
     } catch (error) {
@@ -194,12 +175,12 @@ test.describe('LogScreen Component Tests', () => {
       await page.waitForTimeout(500)
 
       // Get initial log content
-      const textarea = page.locator('textarea').first()
+      const textarea = page.locator('#application-logs-textarea textarea').first()
       const initialContent = await textarea.inputValue()
       const initialLineCount = initialContent.split('\n').length
 
       // Trigger a log event by clicking throw renderer error
-      const throwRendererErrorBtn = page.getByText(/Throw Renderer Error|Renderer-Fehler auslösen/i)
+      const throwRendererErrorBtn = page.locator('#throw-renderer-error-btn')
       await throwRendererErrorBtn.click()
 
       // Wait for log to update

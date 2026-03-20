@@ -78,18 +78,22 @@ onBeforeUnmount(() => {
 
 <template>
   <v-container
+    id="log-screen"
     class="fill-height d-flex flex-column"
     fluid
   >
     <v-row
+      id="log-screen-row"
       no-gutters
       class="flex-grow-1 w-100"
     >
       <v-col
+        id="log-screen-col"
         cols="12"
         class="d-flex flex-column"
       >
         <v-btn
+          id="open-log-file-btn"
           variant="text"
           color="primary"
           size="small"
@@ -99,6 +103,7 @@ onBeforeUnmount(() => {
           {{ t('log.open-log-file') }}
         </v-btn>
         <v-btn
+          id="throw-renderer-error-btn"
           variant="text"
           color="primary"
           size="small"
@@ -108,6 +113,7 @@ onBeforeUnmount(() => {
           {{ t('log.throw-renderer-error') }}
         </v-btn>
         <v-btn
+          id="throw-main-error-btn"
           variant="text"
           color="primary"
           size="small"
@@ -117,6 +123,7 @@ onBeforeUnmount(() => {
           {{ t('log.throw-main-error') }}
         </v-btn>
         <v-textarea
+          id="application-logs-textarea"
           ref="textareaRef"
           v-model="logs"
           :label="t('log.application-logs-label', { size: logFileSize })"
@@ -128,7 +135,13 @@ onBeforeUnmount(() => {
           bg-color="background"
           color="primary"
           hide-details
-        />
+        >
+          <template #label>
+            <span id="application-logs-label">
+              {{ t('log.application-logs-label', { size: logFileSize }) }}
+            </span>
+          </template>
+        </v-textarea>
       </v-col>
     </v-row>
   </v-container>
