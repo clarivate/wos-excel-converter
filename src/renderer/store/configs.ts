@@ -20,10 +20,34 @@ export const useConfigsStore = defineStore('configs', () => {
     selectedConfigName.value = configName
   }
 
+  async function copyConfig(): Promise<string> {
+    const newConfigName = await window.mainApi.invoke('msgRequestCopyConfig')
+    await fetchConfigs()
+    return newConfigName
+  }
+
+  async function renameConfig(newName: string): Promise<void> {
+    await window.mainApi.invoke('msgRequestRenameConfig', newName)
+    await fetchConfigs()
+  }
+
+  async function deleteConfig(): Promise<void> {
+    await window.mainApi.invoke('msgRequestDeleteConfig')
+    await fetchConfigs()
+  }
+
+  function configNameExists(name: string): boolean {
+    return configNames.value.includes(name)
+  }
+
   return {
     configNames,
     selectedConfigName,
     fetchConfigs,
-    changeConfig
+    changeConfig,
+    copyConfig,
+    renameConfig,
+    deleteConfig,
+    configNameExists
   }
 })

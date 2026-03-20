@@ -16,6 +16,15 @@
     "export-again": "Export again"
   },
 
+  "config": {
+    "edit-name": "Edit Name",
+    "done": "Done",
+    "copy": "Copy",
+    "delete": "Delete",
+    "name-exists": "already exists",
+    "name-validation": "At least one character and maximum 25 characters are allowed"
+  },
+
   "log": {
     "open-log-file": "Open Log File",
     "throw-renderer-error": "Throw Renderer Error",

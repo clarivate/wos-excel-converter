@@ -87,6 +87,18 @@ export default class IPCs {
       await configStore.changeConfig(configName)
     })
 
+    ipcMain.handle('msgRequestCopyConfig', async (): Promise<string> => {
+      return await configStore.copyConfig()
+    })
+
+    ipcMain.handle('msgRequestRenameConfig', async (_event, newName: string): Promise<void> => {
+      await configStore.renameConfig(newName)
+    })
+
+    ipcMain.handle('msgRequestDeleteConfig', async (): Promise<void> => {
+      await configStore.deleteCurrent()
+    })
+
     ipcMain.handle('msgThrowError', (_event, msg: string): void => {
       const error = new Error(msg)
       log.error(error)

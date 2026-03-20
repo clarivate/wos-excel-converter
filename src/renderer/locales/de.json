@@ -16,6 +16,15 @@
     "export-again": "Erneut exportieren"
   },
 
+  "config": {
+    "edit-name": "Namen bearbeiten",
+    "done": "Fertig",
+    "copy": "Kopieren",
+    "delete": "Löschen",
+    "name-exists": "existiert bereits",
+    "name-validation": "Mindestens ein Zeichen und maximal 25 Zeichen erforderlich"
+  },
+
   "log": {
     "open-log-file": "Log-Datei öffnen",
     "throw-renderer-error": "Renderer-Fehler auslösen",

@@ -158,19 +158,36 @@ export default class ConfigStore {
     const db = await this.read()
     const chosen = db.data!.configs[db.data!.chosenConfigName]
     if (!chosen) throw new Error('Chosen config not found')
-    const base = `${chosen.name} Copy`
-    let name = base
+
+    // Check if name already ends with " Copy" or " Copy{digits}"
+    const baseName = chosen.name.replace(/\s+Copy(\d*)$/, '')
+    const hasCopy = chosen.name !== baseName
+
+    let newName: string
+    if (hasCopy) {
+      // Already has " Copy" at end, so start with number
+      newName = baseName + ' Copy1'
+    } else {
+      // Doesn't have " Copy" yet, so add it
+      newName = chosen.name + ' Copy'
+    }
+
     let i = 1
     const names = new Set(Object.keys(db.data!.configs))
-    while (names.has(name)) {
-      name = `${base} ${i}`
+    while (names.has(newName)) {
       i++
+      if (hasCopy) {
+        newName = baseName + ' Copy' + i
+      } else {
+        newName = chosen.name + ' Copy' + i
+      }
     }
-    const copy: WOSConverterConfig = { ...chosen, name }
-    db.data!.configs[name] = copy
-    db.data!.chosenConfigName = name
+
+    const copy: WOSConverterConfig = { ...chosen, name: newName }
+    db.data!.configs[newName] = copy
+    db.data!.chosenConfigName = newName
     await db.write()
-    return name
+    return newName
   }
 
   // old: deleteCurrent()
@@ -185,9 +202,11 @@ export default class ConfigStore {
       return
     }
     const current = db.data!.chosenConfigName
+    const currentIndex = names.indexOf(current)
     delete db.data!.configs[current]
-    const firstRemaining = Object.keys(db.data!.configs)[0]
-    db.data!.chosenConfigName = firstRemaining
+    const remaining = Object.keys(db.data!.configs)
+    const nextIndex = currentIndex < remaining.length ? currentIndex : currentIndex - 1
+    db.data!.chosenConfigName = remaining[nextIndex]
     await db.write()
   }
 
@@ -216,6 +235,11 @@ export default class ConfigStore {
     db.data!.configs[name] = renamed
     db.data!.chosenConfigName = name
     await db.write()
+  }
+
+  // Alias for setConfigName
+  async renameConfig(name: string): Promise<void> {
+    return this.setConfigName(name)
   }
 
   // --- field getters and setters (old equivalents) -------------------------

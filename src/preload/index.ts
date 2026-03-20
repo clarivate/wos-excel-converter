@@ -16,6 +16,9 @@ const mainAvailChannels: string[] = [
   'msgRequestGetAllConfigNames',
   'msgRequestGetConfigName',
   'msgRequestChangeConfig',
+  'msgRequestCopyConfig',
+  'msgRequestRenameConfig',
+  'msgRequestDeleteConfig',
   'msgRequestLogLines',
   'msgRequestLogFileSize'
 ]
