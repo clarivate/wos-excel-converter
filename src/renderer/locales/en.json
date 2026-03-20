@@ -25,6 +25,13 @@
     "name-validation": "At least one character and maximum 32 characters are allowed"
   },
 
+  "token": {
+    "title": "API Tokens",
+    "request": "Request a Token",
+    "wos-label": "Web of Science API Expanded Token",
+    "ic-label": "InCites API Token"
+  },
+
   "log": {
     "open-log-file": "Open Log File",
     "throw-renderer-error": "Throw Renderer Error",

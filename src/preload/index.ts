@@ -19,6 +19,10 @@ const mainAvailChannels: string[] = [
   'msgRequestCopyConfig',
   'msgRequestRenameConfig',
   'msgRequestDeleteConfig',
+  'msgRequestGetApiTokens',
+  'msgRequestSetApiTokens',
+  'msgRequestVerifyWosToken',
+  'msgRequestVerifyIcToken',
   'msgRequestLogLines',
   'msgRequestLogFileSize'
 ]

@@ -25,6 +25,13 @@
     "name-validation": "Mindestens ein Zeichen und maximal 32 Zeichen erforderlich"
   },
 
+  "token": {
+    "title": "API-Token",
+    "request": "Token anfordern",
+    "wos-label": "Web of Science API Expanded Token",
+    "ic-label": "InCites API Token"
+  },
+
   "log": {
     "open-log-file": "Log-Datei öffnen",
     "throw-renderer-error": "Renderer-Fehler auslösen",

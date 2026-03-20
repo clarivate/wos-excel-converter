@@ -61,6 +61,8 @@ export default createVuetify({
           warning: '#FFB74D',
           wosIcon: '#FFFFFF',
           background: '#555555',
+          surface: '#333333',
+          'surface-variant': '#444444',
           systembar: '#000000'
         }
       }

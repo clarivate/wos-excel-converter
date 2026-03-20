@@ -37,7 +37,31 @@ export interface MainApi {
    * @param data - Data to send
    * @returns Promise with the response
    */
-  invoke: (channel: string, ...data: any[]) => Promise<any>
+  invoke: {
+    (channel: 'msgRequestGetApiTokens'): Promise<{ wosExpandedToken: string; icToken: string }>
+    (
+      channel: 'msgRequestSetApiTokens',
+      payload: { wosExpandedToken?: string; icToken?: string }
+    ): Promise<void>
+    (
+      channel: 'msgRequestVerifyWosToken',
+      tokenOverride?: string
+    ): Promise<{
+      type: 'success' | 'warning' | 'error'
+      message: string
+      period: 'Year' | 'Month' | null
+      remaining: number | null
+    }>
+    (
+      channel: 'msgRequestVerifyIcToken',
+      tokenOverride?: string
+    ): Promise<{
+      type: 'success' | 'warning' | 'error'
+      message: string
+      remainingPerDay: number | null
+    }>
+    (channel: string, ...data: any[]): Promise<any>
+  }
 
   /**
    * Send a log message to the main process

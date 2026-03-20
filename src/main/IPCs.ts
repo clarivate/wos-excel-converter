@@ -4,6 +4,8 @@ import Constants from './utils/Constants'
 import VersionChecker from './apis/version_checker'
 import ConfigStore from './apis/configs/store'
 import { LogManager, LOG_CONFIG } from './utils/LogManager'
+import WosExpanded from './apis/wos'
+import InCites from './apis/incites'
 
 /*
  * IPC Communications
@@ -11,6 +13,11 @@ import { LogManager, LOG_CONFIG } from './utils/LogManager'
 export default class IPCs {
   static initialize(): void {
     const configStore = ConfigStore.getInstance()
+    const safeErrorMessage = (error: unknown): string => {
+      if (error instanceof Error) return error.message
+      if (typeof error === 'string') return error
+      return 'Unknown error'
+    }
 
     log.hooks.push((message, transport) => {
       if (transport === log.transports.file) {
@@ -98,6 +105,105 @@ export default class IPCs {
     ipcMain.handle('msgRequestDeleteConfig', async (): Promise<void> => {
       await configStore.deleteCurrent()
     })
+
+    ipcMain.handle(
+      'msgRequestGetApiTokens',
+      async (): Promise<{ wosExpandedToken: string; icToken: string }> => {
+        const [wosExpandedToken, icToken] = await Promise.all([
+          configStore.getWosToken(),
+          configStore.getIcToken()
+        ])
+        return { wosExpandedToken, icToken }
+      }
+    )
+
+    ipcMain.handle(
+      'msgRequestSetApiTokens',
+      async (_event, payload: { wosExpandedToken?: string; icToken?: string }): Promise<void> => {
+        if (typeof payload.wosExpandedToken === 'string') {
+          await configStore.setWosToken(payload.wosExpandedToken)
+        }
+        if (typeof payload.icToken === 'string') {
+          await configStore.setIcToken(payload.icToken)
+        }
+      }
+    )
+
+    ipcMain.handle(
+      'msgRequestVerifyWosToken',
+      async (
+        _event,
+        tokenOverride?: string
+      ): Promise<{
+        type: 'success' | 'warning' | 'error'
+        message: string
+        period: 'Year' | 'Month' | null
+        remaining: number | null
+      }> => {
+        const token = tokenOverride ?? (await configStore.getWosToken())
+        if (!token?.trim()) {
+          return {
+            type: 'warning',
+            message: 'Enter a Web of Science API Expanded token to validate it.',
+            period: null,
+            remaining: null
+          }
+        }
+
+        try {
+          const [period, remaining] = await WosExpanded.getInstance(token)!.verifyKey()
+          return {
+            type: 'success',
+            message: `Web of Science token is valid. Remaining records per ${period.toLowerCase()}: ${remaining}.`,
+            period,
+            remaining
+          }
+        } catch (error: unknown) {
+          return {
+            type: 'error',
+            message: `Web of Science token validation failed: ${safeErrorMessage(error)}`,
+            period: null,
+            remaining: null
+          }
+        }
+      }
+    )
+
+    ipcMain.handle(
+      'msgRequestVerifyIcToken',
+      async (
+        _event,
+        tokenOverride?: string
+      ): Promise<{
+        type: 'success' | 'warning' | 'error'
+        message: string
+        remainingPerDay: number | null
+      }> => {
+        const token = tokenOverride ?? (await configStore.getIcToken())
+        if (!token?.trim()) {
+          return {
+            type: 'warning',
+            message: 'Enter an InCites API token to validate it.',
+            remainingPerDay: null
+          }
+        }
+
+        try {
+          const remainingPerDay = await InCites.getInstance(token)!.verifyKey()
+          return {
+            type: 'success',
+            message: `InCites token is valid. Remaining requests per day: ${remainingPerDay}.`,
+            remainingPerDay
+          }
+        } catch (error: unknown) {
+          return {
+            type: 'error',
+            message: `InCites token validation failed: ${safeErrorMessage(error)}`,
+            remainingPerDay: null
+          }
+        }
+      }
+    )
 
     ipcMain.handle('msgThrowError', (_event, msg: string): void => {
       const error = new Error(msg)
