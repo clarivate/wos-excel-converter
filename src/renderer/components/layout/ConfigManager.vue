@@ -134,7 +134,7 @@ const handleDeleteConfig = async (): Promise<void> => {
           v-if="configNames.length > 1"
           id="config-delete-btn"
           text
-          color="red"
+          color="error"
           class="ml-2 opacity-100"
           variant="plain"
           density="compact"
