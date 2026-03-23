@@ -29,4 +29,3 @@ This program is distributed in the hope that it will be useful, but WITHOUT ANY 
 You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 > **Note**: your use cases must comply with Web of Science product terms, as this tool does not intend to replace or modify them in any way.
-

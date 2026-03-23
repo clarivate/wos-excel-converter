@@ -9,22 +9,25 @@
 ### Three-Process Model (Electron)
 
 1. **Main Process** (`src/main/`)
-  - Controls app lifecycle, windows, and system integration
-  - Entry: `src/main/index.ts` (loaded by electron-main)
-  - Handles all IPC communication via `src/main/IPCs.ts`
-  - Manages logging, configuration, and API calls to external services
+
+- Controls app lifecycle, windows, and system integration
+- Entry: `src/main/index.ts` (loaded by electron-main)
+- Handles all IPC communication via `src/main/IPCs.ts`
+- Manages logging, configuration, and API calls to external services
 
 2. **Renderer Process** (`src/renderer/`)
-  - Vue 3 SPA with Vuetify UI framework
-  - Entry: `src/renderer/index.html` and `src/renderer/main.ts`
-  - Communicates with main process exclusively through `window.mainApi` (defined in `src/types/mainApi.d.ts`)
-  - Isolated context: no direct Node.js access
+
+- Vue 3 SPA with Vuetify UI framework
+- Entry: `src/renderer/index.html` and `src/renderer/main.ts`
+- Communicates with main process exclusively through `window.mainApi` (defined in `src/types/mainApi.d.ts`)
+- Isolated context: no direct Node.js access
 
 3. **Preload Bridge** (`src/preload/index.ts`)
-  - **Critical security boundary**: Selectively exposes main process capabilities
-  - **Whitelist channels** in `mainAvailChannels` before adding new IPC features
-  - Routes: `send()`, `on()`, `once()`, `off()` for async/sync, and `invoke()` for request-response
-  - All channels must be registered in both preload and main process IPCs
+
+- **Critical security boundary**: Selectively exposes main process capabilities
+- **Whitelist channels** in `mainAvailChannels` before adding new IPC features
+- Routes: `send()`, `on()`, `once()`, `off()` for async/sync, and `invoke()` for request-response
+- All channels must be registered in both preload and main process IPCs
 
 ### IPC Communication Pattern
 

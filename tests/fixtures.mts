@@ -1,11 +1,20 @@
 import * as base from '@playwright/test'
 import { _electron as electron, Page, ElectronApplication } from 'playwright'
 import { join } from 'path'
+import { mkdtempSync, rmSync } from 'fs'
+import { tmpdir } from 'os'
 import { main } from '../package.json'
 import TestUtil from './testUtil.mjs'
 
 let appElectron: ElectronApplication
 let page: Page
+let userDataDir: string
+
+type BrowserWindowLike = {
+  isDestroyed?: () => boolean
+  setPosition: (x: number, y: number) => void
+  setSize: (width: number, height: number) => void
+}
 
 const __cwd = process.cwd()
 const __isCiProcess = process.env.CI === 'true'
@@ -14,6 +23,8 @@ const __testResultPath = join(__testPath, 'results')
 const __testScreenshotPath = join(__testResultPath, 'screenshots')
 
 export const beforeAll = async () => {
+  userDataDir = mkdtempSync(join(tmpdir(), 'wos-api-exporter-e2e-'))
+
   // Open Electron app from build directory
   appElectron = await electron.launch({
     args: [
@@ -29,7 +40,8 @@ export const beforeAll = async () => {
     colorScheme: 'light',
     env: {
       ...process.env,
-      NODE_ENV: 'production'
+      NODE_ENV: 'production',
+      WOS_APP_USER_DATA_DIR: userDataDir
     }
   })
   page = await appElectron.firstWindow()
@@ -41,15 +53,17 @@ export const beforeAll = async () => {
 
   // Bind to the actual launched page window; focused window can be null/flaky in test runs.
   const browserWindowHandle = await appElectron.browserWindow(page)
-  const hasWindow = await browserWindowHandle.evaluate((windowInstance: any) => {
-    if (!windowInstance || windowInstance.isDestroyed?.()) {
-      return false
-    }
+  const hasWindow = await browserWindowHandle.evaluate(
+    (windowInstance: BrowserWindowLike | null) => {
+      if (!windowInstance || windowInstance.isDestroyed?.()) {
+        return false
+      }
 
-    windowInstance.setPosition(50, 50)
-    windowInstance.setSize(1080, 560)
-    return true
-  })
+      windowInstance.setPosition(50, 50)
+      windowInstance.setSize(1080, 560)
+      return true
+    }
+  )
 
   base.expect(hasWindow, 'failed to resolve a valid BrowserWindow for the first page').toBe(true)
 
@@ -65,6 +79,10 @@ export const beforeAll = async () => {
 
 export const afterAll = async () => {
   await appElectron.close()
+
+  if (userDataDir) {
+    rmSync(userDataDir, { recursive: true, force: true })
+  }
 }
 
 export const test = base.test.extend({

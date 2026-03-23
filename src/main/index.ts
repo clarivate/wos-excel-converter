@@ -7,6 +7,12 @@ import { join } from 'path'
 let mainWindow
 let errorWindow
 
+const userDataOverride = process.env.WOS_APP_USER_DATA_DIR?.trim()
+
+if (userDataOverride) {
+  app.setPath('userData', userDataOverride)
+}
+
 const initializeMainLogger = () => {
   log.initialize({
     includeFutureSessions: false,
