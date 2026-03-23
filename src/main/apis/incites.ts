@@ -1,6 +1,20 @@
 import axios, { AxiosInstance, AxiosResponse } from 'axios'
 import throttleScheduler from './throttle_scheduler'
 
+type InCitesQuotaSnapshot = {
+  requestsPerDayRemaining: number | null
+  requestsPerDayLimit: number | null
+  requestsPerSecondRemaining: number | null
+  requestsPerSecondLimit: number | null
+  rateLimitRemaining: number | null
+  rateLimitResetSeconds: number | null
+}
+
+type InCitesVerificationInfo = {
+  remainingPerDay: number | null
+  headers: InCitesQuotaSnapshot
+}
+
 export default class InCites {
   private static instance: InCites
   private readonly _key: string
@@ -41,7 +55,7 @@ export default class InCites {
   /**
    * verifies key and returns remaining requests per day
    */
-  verifyKey(): Promise<number> {
+  verifyKey(): Promise<InCitesVerificationInfo> {
     return this._axiosInstance
       .get('/DocumentLevelMetricsByUT/json', {
         params: {
@@ -50,9 +64,27 @@ export default class InCites {
           schema: 'wos'
         }
       })
-      .then(function (response) {
-        const remaining = response.headers['x-ratelimit-remaining-day']
-        return Number(remaining ? remaining : '-1')
+      .then((response) => {
+        const parseHeaderNumber = (value: unknown): number | null => {
+          const parsed = Number(value)
+          return Number.isFinite(parsed) ? parsed : null
+        }
+
+        const headers: InCitesQuotaSnapshot = {
+          requestsPerDayRemaining: parseHeaderNumber(response.headers['x-ratelimit-remaining-day']),
+          requestsPerDayLimit: parseHeaderNumber(response.headers['x-ratelimit-limit-day']),
+          requestsPerSecondRemaining: parseHeaderNumber(
+            response.headers['x-ratelimit-remaining-second']
+          ),
+          requestsPerSecondLimit: parseHeaderNumber(response.headers['x-ratelimit-limit-second']),
+          rateLimitRemaining: parseHeaderNumber(response.headers['ratelimit-remaining']),
+          rateLimitResetSeconds: parseHeaderNumber(response.headers['ratelimit-reset'])
+        }
+
+        return {
+          remainingPerDay: headers.requestsPerDayRemaining,
+          headers
+        }
       })
   }
 

@@ -2,6 +2,21 @@ import axios, { AxiosInstance, AxiosResponse } from 'axios'
 import WOSQueryFeedback from './helper/WOSQueryFeedback'
 import throttleScheduler from './throttle_scheduler'
 
+type WosQuotaSnapshot = {
+  recordsPerDayRemaining: number | null
+  recordsPerMonthRemaining: number | null
+  recordsPerYearRemaining: number | null
+  requestsPerSecondRemaining: number | null
+  requestsPerDayRemaining: number | null
+  requestsPerYearRemaining: number | null
+}
+
+type WosVerificationInfo = {
+  period: 'Year' | 'Month' | 'Day' | null
+  remaining: number | null
+  headers: WosQuotaSnapshot
+}
+
 export default class WosExpanded {
   private static instance: WosExpanded
   private readonly _key: string
@@ -42,7 +57,7 @@ export default class WosExpanded {
   /**
    * verifies key and returns remaining records
    */
-  async verifyKey(): Promise<['Year' | 'Month', number]> {
+  async verifyKey(): Promise<WosVerificationInfo> {
     const response = await this._axiosInstance.get('/id/0', {
       params: {
         count: 0,
@@ -53,12 +68,60 @@ export default class WosExpanded {
     return this.quotaHeader(response)
   }
 
-  private quotaHeader(response: AxiosResponse): ['Year' | 'Month', number] {
-    const remainingYear = response.headers['x-rec-amtperyear-remaining']
-    const remainingMonth = response.headers['x-rec-amtpermonth-remaining']
-    if (remainingYear) return ['Year', Number(remainingYear)]
-    else if (remainingMonth) return ['Month', Number(remainingMonth)]
-    else return ['Year', -1]
+  private parseHeaderNumber(value: unknown): number | null {
+    const parsed = Number(value)
+    return Number.isFinite(parsed) ? parsed : null
+  }
+
+  private quotaHeader(response: AxiosResponse): WosVerificationInfo {
+    const headers: WosQuotaSnapshot = {
+      recordsPerDayRemaining: this.parseHeaderNumber(response.headers['x-rec-amtperday-remaining']),
+      recordsPerMonthRemaining: this.parseHeaderNumber(
+        response.headers['x-rec-amtpermonth-remaining']
+      ),
+      recordsPerYearRemaining: this.parseHeaderNumber(
+        response.headers['x-rec-amtperyear-remaining']
+      ),
+      requestsPerSecondRemaining: this.parseHeaderNumber(
+        response.headers['x-req-reqpersec-remaining']
+      ),
+      requestsPerDayRemaining: this.parseHeaderNumber(
+        response.headers['x-req-reqperday-remaining']
+      ),
+      requestsPerYearRemaining: this.parseHeaderNumber(
+        response.headers['x-req-reqperyear-remaining']
+      )
+    }
+
+    if (headers.recordsPerYearRemaining !== null) {
+      return {
+        period: 'Year',
+        remaining: headers.recordsPerYearRemaining,
+        headers
+      }
+    }
+
+    if (headers.recordsPerMonthRemaining !== null) {
+      return {
+        period: 'Month',
+        remaining: headers.recordsPerMonthRemaining,
+        headers
+      }
+    }
+
+    if (headers.recordsPerDayRemaining !== null) {
+      return {
+        period: 'Day',
+        remaining: headers.recordsPerDayRemaining,
+        headers
+      }
+    }
+
+    return {
+      period: null,
+      remaining: null,
+      headers
+    }
   }
 
   async validateQuery(
@@ -88,11 +151,12 @@ export default class WosExpanded {
       )
     } else {
       const queryResult = response.data['QueryResult']
+      const quota = this.quotaHeader(response)
 
       return {
         recordsFound: Number(queryResult['RecordsFound']),
         queryId: Number(queryResult['QueryID']),
-        remainingRecords: this.quotaHeader(response)
+        remainingRecords: [quota.period, quota.remaining]
       }
     }
   }

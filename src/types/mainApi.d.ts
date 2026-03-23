@@ -50,8 +50,16 @@ export interface MainApi {
       type: 'success' | 'warning' | 'error'
       messageKey: string
       messageParams?: Record<string, string | number>
-      period: 'Year' | 'Month' | null
+      period: 'Year' | 'Month' | 'Day' | null
       remaining: number | null
+      rateLimits: {
+        recordsPerDayRemaining: number | null
+        recordsPerMonthRemaining: number | null
+        recordsPerYearRemaining: number | null
+        requestsPerSecondRemaining: number | null
+        requestsPerDayRemaining: number | null
+        requestsPerYearRemaining: number | null
+      }
     }>
     (
       channel: 'msgRequestVerifyIcToken',
@@ -61,6 +69,14 @@ export interface MainApi {
       messageKey: string
       messageParams?: Record<string, string | number>
       remainingPerDay: number | null
+      rateLimits: {
+        requestsPerDayRemaining: number | null
+        requestsPerDayLimit: number | null
+        requestsPerSecondRemaining: number | null
+        requestsPerSecondLimit: number | null
+        rateLimitRemaining: number | null
+        rateLimitResetSeconds: number | null
+      }
     }>
     (channel: string, ...data: any[]): Promise<any>
   }

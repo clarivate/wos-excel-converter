@@ -138,30 +138,55 @@ export default class IPCs {
         type: 'success' | 'warning' | 'error'
         messageKey: string
         messageParams?: Record<string, string | number>
-        period: 'Year' | 'Month' | null
+        period: 'Year' | 'Month' | 'Day' | null
         remaining: number | null
+        rateLimits: {
+          recordsPerDayRemaining: number | null
+          recordsPerMonthRemaining: number | null
+          recordsPerYearRemaining: number | null
+          requestsPerSecondRemaining: number | null
+          requestsPerDayRemaining: number | null
+          requestsPerYearRemaining: number | null
+        }
       }> => {
         const token = tokenOverride ?? (await configStore.getWosToken())
+        const emptyWosRateLimits = {
+          recordsPerDayRemaining: null,
+          recordsPerMonthRemaining: null,
+          recordsPerYearRemaining: null,
+          requestsPerSecondRemaining: null,
+          requestsPerDayRemaining: null,
+          requestsPerYearRemaining: null
+        }
+
         if (!token?.trim()) {
           return {
             type: 'warning',
             messageKey: 'token.validation.wos-empty',
             period: null,
-            remaining: null
+            remaining: null,
+            rateLimits: emptyWosRateLimits
           }
         }
 
         try {
-          const [period, remaining] = await WosExpanded.getInstance(token)!.verifyKey()
+          const verification = await WosExpanded.getInstance(token)!.verifyKey()
           return {
             type: 'success',
-            messageKey: 'token.validation.wos-success',
-            messageParams: {
-              period: period.toLowerCase(),
-              remaining
-            },
-            period,
-            remaining
+            messageKey:
+              verification.remaining === null
+                ? 'token.validation.wos-success-unlimited'
+                : 'token.validation.wos-success',
+            messageParams:
+              verification.remaining === null
+                ? undefined
+                : {
+                    period: verification.period?.toLowerCase() ?? 'day',
+                    remaining: verification.remaining
+                  },
+            period: verification.period,
+            remaining: verification.remaining,
+            rateLimits: verification.headers
           }
         } catch (error: unknown) {
           return {
@@ -171,7 +196,8 @@ export default class IPCs {
               error: safeErrorMessage(error)
             },
             period: null,
-            remaining: null
+            remaining: null,
+            rateLimits: emptyWosRateLimits
           }
         }
       }
@@ -187,25 +213,50 @@ export default class IPCs {
         messageKey: string
         messageParams?: Record<string, string | number>
         remainingPerDay: number | null
+        rateLimits: {
+          requestsPerDayRemaining: number | null
+          requestsPerDayLimit: number | null
+          requestsPerSecondRemaining: number | null
+          requestsPerSecondLimit: number | null
+          rateLimitRemaining: number | null
+          rateLimitResetSeconds: number | null
+        }
       }> => {
         const token = tokenOverride ?? (await configStore.getIcToken())
+        const emptyIcRateLimits = {
+          requestsPerDayRemaining: null,
+          requestsPerDayLimit: null,
+          requestsPerSecondRemaining: null,
+          requestsPerSecondLimit: null,
+          rateLimitRemaining: null,
+          rateLimitResetSeconds: null
+        }
+
         if (!token?.trim()) {
           return {
             type: 'warning',
             messageKey: 'token.validation.ic-empty',
-            remainingPerDay: null
+            remainingPerDay: null,
+            rateLimits: emptyIcRateLimits
           }
         }
 
         try {
-          const remainingPerDay = await InCites.getInstance(token)!.verifyKey()
+          const verification = await InCites.getInstance(token)!.verifyKey()
           return {
             type: 'success',
-            messageKey: 'token.validation.ic-success',
-            messageParams: {
-              remainingPerDay
-            },
-            remainingPerDay
+            messageKey:
+              verification.remainingPerDay === null
+                ? 'token.validation.ic-success-unlimited'
+                : 'token.validation.ic-success',
+            messageParams:
+              verification.remainingPerDay === null
+                ? undefined
+                : {
+                    remainingPerDay: verification.remainingPerDay
+                  },
+            remainingPerDay: verification.remainingPerDay,
+            rateLimits: verification.headers
           }
         } catch (error: unknown) {
           return {
@@ -214,7 +265,8 @@ export default class IPCs {
             messageParams: {
               error: safeErrorMessage(error)
             },
-            remainingPerDay: null
+            remainingPerDay: null,
+            rateLimits: emptyIcRateLimits
           }
         }
       }

@@ -35,9 +35,11 @@
     "validation": {
       "wos-empty": "Enter a Web of Science API Expanded token to validate it.",
       "wos-success": "Web of Science token is valid. Remaining records per {period}: {remaining}.",
+      "wos-success-unlimited": "Web of Science token is valid. Record limits are unlimited (not applicable).",
       "wos-error": "Web of Science token validation failed: {error}",
       "ic-empty": "Enter an InCites API token to validate it.",
       "ic-success": "InCites token is valid. Remaining requests per day: {remainingPerDay}.",
+      "ic-success-unlimited": "InCites token is valid. Request limits are unlimited (not applicable).",
       "ic-error": "InCites token validation failed: {error}"
     }
   },

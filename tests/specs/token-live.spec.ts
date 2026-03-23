@@ -5,10 +5,26 @@ import '../../src/types/mainApi.d.ts'
 test.beforeAll(beforeAll)
 test.afterAll(afterAll)
 
+const openTokenPanel = async (page: any): Promise<void> => {
+  const tokenTitle = page.getByText('API Tokens', { exact: true }).first()
+  await expect(tokenTitle).toBeVisible()
+  await tokenTitle.click()
+}
+
+const fillTokenField = async (page: any, label: string, token: string): Promise<void> => {
+  const field = page.getByLabel(label).first()
+  await expect(field).toBeVisible()
+  await field.fill(token)
+}
+
 test.describe('@requires-token Token Live Verification', () => {
   test.skip(!hasTokenEnv, 'WOS_EXPANDED_TOKEN and INCITES_TOKEN are required for live token tests')
 
-  test('validates live Web of Science token', async ({ page }) => {
+  // @ts-expect-error: `util` is not using types in playwright
+  test('validates live Web of Science token', async ({ page, util }) => {
+    await openTokenPanel(page)
+    await fillTokenField(page, 'Web of Science API Expanded Token', wosExpandedToken)
+
     await page.evaluate(
       (token) =>
         window.mainApi.invoke('msgRequestSetApiTokens', {
@@ -23,11 +39,47 @@ test.describe('@requires-token Token Live Verification', () => {
     )
 
     expect(result.type).toBe('success')
-    expect(result.period === 'Year' || result.period === 'Month').toBe(true)
-    expect(typeof result.remaining).toBe('number')
+    expect(result.period === 'Year' || result.period === 'Month' || result.period === 'Day').toBe(
+      true
+    )
+    expect(result.remaining === null || typeof result.remaining === 'number').toBe(true)
+
+    // WOS may provide one or many REC/REQ headers depending on tenant limits.
+    expect(typeof result.rateLimits).toBe('object')
+    expect(
+      result.rateLimits.recordsPerDayRemaining === null ||
+        typeof result.rateLimits.recordsPerDayRemaining === 'number'
+    ).toBe(true)
+    expect(
+      result.rateLimits.recordsPerMonthRemaining === null ||
+        typeof result.rateLimits.recordsPerMonthRemaining === 'number'
+    ).toBe(true)
+    expect(
+      result.rateLimits.recordsPerYearRemaining === null ||
+        typeof result.rateLimits.recordsPerYearRemaining === 'number'
+    ).toBe(true)
+    expect(
+      result.rateLimits.requestsPerSecondRemaining === null ||
+        typeof result.rateLimits.requestsPerSecondRemaining === 'number'
+    ).toBe(true)
+    expect(
+      result.rateLimits.requestsPerDayRemaining === null ||
+        typeof result.rateLimits.requestsPerDayRemaining === 'number'
+    ).toBe(true)
+    expect(
+      result.rateLimits.requestsPerYearRemaining === null ||
+        typeof result.rateLimits.requestsPerYearRemaining === 'number'
+    ).toBe(true)
+
+    await page.waitForTimeout(800)
+    await util.captureScreenshot(page, 'token-live-wos-verified')
   })
 
-  test('validates live InCites token', async ({ page }) => {
+  // @ts-expect-error: `util` is not using types in playwright
+  test('validates live InCites token', async ({ page, util }) => {
+    await openTokenPanel(page)
+    await fillTokenField(page, 'InCites API Token', incitesToken)
+
     await page.evaluate(
       (token) =>
         window.mainApi.invoke('msgRequestSetApiTokens', {
@@ -42,6 +94,36 @@ test.describe('@requires-token Token Live Verification', () => {
     )
 
     expect(result.type).toBe('success')
-    expect(typeof result.remainingPerDay).toBe('number')
+    expect(result.remainingPerDay === null || typeof result.remainingPerDay === 'number').toBe(true)
+
+    // InCites only exposes request-oriented rate-limit headers.
+    expect(typeof result.rateLimits).toBe('object')
+    expect(
+      result.rateLimits.requestsPerDayRemaining === null ||
+        typeof result.rateLimits.requestsPerDayRemaining === 'number'
+    ).toBe(true)
+    expect(
+      result.rateLimits.requestsPerDayLimit === null ||
+        typeof result.rateLimits.requestsPerDayLimit === 'number'
+    ).toBe(true)
+    expect(
+      result.rateLimits.requestsPerSecondRemaining === null ||
+        typeof result.rateLimits.requestsPerSecondRemaining === 'number'
+    ).toBe(true)
+    expect(
+      result.rateLimits.requestsPerSecondLimit === null ||
+        typeof result.rateLimits.requestsPerSecondLimit === 'number'
+    ).toBe(true)
+    expect(
+      result.rateLimits.rateLimitRemaining === null ||
+        typeof result.rateLimits.rateLimitRemaining === 'number'
+    ).toBe(true)
+    expect(
+      result.rateLimits.rateLimitResetSeconds === null ||
+        typeof result.rateLimits.rateLimitResetSeconds === 'number'
+    ).toBe(true)
+
+    await page.waitForTimeout(800)
+    await util.captureScreenshot(page, 'token-live-incites-verified')
   })
 })
