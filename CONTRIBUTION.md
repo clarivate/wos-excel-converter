@@ -213,11 +213,38 @@ npm run dev
 
 ## Environment & Dependencies
 
+### Package Manager: pnpm for Installation
+
+**Use `pnpm` for package management operations** (installing/adding/removing packages):
+
+```bash
+pnpm install          # Install dependencies
+pnpm add package      # Add package
+pnpm add -D package   # Add dev dependency
+pnpm remove package   # Remove package
+```
+
+**Use `npm run` for running scripts** (defined in package.json):
+
+```bash
+npm run dev           # Start development server
+npm run build         # Build application
+npm run test          # Run tests
+npm run lint:fix      # Fix linting issues
+```
+
+Reason: This project uses `pnpm-workspace.yaml` and `pnpm-lock.yaml` for monorepo management, but package.json scripts use `npm run` syntax.
+
+### Core Requirements
+
 - **Node 20+** required (see `package.json` engines)
-- **pnpm** workspace (see `pnpm-workspace.yaml`; single package project)
-- **Key deps**: Electron 39+, Vue 3, Vuetify 3, Vite 7, ExcelJS, fast-csv, axios
-- **Dev deps**: Playwright (E2E), TypeScript, ESLint, Prettier
-- **Output structure**: `dist/main/index.js` (entry point), `dist/preload/index.js`, `dist/renderer/` (SPA)
+- **pnpm** (for package management)
+- **Key dependencies**: Electron 39+, Vue 3, Vuetify 3, Vite 7, ExcelJS, fast-csv, axios
+- **Dev dependencies**: Playwright (E2E + coverage), TypeScript, ESLint, Prettier
+- **Output structure**:
+  - `dist/main/index.js` (Electron main process entry)
+  - `dist/preload/index.js` (Preload bridge)
+  - `dist/renderer/` (Vue SPA)
 
 ## Release & Versioning
 

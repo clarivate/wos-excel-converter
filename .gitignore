@@ -63,3 +63,11 @@ tests/results/
 npm-debug.log
 npm-debug.log.*
 vite-plugin-electron.log
+
+# Coverage artifacts
+coverage/
+.nyc_output/
+*.lcov
+
+# Agent report only to this folder during implementation
+/agentReports/
