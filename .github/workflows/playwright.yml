@@ -1,0 +1,107 @@
+name: Playwright
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  e2e-core:
+    name: E2E Core (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: Build app
+        run: npm run build:pre
+
+      - name: Run core Playwright tests (Linux)
+        if: runner.os == 'Linux'
+        run: xvfb-run --auto-servernum --server-args='-screen 0, 1280x960x24' -- npx playwright test --grep-invert @requires-token
+
+      - name: Run core Playwright tests (macOS/Windows)
+        if: runner.os != 'Linux'
+        run: npx playwright test --grep-invert @requires-token
+
+      - name: Upload Playwright artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-core-${{ matrix.os }}
+          path: tests/results
+          if-no-files-found: ignore
+
+  e2e-token-live:
+    name: E2E Token Live (${{ matrix.os }})
+    if: ${{ secrets.WOS_EXPANDED_TOKEN != '' && secrets.INCITES_TOKEN != '' }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    env:
+      WOS_EXPANDED_TOKEN: ${{ secrets.WOS_EXPANDED_TOKEN }}
+      INCITES_TOKEN: ${{ secrets.INCITES_TOKEN }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: Build app
+        run: npm run build:pre
+
+      - name: Mask tokens in logs
+        shell: bash
+        run: |
+          echo "::add-mask::$WOS_EXPANDED_TOKEN"
+          echo "::add-mask::$INCITES_TOKEN"
+
+      - name: Run token-required Playwright tests (Linux)
+        if: runner.os == 'Linux'
+        run: xvfb-run --auto-servernum --server-args='-screen 0, 1280x960x24' -- npx playwright test --grep @requires-token
+
+      - name: Run token-required Playwright tests (macOS/Windows)
+        if: runner.os != 'Linux'
+        run: npx playwright test --grep @requires-token
+
+      - name: Upload Playwright artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-token-live-${{ matrix.os }}
+          path: tests/results
+          if-no-files-found: ignore
+
