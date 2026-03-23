@@ -111,6 +111,40 @@ npm run lint:fix        # Auto-fix ESLint/Prettier issues
 - **Window size**: Normalized to 1080x560 for consistent UI testing.
 - **Queries**: Use data-testid patterns like `page.locator('#header-system-bar')`.
 
+#### Playwright Commands
+
+```bash
+npm run test:e2e
+npm run test:e2e:core
+npm run test:e2e:tokens
+```
+
+- `npm run test:e2e`: runs the full Playwright suite
+- `npm run test:e2e:core`: runs tests that do not require live API tokens
+- `npm run test:e2e:tokens`: runs only token-backed live verification tests tagged with `@requires-token`
+
+#### Local Token Setup for Live Tests
+
+Create a local `.env` file in the repo root (it is gitignored) or copy from `.env.example`:
+
+```env
+WOS_EXPANDED_TOKEN=your_wos_expanded_token
+INCITES_TOKEN=your_incites_token
+```
+
+- These values are loaded by `tests/env.mts`
+- If tokens are missing, `tests/specs/token-live.spec.ts` is skipped automatically
+- Never commit real token values to git
+
+#### GitHub Actions
+
+- Workflow file: `.github/workflows/playwright.yml`
+- Core Playwright tests run on macOS, Windows, and Linux for normal CI coverage
+- Token-backed live tests run only when repository or environment secrets are configured:
+  - `WOS_EXPANDED_TOKEN`
+  - `INCITES_TOKEN`
+- The workflow masks token values in logs before running the live test job
+
 ### Unit Tests
 
 - Stored in `tests/unit/` (e.g., `LogManager.spec.ts`).

@@ -30,36 +30,3 @@ You should have received a copy of the GNU General Public License along with thi
 
 > **Note**: your use cases must comply with Web of Science product terms, as this tool does not intend to replace or modify them in any way.
 
-### Testing (Playwright + Token Secrets)
-
-- Core E2E tests (no live API tokens required):
-
-```bash
-npm run test:e2e:core
-```
-
-- Live token E2E tests (requires local env values):
-
-```bash
-npm run test:e2e:tokens
-```
-
-- Full E2E run:
-
-```bash
-npm run test:e2e
-```
-
-Create a local `.env` file (this file is gitignored) for token-backed tests:
-
-```env
-WOS_EXPANDED_TOKEN=your_wos_expanded_token
-INCITES_TOKEN=your_incites_token
-```
-
-GitHub Actions workflow is in `.github/workflows/playwright.yml` and runs:
-
-- Core tests on macOS, Windows, Linux
-- Token-required tests only when repository secrets are configured:
-  - `WOS_EXPANDED_TOKEN`
-  - `INCITES_TOKEN`
