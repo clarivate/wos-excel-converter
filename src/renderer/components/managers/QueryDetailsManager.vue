@@ -110,7 +110,9 @@ const idsFileShort = computed(() => {
 
 const showStatusIcon = computed(() => atLeastOneTokenValid.value)
 const statusColor = computed(() => panelStatusColor.value || 'error')
-const statusIcon = computed(() => (panelStatusColor.value === 'green' ? mdiCheckCircle : mdiAlert))
+const statusIcon = computed(() =>
+  panelStatusColor.value === 'success' ? mdiCheckCircle : mdiAlert
+)
 
 const disableIdsFileUpload = computed(() => {
   return !(
