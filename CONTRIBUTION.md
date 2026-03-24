@@ -98,6 +98,31 @@ npm run lint:fix        # Auto-fix ESLint/Prettier issues
 - **Composition API**: Store-like patterns use `defineStore` with `ref()` and functions (not `computed`).
 - **Type safety**: Explicit `mainApi` type in `src/types/mainApi.d.ts`; no implicit `any` in renderer code.
 
+#### Dark Mode Tooltip Text Color Fix
+
+**Problem**: In dark mode, tooltips show black text on dark background (unreadable).
+
+**Solution**: Apply three changes to any component with `v-tooltip`:
+
+1. Add `theme="dark"` attribute to `v-tooltip`:
+```vue
+<v-tooltip theme="dark" content-class="your-tooltip-class">
+  ...
+</v-tooltip>
+```
+
+2. Add a unique `content-class` to the tooltip (e.g., `token-summary-tooltip` or `query-tooltip`).
+
+3. Add a scoped CSS rule using `:deep()` to force white text:
+```css
+:deep(.your-tooltip-class),
+:deep(.your-tooltip-class .v-tooltip) {
+  color: #ffffff !important;
+}
+```
+
+**Examples**: See `TokenManager.vue` (token tooltips) and `QueryDetailsManager.vue` (query detail tooltips) for implementation.
+
 ### Configuration Management (`src/main/apis/configs/`)
 
 - **Persisted storage**: `ConfigStore` wraps `lowdb` (JSON-based) for user settings.
