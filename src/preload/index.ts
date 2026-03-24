@@ -23,6 +23,10 @@ const mainAvailChannels: string[] = [
   'msgRequestSetApiTokens',
   'msgRequestVerifyWosToken',
   'msgRequestVerifyIcToken',
+  'msgRequestGetQueryDetails',
+  'msgRequestSetQueryDetails',
+  'msgRequestValidateWosQuery',
+  'msgRequestParseIdsFile',
   'msgRequestLogLines',
   'msgRequestLogFileSize'
 ]

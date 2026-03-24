@@ -1,5 +1,6 @@
 <script setup lang="tsx">
 import ConfigManager from '@/renderer/components/layout/ConfigManager.vue'
+import QueryDetailsManager from '@/renderer/components/layout/QueryDetailsManager.vue'
 import TokenManager from '@/renderer/components/layout/TokenManager.vue'
 </script>
 
@@ -8,10 +9,7 @@ import TokenManager from '@/renderer/components/layout/TokenManager.vue'
     <ConfigManager />
     <v-expansion-panels focusable>
       <TokenManager />
-      <v-expansion-panel>
-        <v-expansion-panel-title>Query Details</v-expansion-panel-title>
-        <v-expansion-panel-text>Coming next in the migration.</v-expansion-panel-text>
-      </v-expansion-panel>
+      <QueryDetailsManager />
       <v-expansion-panel>
         <v-expansion-panel-title>Export Format</v-expansion-panel-title>
         <v-expansion-panel-text>Coming next in the migration.</v-expansion-panel-text>

@@ -1,11 +1,26 @@
 import { BrowserWindow, dialog, ipcMain, IpcMainEvent, shell } from 'electron'
 import log from 'electron-log/main'
+import { readFile } from 'node:fs/promises'
 import Constants from './utils/Constants'
 import VersionChecker from './apis/version_checker'
 import ConfigStore from './apis/configs/store'
 import { LogManager, LOG_CONFIG } from './utils/LogManager'
 import WosExpanded from './apis/wos'
 import InCites from './apis/incites'
+
+type QueryDetailsPayload = {
+  databaseId: string
+  edition: string
+  lang: string
+  createdTimeSpan: string
+  modifiedTimeSpan: string
+  usrQuery: string
+  disableWosQuery: boolean
+  addCitedReferences: boolean
+  idsFile: string
+  icSchema: { code: string; name: string }
+  icEsci: 'y' | 'n'
+}
 
 /*
  * IPC Communications
@@ -125,6 +140,233 @@ export default class IPCs {
         }
         if (typeof payload.icToken === 'string') {
           await configStore.setIcToken(payload.icToken)
+        }
+      }
+    )
+
+    ipcMain.handle('msgRequestGetQueryDetails', async (): Promise<QueryDetailsPayload> => {
+      const [
+        databaseId,
+        edition,
+        lang,
+        createdTimeSpan,
+        modifiedTimeSpan,
+        usrQuery,
+        disableWosQuery,
+        addCitedReferences,
+        idsFile,
+        icSchema,
+        icEsci
+      ] = await Promise.all([
+        configStore.getWosDatabaseId(),
+        configStore.getWosEdition(),
+        configStore.getWosLang(),
+        configStore.getWosTimeSpan(),
+        configStore.getModifiedTimeSpan(),
+        configStore.getWosUsrQuery(),
+        configStore.getDisableWosQuery(),
+        configStore.getAddCitedReferences(),
+        configStore.getIdsFile(),
+        configStore.getIcSchema(),
+        configStore.getEsci()
+      ])
+
+      return {
+        databaseId,
+        edition,
+        lang,
+        createdTimeSpan,
+        modifiedTimeSpan: modifiedTimeSpan ?? '',
+        usrQuery,
+        disableWosQuery,
+        addCitedReferences,
+        idsFile,
+        icSchema,
+        icEsci
+      }
+    })
+
+    ipcMain.handle(
+      'msgRequestSetQueryDetails',
+      async (_event, payload: Partial<QueryDetailsPayload>) => {
+        // Sequential writes avoid stale read/write overlap with lowdb updates.
+        if (typeof payload.databaseId === 'string') {
+          await configStore.setWosDatabaseId(payload.databaseId)
+        }
+        if (typeof payload.edition === 'string') {
+          await configStore.setWosEdition(payload.edition)
+        }
+        if (typeof payload.lang === 'string') {
+          await configStore.setWosLang(payload.lang)
+        }
+        if (typeof payload.createdTimeSpan === 'string') {
+          await configStore.setWosTimeSpan(payload.createdTimeSpan)
+        }
+        if (typeof payload.modifiedTimeSpan === 'string') {
+          await configStore.setModifiedTimeSpan(payload.modifiedTimeSpan || null)
+        }
+        if (typeof payload.usrQuery === 'string') {
+          await configStore.setWosUsrQuery(payload.usrQuery)
+        }
+        if (typeof payload.disableWosQuery === 'boolean') {
+          await configStore.setDisableWosQuery(payload.disableWosQuery)
+        }
+        if (typeof payload.addCitedReferences === 'boolean') {
+          await configStore.setAddCitedReferences(payload.addCitedReferences)
+        }
+        if (typeof payload.idsFile === 'string') {
+          await configStore.setIdsFile(payload.idsFile)
+        }
+        if (payload.icSchema) {
+          await configStore.setIcSchema(payload.icSchema)
+        }
+        if (payload.icEsci === 'y' || payload.icEsci === 'n') {
+          await configStore.setEsci(payload.icEsci)
+        }
+      }
+    )
+
+    ipcMain.handle(
+      'msgRequestValidateWosQuery',
+      async (
+        _event,
+        payload?: Partial<
+          Pick<
+            QueryDetailsPayload,
+            'databaseId' | 'edition' | 'lang' | 'createdTimeSpan' | 'modifiedTimeSpan' | 'usrQuery'
+          >
+        >
+      ): Promise<{
+        type: 'success' | 'warning' | 'error'
+        messageKey: string
+        messageParams?: Record<string, string | number>
+        recordsFound: number | null
+        queryId: number | null
+      }> => {
+        const token = await configStore.getWosToken()
+        if (!token.trim()) {
+          return {
+            type: 'warning',
+            messageKey: 'query.validation.token-required',
+            recordsFound: null,
+            queryId: null
+          }
+        }
+
+        const [databaseId, edition, lang, createdTimeSpan, modifiedTimeSpan, usrQuery] =
+          await Promise.all([
+            payload?.databaseId ?? configStore.getWosDatabaseId(),
+            payload?.edition ?? configStore.getWosEdition(),
+            payload?.lang ?? configStore.getWosLang(),
+            payload?.createdTimeSpan ?? configStore.getWosTimeSpan(),
+            payload?.modifiedTimeSpan ?? configStore.getModifiedTimeSpan(),
+            payload?.usrQuery ?? configStore.getWosUsrQuery()
+          ])
+
+        if (!usrQuery?.trim()) {
+          return {
+            type: 'warning',
+            messageKey: 'query.validation.empty',
+            recordsFound: null,
+            queryId: null
+          }
+        }
+
+        try {
+          const validation = await WosExpanded.getInstance(token)!.validateQuery(
+            usrQuery,
+            databaseId,
+            edition || null,
+            lang || null,
+            createdTimeSpan || null,
+            modifiedTimeSpan || null
+          )
+          return {
+            type: 'success',
+            messageKey: 'query.validation.success',
+            messageParams: {
+              recordsFound: validation.recordsFound,
+              queryId: validation.queryId
+            },
+            recordsFound: validation.recordsFound,
+            queryId: validation.queryId
+          }
+        } catch (error: unknown) {
+          return {
+            type: 'error',
+            messageKey: 'query.validation.error',
+            messageParams: {
+              error: safeErrorMessage(error)
+            },
+            recordsFound: null,
+            queryId: null
+          }
+        }
+      }
+    )
+
+    ipcMain.handle(
+      'msgRequestParseIdsFile',
+      async (
+        _event,
+        payload: { filePath: string; allowExpandedIds: boolean }
+      ): Promise<{
+        ids: string[]
+        invalidIds: number
+        duplicates: number
+        totalRows: number
+        error: string | null
+      }> => {
+        if (!payload?.filePath) {
+          return {
+            ids: [],
+            invalidIds: 0,
+            duplicates: 0,
+            totalRows: 0,
+            error: null
+          }
+        }
+
+        try {
+          const raw = await readFile(payload.filePath, 'utf-8')
+          const rows = raw.split(/\r?\n/)
+          const accepted: string[] = []
+          let invalidIds = 0
+
+          for (const row of rows) {
+            const value = row.trim()
+            if (!value) {
+              invalidIds++
+              continue
+            }
+
+            const isValidUt = value.startsWith('UT:')
+            const isExpandedOnly = value.startsWith('DOI:') || value.startsWith('PMID:')
+            const isValid = isValidUt || (payload.allowExpandedIds && isExpandedOnly)
+
+            if (isValid) {
+              accepted.push(value)
+            } else {
+              invalidIds++
+            }
+          }
+
+          const unique = [...new Set(accepted)]
+          return {
+            ids: unique,
+            invalidIds,
+            duplicates: accepted.length - unique.length,
+            totalRows: rows.length,
+            error: null
+          }
+        } catch (error: unknown) {
+          return {
+            ids: [],
+            invalidIds: 0,
+            duplicates: 0,
+            totalRows: 0,
+            error: safeErrorMessage(error)
+          }
         }
       }
     )

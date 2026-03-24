@@ -126,6 +126,11 @@ npm run test:e2e:tokens
 - `npm run test:e2e:core`: runs tests that do not require live API tokens
 - `npm run test:e2e:tokens`: runs only token-backed live verification tests tagged with `@requires-token`
 
+Query Details migration test coverage:
+
+- `tests/specs/query-details-ipc.spec.ts`: validates IPC contracts for query settings persistence, config isolation, WOS validation response shape, and ID file cleanup behavior.
+- `tests/specs/query-details-ui.spec.ts`: validates renderer-level Query Details panel rendering and token-gated UI states.
+
 #### Local Token Setup for Live Tests
 
 Create a local `.env` file in the repo root (it is gitignored) or copy from `.env.example`:

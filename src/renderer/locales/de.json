@@ -58,6 +58,65 @@
     }
   },
 
+  "query": {
+    "title": "Query-Details",
+    "close": "Schließen",
+    "disable-wos": "Abfrage deaktivieren und stattdessen einfache Datei mit IDs verwenden",
+    "add-cited-references": "Zitierte Referenzen hinzufügen",
+    "summary": {
+      "usr-query": "usrQuery",
+      "database-id": "databaseId",
+      "edition": "edition",
+      "created-time-span": "createdTimeSpan",
+      "modified-time-span": "modifiedTimeSpan",
+      "cited-references-warning": "Das Aktivieren zitierter Referenzen führt zu längerer Exportzeit und höherem Speicherverbrauch.",
+      "records-found": "Gefundene Datensatze"
+    },
+    "validation": {
+      "token-required": "Validieren Sie Ihr Web of Science-Token vor der Query-Validierung.",
+      "empty": "Geben Sie vor der Validierung eine usrQuery ein.",
+      "success": "Abfrage ist gültig. Gefundene Datensatze: {recordsFound}. Query-ID: {queryId}.",
+      "error": "Query-Validierung fehlgeschlagen: {error}"
+    },
+    "wos": {
+      "open-dialog": "Web of Science API Expanded Query-Details",
+      "dialog-title": "Web of Science API Query-Details",
+      "database-id": "databaseId",
+      "database-id-hint": "Zu durchsuchende Datenbank. WOK steht fur alle Datenbanken.",
+      "edition": "edition",
+      "edition-hint": "Zu durchsuchende Edition(en). Beispiel: WOS+SCI. Mehrere Werte konnen durch Kommas getrennt werden.",
+      "lang": "lang",
+      "lang-hint": "Sprache der Suche. Verwenden Sie en fur Englisch.",
+      "created-time-span": "createdTimeSpan",
+      "created-time-span-hint": "Filter fur erstmalige Erstellung in Web of Science. Format yyyy-mm-dd+yyyy-mm-dd",
+      "modified-time-span": "modifiedTimeSpan",
+      "modified-time-span-hint": "Filter fur Anderungszeit in Web of Science. Format yyyy-mm-dd+yyyy-mm-dd",
+      "usr-query": "usrQuery",
+      "usr-query-hint": "Benutzerabfrage fur Datenanforderung, z. B. TS=(cadmium).",
+      "open-docs": "Query-Dokumentation öffnen",
+      "validate": "Validieren",
+      "verify-token-first": "Validieren Sie zuerst Ihr Token"
+    },
+    "incites": {
+      "title": "InCites Query-Einstellungen",
+      "open-dialog": "InCites API Anfragedetails",
+      "dialog-title": "InCites API Anfragedetails",
+      "schema": "schema",
+      "schema-hint": "Schema-spezifische Metriken auswählen",
+      "esci": "esci",
+      "esci-hint": "Kennzeichen zum Einschließen (y) oder Ausschließen (n) von ESCI-Inhalten in Baseline-Metriken."
+    },
+    "ids-file": {
+      "title": "Datei mit IDs",
+      "button": "Einfache Datei mit IDs (UTF-8)",
+      "help1": "Stellen Sie eine Datei bereit, die eine ID pro Zeile enthält, statt die Web of Science API-Abfrage zu verwenden.",
+      "remove": "Entfernen",
+      "required": "Eine Datei mit IDs ist erforderlich, wenn die Abfrage deaktiviert ist oder die Token-Validierung fehlt.",
+      "invalid-rows": "{count} ungültige Zeilen entfernt.",
+      "duplicate-rows": "{count} doppelte Zeilen entfernt."
+    }
+  },
+
   "log": {
     "open-log-file": "Log-Datei öffnen",
     "throw-renderer-error": "Renderer-Fehler auslösen",

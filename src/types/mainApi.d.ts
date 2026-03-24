@@ -78,6 +78,62 @@ export interface MainApi {
         rateLimitResetSeconds: number | null
       }
     }>
+    (channel: 'msgRequestGetQueryDetails'): Promise<{
+      databaseId: string
+      edition: string
+      lang: string
+      createdTimeSpan: string
+      modifiedTimeSpan: string
+      usrQuery: string
+      disableWosQuery: boolean
+      addCitedReferences: boolean
+      idsFile: string
+      icSchema: { code: string; name: string }
+      icEsci: 'y' | 'n'
+    }>
+    (
+      channel: 'msgRequestSetQueryDetails',
+      payload: Partial<{
+        databaseId: string
+        edition: string
+        lang: string
+        createdTimeSpan: string
+        modifiedTimeSpan: string
+        usrQuery: string
+        disableWosQuery: boolean
+        addCitedReferences: boolean
+        idsFile: string
+        icSchema: { code: string; name: string }
+        icEsci: 'y' | 'n'
+      }>
+    ): Promise<void>
+    (
+      channel: 'msgRequestValidateWosQuery',
+      payload?: Partial<{
+        databaseId: string
+        edition: string
+        lang: string
+        createdTimeSpan: string
+        modifiedTimeSpan: string
+        usrQuery: string
+      }>
+    ): Promise<{
+      type: 'success' | 'warning' | 'error'
+      messageKey: string
+      messageParams?: Record<string, string | number>
+      recordsFound: number | null
+      queryId: number | null
+    }>
+    (
+      channel: 'msgRequestParseIdsFile',
+      payload: { filePath: string; allowExpandedIds: boolean }
+    ): Promise<{
+      ids: string[]
+      invalidIds: number
+      duplicates: number
+      totalRows: number
+      error: string | null
+    }>
     (channel: string, ...data: any[]): Promise<any>
   }
 

@@ -58,6 +58,65 @@
     }
   },
 
+  "query": {
+    "title": "Query Details",
+    "close": "Close",
+    "disable-wos": "Disable query and use plain file with IDs instead",
+    "add-cited-references": "Add cited references",
+    "summary": {
+      "usr-query": "usrQuery",
+      "database-id": "databaseId",
+      "edition": "edition",
+      "created-time-span": "createdTimeSpan",
+      "modified-time-span": "modifiedTimeSpan",
+      "cited-references-warning": "Activating cited references leads to longer export time and higher memory usage.",
+      "records-found": "Records found"
+    },
+    "validation": {
+      "token-required": "Verify your Web of Science token before query validation.",
+      "empty": "Enter a usrQuery before validation.",
+      "success": "Query is valid. Records found: {recordsFound}. Query ID: {queryId}.",
+      "error": "Query validation failed: {error}"
+    },
+    "wos": {
+      "open-dialog": "Web of Science API Expanded Query Details",
+      "dialog-title": "Web of Science API Query Details",
+      "database-id": "databaseId",
+      "database-id-hint": "Database to search. WOK represents all databases.",
+      "edition": "edition",
+      "edition-hint": "Edition(s) to search. Example: WOS+SCI. Multiple values can be comma-separated.",
+      "lang": "lang",
+      "lang-hint": "Language of search. Use en for English.",
+      "created-time-span": "createdTimeSpan",
+      "created-time-span-hint": "Filter by first creation in Web of Science. Format yyyy-mm-dd+yyyy-mm-dd",
+      "modified-time-span": "modifiedTimeSpan",
+      "modified-time-span-hint": "Filter by modification time in Web of Science. Format yyyy-mm-dd+yyyy-mm-dd",
+      "usr-query": "usrQuery",
+      "usr-query-hint": "User query for requesting data, e.g. TS=(cadmium).",
+      "open-docs": "Open query documentation",
+      "validate": "Validate",
+      "verify-token-first": "Verify your token first"
+    },
+    "incites": {
+      "title": "InCites Query Settings",
+      "open-dialog": "InCites API Request Details",
+      "dialog-title": "InCites API Request Details",
+      "schema": "schema",
+      "schema-hint": "Choose schema-specific metrics",
+      "esci": "esci",
+      "esci-hint": "Flag to include (y) or exclude (n) ESCI content in baseline metrics."
+    },
+    "ids-file": {
+      "title": "File with IDs",
+      "button": "Plain file with IDs (UTF-8)",
+      "help1": "Provide a file that includes one ID per line instead of using Web of Science API query.",
+      "remove": "Remove",
+      "required": "A file with IDs is required when query usage is disabled or token validation is missing.",
+      "invalid-rows": "Removed {count} invalid rows.",
+      "duplicate-rows": "Removed {count} duplicated rows."
+    }
+  },
+
   "log": {
     "open-log-file": "Open Log File",
     "throw-renderer-error": "Throw Renderer Error",
