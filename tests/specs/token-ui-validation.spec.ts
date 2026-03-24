@@ -24,17 +24,28 @@ test.describe('Token UI Updates', () => {
 
     await openTokenPanel(page)
 
-    // Check for new label text
-    const htmlContent = await page.content()
+    // Validate rendered chip labels only if token summary chips are visible.
+    // In CI/core runs there may be no valid token, so no summary chips are rendered.
+    const summaryChips = page.locator(
+      '[id^="token-summary-"][id*="-rec-"], [id^="token-summary-"][id*="-req-"]'
+    )
+    const chipCount = await summaryChips.count()
+    const chipTexts = (
+      await Promise.all([...Array(chipCount).keys()].map((i) => summaryChips.nth(i).textContent()))
+    ).join(' ')
 
-    // Verify new labels are present (when tokens are valid)
-    // These will be present in the tooltip or label text
-    const hasDocuments = htmlContent.includes('Documents')
-    const hasRequests = htmlContent.includes('Requests')
+    // Old abbreviations should never appear anymore.
+    expect(chipTexts).not.toContain('REC/day')
+    expect(chipTexts).not.toContain('REC/month')
+    expect(chipTexts).not.toContain('REC/year')
+    expect(chipTexts).not.toContain('REQ/day')
+    expect(chipTexts).not.toContain('REQ/sec')
+    expect(chipTexts).not.toContain('REQ/year')
 
-    // At minimum, the translation keys should be loaded
-    expect(hasDocuments || htmlContent.includes('REC/day')).toBe(true)
-    expect(hasRequests || htmlContent.includes('REQ/day')).toBe(true)
+    // If chips are present, they should use the new labels.
+    if (chipCount > 0) {
+      expect(chipTexts).toMatch(/Documents|Requests/)
+    }
   })
 
   test('displays error chip when token validation fails', async ({ page }) => {
@@ -50,15 +61,10 @@ test.describe('Token UI Updates', () => {
     // Wait for validation to complete
     await page.waitForTimeout(2000)
 
-    // Look for error chip (it should show "Token validation failed, [error]")
+    // Look for error chip (current copy: "Web of Science token validation failed: [error]")
     const errorChip = page.locator('[id*="token-summary-wos-error"]')
-    const hasErrorChip = await errorChip.isVisible().catch(() => false)
-
-    // Error chips should be visible when validation fails
-    if (hasErrorChip) {
-      const text = await errorChip.textContent()
-      expect(text).toContain('Token validation failed')
-    }
+    await expect(errorChip).toBeVisible({ timeout: 7000 })
+    await expect(errorChip).toContainText(/token validation failed/i)
   })
 
   test('keeps chips visible when expansion panel is expanded', async ({ page }) => {
