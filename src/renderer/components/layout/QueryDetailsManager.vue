@@ -143,14 +143,14 @@ watch(wosTokenSucceeded, async () => {
                 </v-list-item-title>
               </v-list-item>
               <v-list-item>
-                <v-list-item-title
-                  >{{ t('query.summary.database-id') }}: {{ databaseId }}</v-list-item-title
-                >
+                <v-list-item-title>
+                  {{ t('query.summary.database-id') }}: {{ databaseId }}
+                </v-list-item-title>
               </v-list-item>
               <v-list-item v-if="edition">
-                <v-list-item-title
-                  >{{ t('query.summary.edition') }}: {{ edition }}</v-list-item-title
-                >
+                <v-list-item-title>
+                  {{ t('query.summary.edition') }}: {{ edition }}
+                </v-list-item-title>
               </v-list-item>
               <v-list-item v-if="createdTimeSpan">
                 <v-list-item-title>
@@ -163,9 +163,9 @@ watch(wosTokenSucceeded, async () => {
                 </v-list-item-title>
               </v-list-item>
               <v-list-item v-if="addCitedReferences">
-                <v-list-item-title class="text-warning">{{
-                  t('query.summary.cited-references-warning')
-                }}</v-list-item-title>
+                <v-list-item-title class="text-warning">
+                  {{ t('query.summary.cited-references-warning') }}
+                </v-list-item-title>
               </v-list-item>
               <v-list-item
                 v-if="wosRecordsFound !== null"
@@ -346,10 +346,14 @@ watch(wosTokenSucceeded, async () => {
     fullscreen
     transition="dialog-bottom-transition"
   >
-    <v-card>
+    <v-card
+      class="d-flex flex-column"
+      style="height: 100%"
+    >
       <v-app-bar
         density="comfortable"
         color="primary"
+        style="position: sticky; top: 0; z-index: 10"
       >
         <v-toolbar-title>{{ t('query.wos.dialog-title') }}</v-toolbar-title>
         <v-spacer />
@@ -361,7 +365,10 @@ watch(wosTokenSucceeded, async () => {
         </v-btn>
       </v-app-bar>
 
-      <v-container class="pt-10">
+      <v-container
+        class="overflow-y-auto flex-grow-1"
+        style="overflow-x: hidden"
+      >
         <v-row>
           <v-col
             cols="12"
@@ -515,10 +522,14 @@ watch(wosTokenSucceeded, async () => {
     fullscreen
     transition="dialog-bottom-transition"
   >
-    <v-card>
+    <v-card
+      class="d-flex flex-column"
+      style="height: 100%"
+    >
       <v-app-bar
         density="comfortable"
         color="primary"
+        style="position: sticky; top: 0; z-index: 10"
       >
         <v-toolbar-title>{{ t('query.incites.dialog-title') }}</v-toolbar-title>
         <v-spacer />
@@ -530,7 +541,10 @@ watch(wosTokenSucceeded, async () => {
         </v-btn>
       </v-app-bar>
 
-      <v-container class="pt-10">
+      <v-container
+        class="overflow-y-auto flex-grow-1"
+        style="overflow-x: hidden"
+      >
         <v-row>
           <v-col cols="12">
             <v-select
@@ -545,7 +559,7 @@ watch(wosTokenSucceeded, async () => {
               variant="outlined"
               @update:model-value="persist({ icSchema: $event })"
             >
-              <template #selection="{ item }">{{ item.raw.code }} - {{ item.raw.name }}</template>
+              <template #selection="{ item }"> {{ item.raw.code }} - {{ item.raw.name }} </template>
               <template #item="{ item, props }">
                 <v-list-item
                   v-bind="props"
