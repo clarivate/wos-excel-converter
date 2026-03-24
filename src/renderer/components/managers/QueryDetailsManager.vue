@@ -38,7 +38,6 @@ const {
   wosValidationMessageParams,
   wosRecordsFound,
   validationInProgress,
-  queryPreview,
   queryValidated,
   panelStatusColor
 } = storeToRefs(queryStore)
@@ -53,19 +52,31 @@ const wosMessage = computed(() => {
 
 type SummaryChip = { id: string; label: string }
 
+const fmt = (value: number): string => new Intl.NumberFormat('en-US').format(value)
+
+const QUERY_CHIP_MAX = 32
+const queryChipLabel = computed(() =>
+  usrQuery.value.length > QUERY_CHIP_MAX
+    ? `${usrQuery.value.slice(0, QUERY_CHIP_MAX)}…`
+    : usrQuery.value
+)
+
 const showQuerySummary = computed(() => queryValidated.value && wosTokenSucceeded.value)
 const showQueryMessageChip = computed(
   () => showQuerySummary.value && !!wosMessage.value && wosValidationType.value !== 'success'
+)
+
+const recordsOverLimit = computed(
+  () => wosRecordsFound.value !== null && wosRecordsFound.value > 100000
+)
+const recordsFormatted = computed(() =>
+  wosRecordsFound.value !== null ? fmt(wosRecordsFound.value) : ''
 )
 
 const querySummaryChips = computed((): SummaryChip[] => {
   if (!showQuerySummary.value) return []
 
   const chips: SummaryChip[] = [
-    {
-      id: 'query',
-      label: `${t('query.summary.query')}: ${queryPreview.value}`
-    },
     {
       id: 'database-id',
       label: `${t('query.summary.database-id-short')}: ${databaseId.value}`
@@ -86,11 +97,6 @@ const querySummaryChips = computed((): SummaryChip[] => {
     chips.push({
       id: 'modified-time-span',
       label: `${t('query.summary.modified-short')}: ${modifiedTimeSpan.value}`
-    })
-  if (wosRecordsFound.value !== null)
-    chips.push({
-      id: 'records-found',
-      label: `${t('query.summary.records-short')}: ${wosRecordsFound.value}`
     })
 
   return chips
@@ -185,6 +191,24 @@ watch(wosTokenSucceeded, async () => {
                 WOS
               </v-chip>
 
+              <!-- Query chip with truncation + multiline tooltip -->
+              <v-tooltip
+                location="top"
+                max-width="420"
+              >
+                <template #activator="{ props }">
+                  <v-chip
+                    id="query-summary-chip-query"
+                    v-bind="props"
+                    size="small"
+                    variant="outlined"
+                  >
+                    {{ t('query.summary.query') }}: {{ queryChipLabel }}
+                  </v-chip>
+                </template>
+                <span class="query-tooltip-text">{{ usrQuery }}</span>
+              </v-tooltip>
+
               <v-chip
                 v-for="chip in querySummaryChips"
                 :id="`query-summary-chip-${chip.id}`"
@@ -195,6 +219,35 @@ watch(wosTokenSucceeded, async () => {
                 {{ chip.label }}
               </v-chip>
 
+              <!-- Records found: US-formatted, orange warning chip + tooltip when > 100k -->
+              <v-tooltip
+                v-if="wosRecordsFound !== null && recordsOverLimit"
+                location="top"
+                max-width="300"
+              >
+                <template #activator="{ props }">
+                  <v-chip
+                    id="query-summary-chip-records-found"
+                    v-bind="props"
+                    size="small"
+                    color="warning"
+                    variant="outlined"
+                  >
+                    {{ t('query.summary.records-short') }}: {{ recordsFormatted }}
+                  </v-chip>
+                </template>
+                <span>{{ t('query.summary.records-over-limit-warning') }}</span>
+              </v-tooltip>
+              <v-chip
+                v-else-if="wosRecordsFound !== null"
+                id="query-summary-chip-records-found"
+                size="small"
+                variant="outlined"
+              >
+                {{ t('query.summary.records-short') }}: {{ recordsFormatted }}
+              </v-chip>
+
+              <!-- Cited refs: outlined warning border, default text -->
               <v-tooltip
                 v-if="addCitedReferences"
                 location="top"
@@ -204,10 +257,12 @@ watch(wosTokenSucceeded, async () => {
                     id="query-summary-cited-warning"
                     v-bind="props"
                     size="small"
-                    color="orange"
-                    variant="tonal"
+                    color="warning"
+                    variant="outlined"
                   >
-                    {{ t('query.summary.cited-references-short') }}
+                    <span class="text-medium-emphasis">
+                      {{ t('query.summary.cited-references-short') }}
+                    </span>
                   </v-chip>
                 </template>
                 <span>{{ t('query.summary.cited-references-warning') }}</span>
@@ -409,5 +464,11 @@ watch(wosTokenSucceeded, async () => {
   .border-right {
     border-right: 0;
   }
+}
+
+.query-tooltip-text {
+  display: block;
+  white-space: pre-wrap;
+  word-break: break-all;
 }
 </style>

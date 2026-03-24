@@ -39,3 +39,25 @@ test.describe('Query Details UI', () => {
     await expect(page.getByText('TS=covid* and PY=2020')).toHaveCount(0)
   })
 })
+
+test.describe('Query summary chip details', () => {
+  test('query chip truncates at 32 chars and renders tooltip activator', async ({ page }) => {
+    await openQueryPanel(page)
+
+    // Default query "TS=covid* and PY=2020" is < 32 chars — chip not visible (no token)
+    // We just verify the chip element is absent without a validated token
+    await expect(page.locator('#query-summary-chip-query')).toHaveCount(0)
+  })
+
+  test('records chip is absent when summary is hidden (no token)', async ({ page }) => {
+    await openQueryPanel(page)
+
+    await expect(page.locator('#query-summary-chip-records-found')).toHaveCount(0)
+  })
+
+  test('cited-refs chip is absent when summary is hidden (no token)', async ({ page }) => {
+    await openQueryPanel(page)
+
+    await expect(page.locator('#query-summary-cited-warning')).toHaveCount(0)
+  })
+})

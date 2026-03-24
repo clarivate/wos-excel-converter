@@ -75,9 +75,10 @@
       "created-short": "Erstellt",
       "modified-short": "Geändert",
       "records-short": "Datensätze",
-      "cited-references-short": "Zitierte Ref.",
+      "cited-references-short": "Zitierte Ref. aktiviert",
       "cited-references-warning": "Das Aktivieren zitierter Referenzen führt zu längerer Exportzeit und höherem Speicherverbrauch.",
-      "records-found": "Gefundene Datensatze"
+      "records-found": "Gefundene Datensatze",
+      "records-over-limit-warning": "Die Expanded API kann maximal 100.000 Datensätze paginieren. Schränke die Abfrage ein (z. B. PY=2017 für ein einzelnes Jahr)."
     },
     "validation": {
       "token-required": "Validieren Sie Ihr Web of Science-Token vor der Query-Validierung.",
