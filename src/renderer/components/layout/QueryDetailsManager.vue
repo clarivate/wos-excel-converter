@@ -4,8 +4,10 @@ import { storeToRefs } from 'pinia'
 import { mdiAlert, mdiCheckCircle } from '@mdi/js'
 import { useI18n } from 'vue-i18n'
 import { useConfigsStore } from '@/renderer/store/configs'
-import { icSchemaOptions, useQueryDetailsStore } from '@/renderer/store/queryDetails'
+import { useQueryDetailsStore } from '@/renderer/store/queryDetails'
 import { useTokensStore } from '@/renderer/store/tokens'
+import WosQueryDialog from '@/renderer/components/dialogs/WosQueryDialog.vue'
+import IncitesQueryDialog from '@/renderer/components/dialogs/IncitesQueryDialog.vue'
 
 const { t } = useI18n()
 
@@ -75,13 +77,6 @@ const validate = async (): Promise<void> => {
 
 const chooseIdsFile = async (): Promise<void> => {
   await queryStore.chooseIdsFile(wosTokenSucceeded.value)
-}
-
-const openWosDocs = (): void => {
-  window.mainApi.send(
-    'msgOpenExternalLink',
-    'https://webofscience.help.clarivate.com/en-us/Content/advanced-search.html'
-  )
 }
 
 onMounted(async () => {
@@ -341,249 +336,27 @@ watch(wosTokenSucceeded, async () => {
     </v-expansion-panel-text>
   </v-expansion-panel>
 
-  <v-dialog
+  <WosQueryDialog
     v-model="wosDialogOpen"
-    fullscreen
-    transition="dialog-bottom-transition"
-  >
-    <v-card
-      class="d-flex flex-column"
-      style="height: 100%"
-    >
-      <v-app-bar
-        density="comfortable"
-        color="primary"
-        style="position: sticky; top: 0; z-index: 10"
-      >
-        <v-toolbar-title>{{ t('query.wos.dialog-title') }}</v-toolbar-title>
-        <v-spacer />
-        <v-btn
-          variant="text"
-          @click="wosDialogOpen = false"
-        >
-          {{ t('query.close') }}
-        </v-btn>
-      </v-app-bar>
+    :wos-token-succeeded="wosTokenSucceeded"
+    :database-id="databaseId"
+    :edition="edition"
+    :lang="lang"
+    :created-time-span="createdTimeSpan"
+    :modified-time-span="modifiedTimeSpan"
+    :usr-query="usrQuery"
+    :wos-validation-type="wosValidationType"
+    :wos-validation-message-key="wosValidationMessageKey"
+    :wos-validation-message-params="wosValidationMessageParams"
+    :validation-in-progress="validationInProgress"
+  />
 
-      <v-container
-        class="overflow-y-auto flex-grow-1"
-        style="overflow-x: hidden"
-      >
-        <v-row>
-          <v-col
-            cols="12"
-            xl="6"
-          >
-            <v-combobox
-              id="query-database-id"
-              :model-value="databaseId"
-              :label="t('query.wos.database-id')"
-              :hint="t('query.wos.database-id-hint')"
-              persistent-hint
-              :items="[
-                'BCI',
-                'BIOABS',
-                'BIOSIS',
-                'CCC',
-                'DCI',
-                'DIIDW',
-                'MEDLINE',
-                'WOK',
-                'WOS',
-                'ZOOREC'
-              ]"
-              variant="outlined"
-              @update:model-value="persist({ databaseId: String($event || 'WOS') })"
-            />
-          </v-col>
-          <v-col
-            cols="12"
-            xl="6"
-          >
-            <v-text-field
-              id="query-edition"
-              :model-value="edition"
-              :label="t('query.wos.edition')"
-              :hint="t('query.wos.edition-hint')"
-              persistent-hint
-              variant="outlined"
-              @update:model-value="persist({ edition: String($event || '') })"
-            />
-          </v-col>
-          <v-col
-            cols="12"
-            xl="4"
-          >
-            <v-text-field
-              id="query-lang"
-              :model-value="lang"
-              :label="t('query.wos.lang')"
-              :hint="t('query.wos.lang-hint')"
-              persistent-hint
-              variant="outlined"
-              @update:model-value="persist({ lang: String($event || '') })"
-            />
-          </v-col>
-          <v-col
-            cols="12"
-            xl="4"
-          >
-            <v-text-field
-              id="query-created-time-span"
-              :model-value="createdTimeSpan"
-              :label="t('query.wos.created-time-span')"
-              :hint="t('query.wos.created-time-span-hint')"
-              persistent-hint
-              variant="outlined"
-              @update:model-value="persist({ createdTimeSpan: String($event || '') })"
-            />
-          </v-col>
-          <v-col
-            cols="12"
-            xl="4"
-          >
-            <v-text-field
-              id="query-modified-time-span"
-              :model-value="modifiedTimeSpan"
-              :label="t('query.wos.modified-time-span')"
-              :hint="t('query.wos.modified-time-span-hint')"
-              persistent-hint
-              variant="outlined"
-              @update:model-value="persist({ modifiedTimeSpan: String($event || '') })"
-            />
-          </v-col>
-        </v-row>
-
-        <v-row class="pt-4">
-          <v-col cols="12">
-            <v-textarea
-              id="query-usr-query"
-              :model-value="usrQuery"
-              :label="t('query.wos.usr-query')"
-              :hint="t('query.wos.usr-query-hint')"
-              persistent-hint
-              variant="outlined"
-              @update:model-value="persist({ usrQuery: String($event || '') })"
-            >
-              <template #message>
-                <a
-                  href="#"
-                  @click.prevent="openWosDocs"
-                >
-                  {{ t('query.wos.open-docs') }}
-                </a>
-              </template>
-            </v-textarea>
-          </v-col>
-        </v-row>
-
-        <v-row>
-          <v-col
-            cols="12"
-            md="2"
-          >
-            <v-btn
-              id="query-validate-btn"
-              block
-              :disabled="!wosTokenSucceeded || validationInProgress"
-              @click="validate"
-            >
-              {{ t('query.wos.validate') }}
-            </v-btn>
-          </v-col>
-          <v-col
-            cols="12"
-            md="10"
-          >
-            <v-alert
-              v-if="!wosTokenSucceeded"
-              type="info"
-              variant="tonal"
-              density="compact"
-            >
-              {{ t('query.wos.verify-token-first') }}
-            </v-alert>
-            <v-alert
-              v-if="wosValidationType"
-              id="query-validation-alert"
-              :type="wosValidationType"
-              variant="tonal"
-              density="compact"
-              v-html="wosMessage"
-            />
-          </v-col>
-        </v-row>
-      </v-container>
-    </v-card>
-  </v-dialog>
-
-  <v-dialog
+  <IncitesQueryDialog
     v-model="icDialogOpen"
-    fullscreen
-    transition="dialog-bottom-transition"
-  >
-    <v-card
-      class="d-flex flex-column"
-      style="height: 100%"
-    >
-      <v-app-bar
-        density="comfortable"
-        color="primary"
-        style="position: sticky; top: 0; z-index: 10"
-      >
-        <v-toolbar-title>{{ t('query.incites.dialog-title') }}</v-toolbar-title>
-        <v-spacer />
-        <v-btn
-          variant="text"
-          @click="icDialogOpen = false"
-        >
-          {{ t('query.close') }}
-        </v-btn>
-      </v-app-bar>
-
-      <v-container
-        class="overflow-y-auto flex-grow-1"
-        style="overflow-x: hidden"
-      >
-        <v-row>
-          <v-col cols="12">
-            <v-select
-              id="query-ic-schema"
-              :model-value="icSchema"
-              :label="t('query.incites.schema')"
-              :hint="t('query.incites.schema-hint')"
-              persistent-hint
-              :items="icSchemaOptions"
-              item-title="name"
-              return-object
-              variant="outlined"
-              @update:model-value="persist({ icSchema: $event })"
-            >
-              <template #selection="{ item }"> {{ item.raw.code }} - {{ item.raw.name }} </template>
-              <template #item="{ item, props }">
-                <v-list-item
-                  v-bind="props"
-                  :title="`${item.raw.code} - ${item.raw.name}`"
-                />
-              </template>
-            </v-select>
-          </v-col>
-          <v-col cols="12">
-            <v-select
-              id="query-ic-esci"
-              :model-value="icEsci"
-              :label="t('query.incites.esci')"
-              :hint="t('query.incites.esci-hint')"
-              persistent-hint
-              :items="['y', 'n']"
-              variant="outlined"
-              @update:model-value="persist({ icEsci: $event as 'y' | 'n' })"
-            />
-          </v-col>
-        </v-row>
-      </v-container>
-    </v-card>
-  </v-dialog>
+    :ic-token-succeeded="icTokenSucceeded"
+    :ic-schema="icSchema"
+    :ic-esci="icEsci"
+  />
 </template>
 
 <style scoped>
