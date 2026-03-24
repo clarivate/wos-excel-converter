@@ -39,7 +39,7 @@ const statusColor = computed(() => combinedStatusColor.value)
 
 const fmt = (value: number): string => new Intl.NumberFormat().format(value)
 
-type Chip = { id: string; label: string; tooltip: string }
+type Chip = { id: string; label: string }
 
 const compactWosChips = computed((): Chip[] => {
   if (wosTokenMessageType.value !== 'success' || !wosRateLimits.value) return []
@@ -50,45 +50,38 @@ const compactWosChips = computed((): Chip[] => {
   if (r.recordsPerDayRemaining !== null)
     chips.push({
       id: 'wos-rec-day',
-      label: `${t('token.summary.wos-rec-day')}: ${fmt(r.recordsPerDayRemaining)}`,
-      tooltip: fmt(r.recordsPerDayRemaining)
+      label: `${t('token.summary.wos-rec-day')}: ${fmt(r.recordsPerDayRemaining)}`
     })
   if (r.recordsPerMonthRemaining !== null)
     chips.push({
       id: 'wos-rec-month',
-      label: `${t('token.summary.wos-rec-month')}: ${fmt(r.recordsPerMonthRemaining)}`,
-      tooltip: fmt(r.recordsPerMonthRemaining)
+      label: `${t('token.summary.wos-rec-month')}: ${fmt(r.recordsPerMonthRemaining)}`
     })
   if (r.recordsPerYearRemaining !== null)
     chips.push({
       id: 'wos-rec-year',
-      label: `${t('token.summary.wos-rec-year')}: ${fmt(r.recordsPerYearRemaining)}`,
-      tooltip: fmt(r.recordsPerYearRemaining)
+      label: `${t('token.summary.wos-rec-year')}: ${fmt(r.recordsPerYearRemaining)}`
     })
   if (r.requestsPerSecondRemaining !== null)
     chips.push({
       id: 'wos-req-second',
-      label: `${t('token.summary.wos-req-second')}: ${fmt(r.requestsPerSecondRemaining)}`,
-      tooltip: fmt(r.requestsPerSecondRemaining)
+      label: `${t('token.summary.wos-req-second')}: ${fmt(r.requestsPerSecondRemaining)}`
     })
   if (r.requestsPerDayRemaining !== null)
     chips.push({
       id: 'wos-req-day',
-      label: `${t('token.summary.wos-req-day')}: ${fmt(r.requestsPerDayRemaining)}`,
-      tooltip: fmt(r.requestsPerDayRemaining)
+      label: `${t('token.summary.wos-req-day')}: ${fmt(r.requestsPerDayRemaining)}`
     })
   if (r.requestsPerYearRemaining !== null)
     chips.push({
       id: 'wos-req-year',
-      label: `${t('token.summary.wos-req-year')}: ${fmt(r.requestsPerYearRemaining)}`,
-      tooltip: fmt(r.requestsPerYearRemaining)
+      label: `${t('token.summary.wos-req-year')}: ${fmt(r.requestsPerYearRemaining)}`
     })
 
   if (chips.length === 0)
     chips.push({
       id: 'wos-unlimited',
-      label: t('token.summary.unlimited-short'),
-      tooltip: t('token.summary.unlimited')
+      label: t('token.summary.unlimited-short')
     })
 
   return chips
@@ -105,11 +98,7 @@ const compactIcChips = computed((): Chip[] => {
       r.requestsPerDayLimit !== null
         ? `${t('token.summary.ic-req-day')}: ${fmt(r.requestsPerDayRemaining)}/${fmt(r.requestsPerDayLimit)}`
         : `${t('token.summary.ic-req-day')}: ${fmt(r.requestsPerDayRemaining)}`
-    const tooltip =
-      r.requestsPerDayLimit !== null
-        ? `${fmt(r.requestsPerDayRemaining)} / ${fmt(r.requestsPerDayLimit)}`
-        : fmt(r.requestsPerDayRemaining)
-    chips.push({ id: 'ic-req-day', label, tooltip })
+    chips.push({ id: 'ic-req-day', label })
   }
 
   if (r.requestsPerSecondRemaining !== null) {
@@ -117,18 +106,13 @@ const compactIcChips = computed((): Chip[] => {
       r.requestsPerSecondLimit !== null
         ? `${t('token.summary.ic-req-second')}: ${fmt(r.requestsPerSecondRemaining)}/${fmt(r.requestsPerSecondLimit)}`
         : `${t('token.summary.ic-req-second')}: ${fmt(r.requestsPerSecondRemaining)}`
-    const tooltip =
-      r.requestsPerSecondLimit !== null
-        ? `${fmt(r.requestsPerSecondRemaining)} / ${fmt(r.requestsPerSecondLimit)}`
-        : fmt(r.requestsPerSecondRemaining)
-    chips.push({ id: 'ic-req-second', label, tooltip })
+    chips.push({ id: 'ic-req-second', label })
   }
 
   if (chips.length === 0)
     chips.push({
       id: 'ic-unlimited',
-      label: t('token.summary.unlimited-short'),
-      tooltip: t('token.summary.unlimited')
+      label: t('token.summary.unlimited-short')
     })
 
   return chips
@@ -141,8 +125,7 @@ const wosValidationErrorChip = computed((): Chip | null => {
   const message = t('token.validation.wos-error', { error: errorMsg })
   return {
     id: 'wos-error',
-    label: message,
-    tooltip: message
+    label: message
   }
 })
 
@@ -153,8 +136,7 @@ const icValidationErrorChip = computed((): Chip | null => {
   const message = t('token.validation.ic-error', { error: errorMsg })
   return {
     id: 'ic-error',
-    label: message,
-    tooltip: message
+    label: message
   }
 })
 
@@ -223,24 +205,15 @@ watch(selectedConfigName, async () => {
               >
                 {{ t('token.summary.wos') }}
               </v-chip>
-              <v-tooltip
+              <v-chip
                 v-for="chip in compactWosChips"
                 :key="chip.id"
-                :text="chip.tooltip"
-                theme="dark"
-                content-class="token-summary-tooltip"
+                :id="`token-summary-${chip.id}`"
+                size="small"
+                variant="outlined"
               >
-                <template #activator="{ props }">
-                  <v-chip
-                    v-bind="props"
-                    :id="`token-summary-${chip.id}`"
-                    size="small"
-                    variant="outlined"
-                  >
-                    {{ chip.label }}
-                  </v-chip>
-                </template>
-              </v-tooltip>
+                {{ chip.label }}
+              </v-chip>
             </div>
           </v-col>
           <v-col
@@ -255,24 +228,15 @@ watch(selectedConfigName, async () => {
               >
                 {{ t('token.summary.ic') }}
               </v-chip>
-              <v-tooltip
+              <v-chip
                 v-for="chip in compactIcChips"
                 :key="chip.id"
-                :text="chip.tooltip"
-                theme="dark"
-                content-class="token-summary-tooltip"
+                :id="`token-summary-${chip.id}`"
+                size="small"
+                variant="outlined"
               >
-                <template #activator="{ props }">
-                  <v-chip
-                    v-bind="props"
-                    :id="`token-summary-${chip.id}`"
-                    size="small"
-                    variant="outlined"
-                  >
-                    {{ chip.label }}
-                  </v-chip>
-                </template>
-              </v-tooltip>
+                {{ chip.label }}
+              </v-chip>
             </div>
           </v-col>
           <v-col
@@ -401,10 +365,3 @@ watch(selectedConfigName, async () => {
     </v-expansion-panel-text>
   </v-expansion-panel>
 </template>
-
-<style scoped>
-:deep(.token-summary-tooltip),
-:deep(.token-summary-tooltip .v-tooltip) {
-  color: #ffffff !important;
-}
-</style>
