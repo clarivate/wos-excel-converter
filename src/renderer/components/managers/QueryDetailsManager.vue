@@ -272,9 +272,7 @@ watch(wosTokenSucceeded, async () => {
                     color="warning"
                     variant="outlined"
                   >
-                    <span class="text-medium-emphasis">
-                      {{ t('query.summary.cited-references-short') }}
-                    </span>
+                    {{ t('query.summary.cited-references-short') }}
                   </v-chip>
                 </template>
                 <span>{{ t('query.summary.cited-references-warning') }}</span>
