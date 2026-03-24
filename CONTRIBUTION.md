@@ -105,6 +105,7 @@ npm run lint:fix        # Auto-fix ESLint/Prettier issues
 **Solution**: Apply three changes to any component with `v-tooltip`:
 
 1. Add `theme="dark"` attribute to `v-tooltip`:
+
 ```vue
 <v-tooltip theme="dark" content-class="your-tooltip-class">
   ...
@@ -114,6 +115,7 @@ npm run lint:fix        # Auto-fix ESLint/Prettier issues
 2. Add a unique `content-class` to the tooltip (e.g., `token-summary-tooltip` or `query-tooltip`).
 
 3. Add a scoped CSS rule using `:deep()` to force white text:
+
 ```css
 :deep(.your-tooltip-class),
 :deep(.your-tooltip-class .v-tooltip) {
