@@ -5,6 +5,44 @@ test.afterAll(afterAll)
 
 test.describe('LogScreen Component Tests', () => {
   // @ts-expect-error: `util` is not using types in playwright
+  test('LogScreen navigation does not emit SVG path parse errors', async ({ page, util }) => {
+    const svgPathErrors: string[] = []
+    const svgErrorMatcher = /<path> attribute d: Expected number/i
+
+    const onPageError = (error: Error) => {
+      if (svgErrorMatcher.test(error.message)) {
+        svgPathErrors.push(error.message)
+      }
+    }
+
+    const onConsole = (message: { type: () => string; text: () => string }) => {
+      if (message.type() === 'error' && svgErrorMatcher.test(message.text())) {
+        svgPathErrors.push(message.text())
+      }
+    }
+
+    page.on('pageerror', onPageError)
+    page.on('console', onConsole)
+
+    try {
+      const logButton = page.locator('#log-btn')
+      await expect(logButton, 'Confirm Log button exists').toBeVisible()
+      await logButton.click()
+      await page.waitForTimeout(500)
+
+      expect(page.url(), 'Confirm navigated to log route').toContain('/log')
+      expect(svgPathErrors, 'Confirm no SVG path parse errors are logged').toEqual([])
+
+      await util.captureScreenshot(page, 'logscreen-no-svg-parse-errors')
+    } catch (error) {
+      throw await util.onTestError(error)
+    } finally {
+      page.off('pageerror', onPageError)
+      page.off('console', onConsole)
+    }
+  })
+
+  // @ts-expect-error: `util` is not using types in playwright
   test('LogScreen navigation and visibility', async ({ page, util }) => {
     try {
       // Navigate to log screen by clicking the log button

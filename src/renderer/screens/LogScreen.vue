@@ -2,6 +2,7 @@
 import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { openLogFile, throwError, getLogLines, getLogFileSize } from '@/renderer/utils'
 import { useI18n } from 'vue-i18n'
+import { mdiFileDocumentOutline } from '@mdi/js'
 
 const { t } = useI18n()
 
@@ -97,7 +98,7 @@ onBeforeUnmount(() => {
           variant="text"
           color="primary"
           size="small"
-          prepend-icon="mdi-file-document-outline"
+          :prepend-icon="mdiFileDocumentOutline"
           @click="openLog"
         >
           {{ t('log.open-log-file') }}
@@ -107,7 +108,7 @@ onBeforeUnmount(() => {
           variant="text"
           color="primary"
           size="small"
-          prepend-icon="mdi-file-document-outline"
+          :prepend-icon="mdiFileDocumentOutline"
           @click="throwError('Opps', false)"
         >
           {{ t('log.throw-renderer-error') }}
@@ -117,7 +118,7 @@ onBeforeUnmount(() => {
           variant="text"
           color="primary"
           size="small"
-          prepend-icon="mdi-file-document-outline"
+          :prepend-icon="mdiFileDocumentOutline"
           @click="throwError('Ops...', true)"
         >
           {{ t('log.throw-main-error') }}
