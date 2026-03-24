@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useQueryDetailsStore } from '@/renderer/store/queryDetails'
+import { mdiOpenInNew } from '@mdi/js'
 
 const { t } = useI18n()
 const queryStore = useQueryDetailsStore()
@@ -41,7 +42,7 @@ const validate = async (): Promise<void> => {
 const openWosDocs = (): void => {
   window.mainApi.send(
     'msgOpenExternalLink',
-    'https://webofscience.help.clarivate.com/en-us/Content/advanced-search.html'
+    'https://webofscience.zendesk.com/hc/en-us/articles/26916347018257-Web-of-Science-Core-Collection-Advanced-Search-Field-Tags'
   )
 }
 </script>
@@ -58,8 +59,8 @@ const openWosDocs = (): void => {
       style="height: 100%"
     >
       <v-app-bar
-        density="comfortable"
-        color="primary"
+        density="compact"
+        color="systembar"
         style="position: sticky; top: 0; z-index: 10"
       >
         <v-toolbar-title>{{ t('query.wos.dialog-title') }}</v-toolbar-title>
@@ -73,12 +74,13 @@ const openWosDocs = (): void => {
       </v-app-bar>
 
       <v-container
-        class="overflow-y-auto flex-grow-1"
+        class="overflow-y-auto flex-grow-1 mt-4"
         style="overflow-x: hidden"
       >
         <v-row>
           <v-col
             cols="12"
+            lg="6"
             xl="6"
           >
             <v-combobox
@@ -105,6 +107,7 @@ const openWosDocs = (): void => {
           </v-col>
           <v-col
             cols="12"
+            lg="6"
             xl="6"
           >
             <v-text-field
@@ -120,6 +123,7 @@ const openWosDocs = (): void => {
           <v-col
             cols="12"
             xl="4"
+            lg="4"
           >
             <v-text-field
               id="query-lang"
@@ -134,6 +138,7 @@ const openWosDocs = (): void => {
           <v-col
             cols="12"
             xl="4"
+            lg="4"
           >
             <v-text-field
               id="query-created-time-span"
@@ -148,6 +153,7 @@ const openWosDocs = (): void => {
           <v-col
             cols="12"
             xl="4"
+            lg="4"
           >
             <v-text-field
               id="query-modified-time-span"
@@ -178,6 +184,10 @@ const openWosDocs = (): void => {
                   @click.prevent="openWosDocs"
                 >
                   {{ t('query.wos.open-docs') }}
+                  <v-icon
+                    :icon="mdiOpenInNew"
+                    size="small"
+                  />
                 </a>
               </template>
             </v-textarea>

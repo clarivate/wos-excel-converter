@@ -74,7 +74,7 @@
       "edition-short": "Edition",
       "created-short": "Created",
       "modified-short": "Modified",
-      "records-short": "Records",
+      "records-short": "Records found",
       "cited-references-short": "Cited Refs enabled",
       "cited-references-warning": "Activating cited references leads to longer export time and higher memory usage.",
       "records-found": "Records found",
