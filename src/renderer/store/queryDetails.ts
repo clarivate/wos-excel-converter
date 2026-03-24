@@ -97,20 +97,17 @@ export const useQueryDetailsStore = defineStore('queryDetails', () => {
 
   const panelStatusColor = computed(() => {
     if (!disableWosQuery.value) {
-      if (wosValidationType.value === 'success') return 'green'
-      if (wosValidationType.value === 'warning') return 'orange'
-      if (wosValidationType.value === 'error') return 'red'
-      return ''
+      return wosValidationType.value
     }
 
     if (!idsFile.value || fileReadError.value || fileContent.value.length === 0) {
-      return 'red'
+      return 'error'
     }
-    return 'green'
+    return 'success'
   })
 
   const showStatusIcon = computed(() => {
-    return panelStatusColor.value === 'green' || panelStatusColor.value === 'orange'
+    return panelStatusColor.value === 'success' || panelStatusColor.value === 'warning'
   })
 
   async function loadQueryDetails(): Promise<void> {
