@@ -40,6 +40,24 @@ test.describe('Query Details UI', () => {
   })
 })
 
+test.describe('InCites summary chips', () => {
+  test('ic chip section is hidden when ic token is not validated', async ({ page }) => {
+    await openQueryPanel(page)
+
+    await expect(page.locator('#query-summary-ic-chip-schema')).toHaveCount(0)
+    await expect(page.locator('#query-summary-ic-chip-esci')).toHaveCount(0)
+  })
+})
+
+test.describe('IDs file summary chips', () => {
+  test('ids file chip section is hidden when no file is selected', async ({ page }) => {
+    await openQueryPanel(page)
+
+    await expect(page.locator('#query-summary-ids-file-chip')).toHaveCount(0)
+    await expect(page.locator('#query-summary-ids-count')).toHaveCount(0)
+  })
+})
+
 test.describe('Query summary chip details', () => {
   test('query chip truncates at 32 chars and renders tooltip activator', async ({ page }) => {
     await openQueryPanel(page)

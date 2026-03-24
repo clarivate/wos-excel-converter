@@ -102,6 +102,12 @@ const querySummaryChips = computed((): SummaryChip[] => {
   return chips
 })
 
+const idsFileShort = computed(() => {
+  if (!idsFile.value) return ''
+  const name = idsFile.value.replace(/\\/g, '/').split('/').pop() ?? idsFile.value
+  return name.length > 32 ? `${name.slice(0, 32)}…` : name
+})
+
 const showStatusIcon = computed(() => atLeastOneTokenValid.value)
 const statusColor = computed(() => panelStatusColor.value || 'error')
 const statusIcon = computed(() => (panelStatusColor.value === 'green' ? mdiCheckCircle : mdiAlert))
@@ -275,19 +281,36 @@ watch(wosTokenSucceeded, async () => {
             cols="12"
             class="pt-2"
           >
-            <v-list density="compact">
-              <v-list-item>
-                <v-list-item-title>{{ t('query.incites.title') }}</v-list-item-title>
-              </v-list-item>
-              <v-list-item>
-                <v-list-item-title>
-                  {{ t('query.incites.schema') }}: {{ icSchema.code }} - {{ icSchema.name }}
-                </v-list-item-title>
-              </v-list-item>
-              <v-list-item>
-                <v-list-item-title>{{ t('query.incites.esci') }}: {{ icEsci }}</v-list-item-title>
-              </v-list-item>
-            </v-list>
+            <div class="d-flex flex-wrap ga-2 align-center">
+              <v-chip
+                size="small"
+                variant="tonal"
+              >
+                {{ t('query.incites.title-short') }}
+              </v-chip>
+
+              <v-tooltip location="top">
+                <template #activator="{ props }">
+                  <v-chip
+                    id="query-summary-ic-chip-schema"
+                    v-bind="props"
+                    size="small"
+                    variant="outlined"
+                  >
+                    {{ t('query.incites.schema-short') }}: {{ icSchema.code }}
+                  </v-chip>
+                </template>
+                <span>{{ icSchema.name }}</span>
+              </v-tooltip>
+
+              <v-chip
+                id="query-summary-ic-chip-esci"
+                size="small"
+                variant="outlined"
+              >
+                {{ t('query.incites.esci-short') }}: {{ icEsci }}
+              </v-chip>
+            </div>
           </v-col>
 
           <v-col
@@ -295,45 +318,78 @@ watch(wosTokenSucceeded, async () => {
             cols="12"
             class="pt-2"
           >
-            <v-list density="compact">
-              <v-list-item>
-                <v-list-item-title>
-                  {{ t('query.ids-file.title') }}
-                  <strong :class="fileContent.length > 0 ? 'text-success' : 'text-error'">
-                    ({{ fileContent.length }} IDs)
-                  </strong>
-                  <span
-                    v-if="fileReadError"
-                    class="text-error text-caption"
+            <div class="d-flex flex-wrap ga-2 align-center">
+              <v-chip
+                size="small"
+                variant="tonal"
+              >
+                {{ t('query.ids-file.title-short') }}
+              </v-chip>
+
+              <!-- Filename chip: truncated label, full path in tooltip, closable to remove -->
+              <v-tooltip location="top">
+                <template #activator="{ props }">
+                  <v-chip
+                    id="query-summary-ids-file-chip"
+                    v-bind="props"
+                    size="small"
+                    variant="outlined"
+                    closable
+                    @click:close="queryStore.clearIdsFile()"
                   >
-                    {{ fileReadError }}
-                  </span>
-                </v-list-item-title>
-              </v-list-item>
-              <v-list-item>
-                <v-list-item-title>
-                  {{ idsFile }}
-                  <v-btn
-                    id="query-ids-remove-btn"
-                    variant="text"
-                    class="text-none"
-                    @click="queryStore.clearIdsFile()"
-                  >
-                    {{ t('query.ids-file.remove') }}
-                  </v-btn>
-                </v-list-item-title>
-              </v-list-item>
-              <v-list-item v-if="invalidIds > 0">
-                <v-list-item-title class="text-warning">
+                    {{ idsFileShort }}
+                  </v-chip>
+                </template>
+                <span class="query-tooltip-text">{{ idsFile }}</span>
+              </v-tooltip>
+
+              <!-- IDs count -->
+              <v-chip
+                id="query-summary-ids-count"
+                size="small"
+                :color="fileContent.length > 0 ? 'success' : 'error'"
+                variant="outlined"
+              >
+                {{ fileContent.length }} {{ t('query.ids-file.ids-short') }}
+              </v-chip>
+
+              <!-- File read error -->
+              <v-chip
+                v-if="fileReadError"
+                id="query-summary-ids-error"
+                size="small"
+                color="error"
+                variant="outlined"
+              >
+                {{ fileReadError }}
+              </v-chip>
+
+              <!-- Invalid rows warning -->
+              <v-chip
+                v-if="invalidIds > 0"
+                id="query-summary-ids-invalid"
+                size="small"
+                color="warning"
+                variant="outlined"
+              >
+                <span class="text-medium-emphasis">
                   {{ t('query.ids-file.invalid-rows', { count: invalidIds }) }}
-                </v-list-item-title>
-              </v-list-item>
-              <v-list-item v-if="duplicates > 0">
-                <v-list-item-title class="text-warning">
+                </span>
+              </v-chip>
+
+              <!-- Duplicate rows warning -->
+              <v-chip
+                v-if="duplicates > 0"
+                id="query-summary-ids-duplicates"
+                size="small"
+                color="warning"
+                variant="outlined"
+              >
+                <span class="text-medium-emphasis">
                   {{ t('query.ids-file.duplicate-rows', { count: duplicates }) }}
-                </v-list-item-title>
-              </v-list-item>
-            </v-list>
+                </span>
+              </v-chip>
+            </div>
           </v-col>
 
           <v-col

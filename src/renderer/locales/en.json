@@ -107,15 +107,20 @@
     },
     "incites": {
       "title": "InCites Query Settings",
+      "title-short": "InCites",
       "open-dialog": "InCites API Request Details",
       "dialog-title": "InCites API Request Details",
       "schema": "schema",
+      "schema-short": "Schema",
       "schema-hint": "Choose schema-specific metrics",
       "esci": "esci",
+      "esci-short": "ESCI",
       "esci-hint": "Flag to include (y) or exclude (n) ESCI content in baseline metrics."
     },
     "ids-file": {
       "title": "File with IDs",
+      "title-short": "IDs File",
+      "ids-short": "IDs",
       "button": "Plain file with IDs (UTF-8)",
       "help1": "Provide a file that includes one ID per line instead of using Web of Science API query.",
       "remove": "Remove",
