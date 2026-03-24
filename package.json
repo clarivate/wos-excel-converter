@@ -40,9 +40,7 @@
     "test:linux": "npm run build:pre && xvfb-run --auto-servernum --server-args='-screen 0, 1280x960x24' -- playwright test",
     "test:e2e": "npm run build:pre && playwright test",
     "test:e2e:core": "npm run build:pre && playwright test --grep-invert @requires-token",
-    "test:e2e:tokens": "npm run build:pre && playwright test --grep @requires-token",
-    "test:coverage": "npm run build:pre && playwright test",
-    "coverage:report": "node scripts/generate-coverage-report.mjs"
+    "test:e2e:tokens": "npm run build:pre && playwright test --grep @requires-token"
   },
   "engines": {
     "node": ">=20.0.0"

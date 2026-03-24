@@ -5,6 +5,7 @@ import { mdiAlert, mdiCheckCircle, mdiEye, mdiEyeOff, mdiRefresh } from '@mdi/js
 import { useI18n } from 'vue-i18n'
 import { useConfigsStore } from '@/renderer/store/configs'
 import { useTokensStore } from '@/renderer/store/tokens'
+
 const { t } = useI18n()
 const configStore = useConfigsStore()
 const tokensStore = useTokensStore()
@@ -12,33 +13,151 @@ const { selectedConfigName } = storeToRefs(configStore)
 const {
   wosExpandedToken,
   icToken,
-  wosTokenMessageKey,
-  wosTokenMessageParams,
   wosTokenMessageType,
-  icTokenMessageKey,
-  icTokenMessageParams,
+  wosTokenMessageParams,
+  wosTokenMessageKey,
+  wosRateLimits,
   icTokenMessageType,
+  icTokenMessageParams,
+  icTokenMessageKey,
+  icRateLimits,
   validationProgress,
   atLeastOneTokenValid,
   combinedStatusColor,
   combinedStatusIcon
 } = storeToRefs(tokensStore)
+
 const showWosToken = ref(false)
 const showIcToken = ref(false)
 let wosVerifyTimer: ReturnType<typeof setTimeout> | null = null
 let icVerifyTimer: ReturnType<typeof setTimeout> | null = null
+
 const statusIcon = computed(() =>
   combinedStatusIcon.value === 'success' ? mdiCheckCircle : mdiAlert
 )
 const statusColor = computed(() => combinedStatusColor.value)
-const wosTokenMessage = computed(() => {
-  if (!wosTokenMessageKey.value) return null
-  return t(wosTokenMessageKey.value, wosTokenMessageParams.value ?? {})
+
+const fmt = (value: number): string => new Intl.NumberFormat().format(value)
+
+type Chip = { id: string; label: string; tooltip: string }
+
+const compactWosChips = computed((): Chip[] => {
+  if (wosTokenMessageType.value !== 'success' || !wosRateLimits.value) return []
+
+  const r = wosRateLimits.value
+  const chips: Chip[] = []
+
+  if (r.recordsPerDayRemaining !== null)
+    chips.push({
+      id: 'wos-rec-day',
+      label: `${t('token.summary.wos-rec-day')}: ${fmt(r.recordsPerDayRemaining)}`,
+      tooltip: fmt(r.recordsPerDayRemaining)
+    })
+  if (r.recordsPerMonthRemaining !== null)
+    chips.push({
+      id: 'wos-rec-month',
+      label: `${t('token.summary.wos-rec-month')}: ${fmt(r.recordsPerMonthRemaining)}`,
+      tooltip: fmt(r.recordsPerMonthRemaining)
+    })
+  if (r.recordsPerYearRemaining !== null)
+    chips.push({
+      id: 'wos-rec-year',
+      label: `${t('token.summary.wos-rec-year')}: ${fmt(r.recordsPerYearRemaining)}`,
+      tooltip: fmt(r.recordsPerYearRemaining)
+    })
+  if (r.requestsPerSecondRemaining !== null)
+    chips.push({
+      id: 'wos-req-second',
+      label: `${t('token.summary.wos-req-second')}: ${fmt(r.requestsPerSecondRemaining)}`,
+      tooltip: fmt(r.requestsPerSecondRemaining)
+    })
+  if (r.requestsPerDayRemaining !== null)
+    chips.push({
+      id: 'wos-req-day',
+      label: `${t('token.summary.wos-req-day')}: ${fmt(r.requestsPerDayRemaining)}`,
+      tooltip: fmt(r.requestsPerDayRemaining)
+    })
+  if (r.requestsPerYearRemaining !== null)
+    chips.push({
+      id: 'wos-req-year',
+      label: `${t('token.summary.wos-req-year')}: ${fmt(r.requestsPerYearRemaining)}`,
+      tooltip: fmt(r.requestsPerYearRemaining)
+    })
+
+  if (chips.length === 0)
+    chips.push({
+      id: 'wos-unlimited',
+      label: t('token.summary.unlimited-short'),
+      tooltip: t('token.summary.unlimited')
+    })
+
+  return chips
 })
-const icTokenMessage = computed(() => {
-  if (!icTokenMessageKey.value) return null
-  return t(icTokenMessageKey.value, icTokenMessageParams.value ?? {})
+
+const compactIcChips = computed((): Chip[] => {
+  if (icTokenMessageType.value !== 'success' || !icRateLimits.value) return []
+
+  const r = icRateLimits.value
+  const chips: Chip[] = []
+
+  if (r.requestsPerDayRemaining !== null) {
+    const label =
+      r.requestsPerDayLimit !== null
+        ? `${t('token.summary.ic-req-day')}: ${fmt(r.requestsPerDayRemaining)}/${fmt(r.requestsPerDayLimit)}`
+        : `${t('token.summary.ic-req-day')}: ${fmt(r.requestsPerDayRemaining)}`
+    const tooltip =
+      r.requestsPerDayLimit !== null
+        ? `${fmt(r.requestsPerDayRemaining)} / ${fmt(r.requestsPerDayLimit)}`
+        : fmt(r.requestsPerDayRemaining)
+    chips.push({ id: 'ic-req-day', label, tooltip })
+  }
+
+  if (r.requestsPerSecondRemaining !== null) {
+    const label =
+      r.requestsPerSecondLimit !== null
+        ? `${t('token.summary.ic-req-second')}: ${fmt(r.requestsPerSecondRemaining)}/${fmt(r.requestsPerSecondLimit)}`
+        : `${t('token.summary.ic-req-second')}: ${fmt(r.requestsPerSecondRemaining)}`
+    const tooltip =
+      r.requestsPerSecondLimit !== null
+        ? `${fmt(r.requestsPerSecondRemaining)} / ${fmt(r.requestsPerSecondLimit)}`
+        : fmt(r.requestsPerSecondRemaining)
+    chips.push({ id: 'ic-req-second', label, tooltip })
+  }
+
+  if (chips.length === 0)
+    chips.push({
+      id: 'ic-unlimited',
+      label: t('token.summary.unlimited-short'),
+      tooltip: t('token.summary.unlimited')
+    })
+
+  return chips
 })
+
+const wosValidationErrorChip = computed((): Chip | null => {
+  if (wosTokenMessageType.value !== 'error' || !wosTokenMessageKey.value) return null
+
+  const errorMsg = wosTokenMessageParams?.value?.error || 'Unknown error'
+  const message = t('token.validation.wos-error', { error: errorMsg })
+  return {
+    id: 'wos-error',
+    label: message,
+    tooltip: message
+  }
+})
+
+const icValidationErrorChip = computed((): Chip | null => {
+  if (icTokenMessageType.value !== 'error' || !icTokenMessageKey.value) return null
+
+  const errorMsg = icTokenMessageParams?.value?.error || 'Unknown error'
+  const message = t('token.validation.ic-error', { error: errorMsg })
+  return {
+    id: 'ic-error',
+    label: message,
+    tooltip: message
+  }
+})
+
 const scheduleWosVerification = (): void => {
   if (wosVerifyTimer) clearTimeout(wosVerifyTimer)
   wosVerifyTimer = setTimeout(() => {
@@ -62,6 +181,7 @@ const onIcTokenInput = async (value: string): Promise<void> => {
 const openExternal = (url: string): void => {
   window.mainApi.send('msgOpenExternalLink', url)
 }
+
 onMounted(async () => {
   await tokensStore.loadAndVerifyExistingTokens()
 })
@@ -92,18 +212,96 @@ watch(selectedConfigName, async () => {
             <v-toolbar-title>{{ t('token.title') }}</v-toolbar-title>
           </v-col>
           <v-col
-            v-if="wosTokenMessage && wosExpandedToken"
+            v-if="compactWosChips.length"
             cols="12"
             class="pt-2"
           >
-            <span :class="`text-${wosTokenMessageType}`">{{ wosTokenMessage }}</span>
+            <div class="d-flex flex-wrap ga-2 align-center">
+              <v-chip
+                size="small"
+                variant="tonal"
+              >
+                {{ t('token.summary.wos') }}
+              </v-chip>
+              <v-tooltip
+                v-for="chip in compactWosChips"
+                :key="chip.id"
+                :text="chip.tooltip"
+              >
+                <template #activator="{ props }">
+                  <v-chip
+                    v-bind="props"
+                    :id="`token-summary-${chip.id}`"
+                    size="small"
+                    variant="outlined"
+                  >
+                    {{ chip.label }}
+                  </v-chip>
+                </template>
+              </v-tooltip>
+            </div>
           </v-col>
           <v-col
-            v-if="icTokenMessage && icToken"
+            v-if="compactIcChips.length"
             cols="12"
             class="pt-2"
           >
-            <span :class="`text-${icTokenMessageType}`">{{ icTokenMessage }}</span>
+            <div class="d-flex flex-wrap ga-2 align-center">
+              <v-chip
+                size="small"
+                variant="tonal"
+              >
+                {{ t('token.summary.ic') }}
+              </v-chip>
+              <v-tooltip
+                v-for="chip in compactIcChips"
+                :key="chip.id"
+                :text="chip.tooltip"
+              >
+                <template #activator="{ props }">
+                  <v-chip
+                    v-bind="props"
+                    :id="`token-summary-${chip.id}`"
+                    size="small"
+                    variant="outlined"
+                  >
+                    {{ chip.label }}
+                  </v-chip>
+                </template>
+              </v-tooltip>
+            </div>
+          </v-col>
+          <v-col
+            v-if="wosValidationErrorChip"
+            cols="12"
+            class="pt-2"
+          >
+            <div class="d-flex flex-wrap ga-2 align-center">
+              <v-chip
+                :id="`token-summary-wos-error`"
+                size="small"
+                color="error"
+                variant="outlined"
+              >
+                {{ wosValidationErrorChip.label }}
+              </v-chip>
+            </div>
+          </v-col>
+          <v-col
+            v-if="icValidationErrorChip"
+            cols="12"
+            class="pt-2"
+          >
+            <div class="d-flex flex-wrap ga-2 align-center">
+              <v-chip
+                :id="`token-summary-ic-error`"
+                size="small"
+                color="error"
+                variant="outlined"
+              >
+                {{ icValidationErrorChip.label }}
+              </v-chip>
+            </div>
           </v-col>
         </v-row>
       </template>

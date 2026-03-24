@@ -32,6 +32,20 @@
     "ic-label": "InCites API Token",
     "verify-wos-title": "(Re-)Validate token with Web of Science API servers",
     "verify-ic-title": "(Re-)Validate token with InCites API servers",
+    "summary": {
+      "wos": "WOS",
+      "ic": "InCites",
+      "wos-rec-day": "Documents/Day",
+      "wos-rec-month": "Documents/Month",
+      "wos-rec-year": "Documents/Year",
+      "wos-req-second": "Requests/Sec",
+      "wos-req-day": "Requests/Day",
+      "wos-req-year": "Requests/Year",
+      "ic-req-day": "Requests/Day",
+      "ic-req-second": "Requests/Sec",
+      "unlimited": "No limits available",
+      "unlimited-short": "No limits available"
+    },
     "validation": {
       "wos-empty": "Enter a Web of Science API Expanded token to validate it.",
       "wos-success": "Web of Science token is valid. Remaining records per {period}: {remaining}.",

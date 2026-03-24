@@ -32,6 +32,20 @@
     "ic-label": "InCites API Token",
     "verify-wos-title": "Token mit den Web of Science API-Servern (neu) validieren",
     "verify-ic-title": "Token mit den InCites API-Servern (neu) validieren",
+    "summary": {
+      "wos": "WOS",
+      "ic": "InCites",
+      "wos-rec-day": "Dokumente/Tag",
+      "wos-rec-month": "Dokumente/Monat",
+      "wos-rec-year": "Dokumente/Jahr",
+      "wos-req-second": "Anfragen/Sek",
+      "wos-req-day": "Anfragen/Tag",
+      "wos-req-year": "Anfragen/Jahr",
+      "ic-req-day": "Anfragen/Tag",
+      "ic-req-second": "Anfragen/Sek",
+      "unlimited": "Keine Limits verfügbar",
+      "unlimited-short": "Keine Limits verfügbar"
+    },
     "validation": {
       "wos-empty": "Geben Sie ein Web of Science API Expanded Token ein, um es zu validieren.",
       "wos-success": "Web of Science Token ist gültig. Verbleibende Datensatze pro {period}: {remaining}.",

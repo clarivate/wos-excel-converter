@@ -4,6 +4,24 @@ import { computed, ref } from 'vue'
 type TokenMessageType = 'success' | 'warning' | 'error'
 type TokenMessageParams = Record<string, string | number>
 
+type WosRateLimits = {
+  recordsPerDayRemaining: number | null
+  recordsPerMonthRemaining: number | null
+  recordsPerYearRemaining: number | null
+  requestsPerSecondRemaining: number | null
+  requestsPerDayRemaining: number | null
+  requestsPerYearRemaining: number | null
+}
+
+type IcRateLimits = {
+  requestsPerDayRemaining: number | null
+  requestsPerDayLimit: number | null
+  requestsPerSecondRemaining: number | null
+  requestsPerSecondLimit: number | null
+  rateLimitRemaining: number | null
+  rateLimitResetSeconds: number | null
+}
+
 export const useTokensStore = defineStore('tokens', () => {
   const wosExpandedToken = ref('')
   const icToken = ref('')
@@ -11,9 +29,11 @@ export const useTokensStore = defineStore('tokens', () => {
   const wosTokenMessageKey = ref<string | null>(null)
   const wosTokenMessageParams = ref<TokenMessageParams | undefined>(undefined)
   const wosTokenMessageType = ref<TokenMessageType | null>(null)
+  const wosRateLimits = ref<WosRateLimits | null>(null)
   const icTokenMessageKey = ref<string | null>(null)
   const icTokenMessageParams = ref<TokenMessageParams | undefined>(undefined)
   const icTokenMessageType = ref<TokenMessageType | null>(null)
+  const icRateLimits = ref<IcRateLimits | null>(null)
 
   const wosValidationInProgress = ref(false)
   const icValidationInProgress = ref(false)
@@ -55,9 +75,11 @@ export const useTokensStore = defineStore('tokens', () => {
     wosTokenMessageKey.value = null
     wosTokenMessageParams.value = undefined
     wosTokenMessageType.value = null
+    wosRateLimits.value = null
     icTokenMessageKey.value = null
     icTokenMessageParams.value = undefined
     icTokenMessageType.value = null
+    icRateLimits.value = null
   }
 
   async function saveWosToken(token: string): Promise<void> {
@@ -76,6 +98,7 @@ export const useTokensStore = defineStore('tokens', () => {
       wosTokenMessageKey.value = null
       wosTokenMessageParams.value = undefined
       wosTokenMessageType.value = null
+      wosRateLimits.value = null
       return
     }
 
@@ -85,6 +108,7 @@ export const useTokensStore = defineStore('tokens', () => {
       wosTokenMessageKey.value = result.messageKey
       wosTokenMessageParams.value = result.messageParams
       wosTokenMessageType.value = result.type
+      wosRateLimits.value = result.rateLimits
     } finally {
       wosValidationInProgress.value = false
     }
@@ -96,6 +120,7 @@ export const useTokensStore = defineStore('tokens', () => {
       icTokenMessageKey.value = null
       icTokenMessageParams.value = undefined
       icTokenMessageType.value = null
+      icRateLimits.value = null
       return
     }
 
@@ -105,6 +130,7 @@ export const useTokensStore = defineStore('tokens', () => {
       icTokenMessageKey.value = result.messageKey
       icTokenMessageParams.value = result.messageParams
       icTokenMessageType.value = result.type
+      icRateLimits.value = result.rateLimits
     } finally {
       icValidationInProgress.value = false
     }
@@ -124,9 +150,11 @@ export const useTokensStore = defineStore('tokens', () => {
     wosTokenMessageKey,
     wosTokenMessageParams,
     wosTokenMessageType,
+    wosRateLimits,
     icTokenMessageKey,
     icTokenMessageParams,
     icTokenMessageType,
+    icRateLimits,
     validationProgress,
     wosTokenSucceeded,
     icTokenSucceeded,
