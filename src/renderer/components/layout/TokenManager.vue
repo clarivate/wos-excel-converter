@@ -227,6 +227,8 @@ watch(selectedConfigName, async () => {
                 v-for="chip in compactWosChips"
                 :key="chip.id"
                 :text="chip.tooltip"
+                theme="dark"
+                content-class="token-summary-tooltip"
               >
                 <template #activator="{ props }">
                   <v-chip
@@ -257,6 +259,8 @@ watch(selectedConfigName, async () => {
                 v-for="chip in compactIcChips"
                 :key="chip.id"
                 :text="chip.tooltip"
+                theme="dark"
+                content-class="token-summary-tooltip"
               >
                 <template #activator="{ props }">
                   <v-chip
@@ -397,3 +401,10 @@ watch(selectedConfigName, async () => {
     </v-expansion-panel-text>
   </v-expansion-panel>
 </template>
+
+<style scoped>
+:deep(.token-summary-tooltip),
+:deep(.token-summary-tooltip .v-tooltip) {
+  color: #ffffff !important;
+}
+</style>

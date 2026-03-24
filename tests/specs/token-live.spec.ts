@@ -17,6 +17,13 @@ const fillTokenField = async (page: any, label: string, token: string): Promise<
   await field.fill(token)
 }
 
+const ensureDarkTheme = async (page: any): Promise<void> => {
+  const hasDarkTheme = await page.evaluate(() => !!document.querySelector('.v-theme--dark'))
+  if (!hasDarkTheme) {
+    await page.locator('#theme-toggle-btn').click()
+  }
+}
+
 test.describe('@requires-token Token Live Verification', () => {
   test.skip(!hasTokenEnv, 'WOS_EXPANDED_TOKEN and INCITES_TOKEN are required for live token tests')
 
@@ -125,5 +132,36 @@ test.describe('@requires-token Token Live Verification', () => {
 
     await page.waitForTimeout(800)
     await util.captureScreenshot(page, 'token-live-incites-verified')
+  })
+
+  test('keeps token summary tooltip text readable in dark mode', async ({ page }) => {
+    await openTokenPanel(page)
+    await fillTokenField(page, 'Web of Science API Expanded Token', wosExpandedToken)
+
+    await page.evaluate(
+      (token) =>
+        window.mainApi.invoke('msgRequestSetApiTokens', {
+          wosExpandedToken: token
+        }),
+      wosExpandedToken
+    )
+
+    await page.evaluate(
+      (token) => window.mainApi.invoke('msgRequestVerifyWosToken', token),
+      wosExpandedToken
+    )
+
+    const summaryChip = page.locator('[id^="token-summary-wos-"]:not([id$="-error"])').first()
+    await expect(summaryChip).toBeVisible({ timeout: 10000 })
+
+    await ensureDarkTheme(page)
+    await summaryChip.hover()
+
+    const tooltip = page.locator('.token-summary-tooltip').last()
+    await expect(tooltip).toBeVisible({ timeout: 5000 })
+
+    const tooltipColor = await tooltip.evaluate((element) => window.getComputedStyle(element).color)
+    expect(tooltipColor).not.toBe('rgb(0, 0, 0)')
+    expect(tooltipColor.startsWith('rgba(0, 0, 0')).toBe(false)
   })
 })
