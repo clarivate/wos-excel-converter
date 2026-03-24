@@ -27,8 +27,13 @@ test.describe('Query Details UI', () => {
   test('keeps query actions disabled when no valid token exists', async ({ page }) => {
     await openQueryPanel(page)
 
-    await expect(page.locator('#query-open-wos-dialog-btn')).toBeDisabled()
-    await expect(page.locator('#query-open-ic-dialog-btn')).toBeDisabled()
+    const wosButton = page.locator('#query-open-wos-dialog-btn')
+    const incitesButton = page.locator('#query-open-ic-dialog-btn')
+
+    await expect(wosButton).toHaveText('Expanded API Query Details')
+    await expect(incitesButton).toHaveText('InCites API Query Details')
+    await expect(wosButton).toBeDisabled()
+    await expect(incitesButton).toBeDisabled()
     await expect(page.locator('#query-ids-file-btn')).toBeDisabled()
   })
 

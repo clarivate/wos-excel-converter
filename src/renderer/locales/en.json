@@ -87,7 +87,7 @@
       "error": "Query validation failed: {error}"
     },
     "wos": {
-      "open-dialog": "Web of Science API Expanded Query Details",
+      "open-dialog": "Expanded API Query Details",
       "dialog-title": "Web of Science API Query Details",
       "database-id": "databaseId",
       "database-id-hint": "Database to search. WOK represents all databases.",
@@ -108,7 +108,7 @@
     "incites": {
       "title": "InCites Query Settings",
       "title-short": "InCites",
-      "open-dialog": "InCites API Request Details",
+      "open-dialog": "InCites API Query Details",
       "dialog-title": "InCites API Request Details",
       "schema": "schema",
       "schema-short": "Schema",

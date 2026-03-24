@@ -87,7 +87,7 @@
       "error": "Query-Validierung fehlgeschlagen: {error}"
     },
     "wos": {
-      "open-dialog": "Web of Science API Expanded Query-Details",
+      "open-dialog": "Expanded API Query-Details",
       "dialog-title": "Web of Science API Query-Details",
       "database-id": "databaseId",
       "database-id-hint": "Zu durchsuchende Datenbank. WOK steht fur alle Datenbanken.",
@@ -108,7 +108,7 @@
     "incites": {
       "title": "InCites Query-Einstellungen",
       "title-short": "InCites",
-      "open-dialog": "InCites API Anfragedetails",
+      "open-dialog": "InCites API Query-Details",
       "dialog-title": "InCites API Anfragedetails",
       "schema": "schema",
       "schema-short": "Schema",
