@@ -201,6 +201,8 @@ watch(wosTokenSucceeded, async () => {
               <v-tooltip
                 location="top"
                 max-width="420"
+                theme="dark"
+                content-class="query-tooltip"
               >
                 <template #activator="{ props }">
                   <v-chip
@@ -230,6 +232,8 @@ watch(wosTokenSucceeded, async () => {
                 v-if="wosRecordsFound !== null && recordsOverLimit"
                 location="top"
                 max-width="300"
+                theme="dark"
+                content-class="query-tooltip"
               >
                 <template #activator="{ props }">
                   <v-chip
@@ -257,6 +261,8 @@ watch(wosTokenSucceeded, async () => {
               <v-tooltip
                 v-if="addCitedReferences"
                 location="top"
+                theme="dark"
+                content-class="query-tooltip"
               >
                 <template #activator="{ props }">
                   <v-chip
@@ -289,7 +295,11 @@ watch(wosTokenSucceeded, async () => {
                 {{ t('query.incites.title-short') }}
               </v-chip>
 
-              <v-tooltip location="top">
+              <v-tooltip
+                location="top"
+                theme="dark"
+                content-class="query-tooltip"
+              >
                 <template #activator="{ props }">
                   <v-chip
                     id="query-summary-ic-chip-schema"
@@ -327,7 +337,11 @@ watch(wosTokenSucceeded, async () => {
               </v-chip>
 
               <!-- Filename chip: truncated label, full path in tooltip, closable to remove -->
-              <v-tooltip location="top">
+              <v-tooltip
+                location="top"
+                theme="dark"
+                content-class="query-tooltip"
+              >
                 <template #activator="{ props }">
                   <v-chip
                     id="query-summary-ids-file-chip"
@@ -526,5 +540,10 @@ watch(wosTokenSucceeded, async () => {
   display: block;
   white-space: pre-wrap;
   word-break: break-all;
+}
+
+:deep(.query-tooltip),
+:deep(.query-tooltip .v-tooltip) {
+  color: #ffffff !important;
 }
 </style>
