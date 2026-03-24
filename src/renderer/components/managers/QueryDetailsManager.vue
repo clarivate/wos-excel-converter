@@ -37,7 +37,6 @@ const {
   wosValidationMessageKey,
   wosValidationMessageParams,
   wosRecordsFound,
-  wosQueryId,
   validationInProgress,
   queryPreview,
   queryValidated,
@@ -50,6 +49,51 @@ const icDialogOpen = ref(false)
 const wosMessage = computed(() => {
   if (!wosValidationMessageKey.value) return ''
   return t(wosValidationMessageKey.value, wosValidationMessageParams.value ?? {})
+})
+
+type SummaryChip = { id: string; label: string }
+
+const showQuerySummary = computed(() => queryValidated.value && wosTokenSucceeded.value)
+const showQueryMessageChip = computed(
+  () => showQuerySummary.value && !!wosMessage.value && wosValidationType.value !== 'success'
+)
+
+const querySummaryChips = computed((): SummaryChip[] => {
+  if (!showQuerySummary.value) return []
+
+  const chips: SummaryChip[] = [
+    {
+      id: 'query',
+      label: `${t('query.summary.query')}: ${queryPreview.value}`
+    },
+    {
+      id: 'database-id',
+      label: `${t('query.summary.database-id-short')}: ${databaseId.value}`
+    }
+  ]
+
+  if (edition.value)
+    chips.push({
+      id: 'edition',
+      label: `${t('query.summary.edition-short')}: ${edition.value}`
+    })
+  if (createdTimeSpan.value)
+    chips.push({
+      id: 'created-time-span',
+      label: `${t('query.summary.created-short')}: ${createdTimeSpan.value}`
+    })
+  if (modifiedTimeSpan.value)
+    chips.push({
+      id: 'modified-time-span',
+      label: `${t('query.summary.modified-short')}: ${modifiedTimeSpan.value}`
+    })
+  if (wosRecordsFound.value !== null)
+    chips.push({
+      id: 'records-found',
+      label: `${t('query.summary.records-short')}: ${wosRecordsFound.value}`
+    })
+
+  return chips
 })
 
 const showStatusIcon = computed(() => atLeastOneTokenValid.value)
@@ -119,59 +163,56 @@ watch(wosTokenSucceeded, async () => {
           </v-col>
 
           <v-col
-            v-if="queryValidated"
+            v-if="showQuerySummary"
             cols="12"
             class="pt-2"
           >
-            <v-list density="compact">
-              <v-list-item>
-                <v-list-item-title
-                  id="query-summary-message"
-                  :class="`text-${wosValidationType}`"
-                  v-html="wosMessage"
-                />
-              </v-list-item>
-              <v-list-item>
-                <v-list-item-title>
-                  {{ t('query.summary.usr-query') }}:
-                  <code>{{ queryPreview }}</code>
-                </v-list-item-title>
-              </v-list-item>
-              <v-list-item>
-                <v-list-item-title>
-                  {{ t('query.summary.database-id') }}: {{ databaseId }}
-                </v-list-item-title>
-              </v-list-item>
-              <v-list-item v-if="edition">
-                <v-list-item-title>
-                  {{ t('query.summary.edition') }}: {{ edition }}
-                </v-list-item-title>
-              </v-list-item>
-              <v-list-item v-if="createdTimeSpan">
-                <v-list-item-title>
-                  {{ t('query.summary.created-time-span') }}: {{ createdTimeSpan }}
-                </v-list-item-title>
-              </v-list-item>
-              <v-list-item v-if="modifiedTimeSpan">
-                <v-list-item-title>
-                  {{ t('query.summary.modified-time-span') }}: {{ modifiedTimeSpan }}
-                </v-list-item-title>
-              </v-list-item>
-              <v-list-item v-if="addCitedReferences">
-                <v-list-item-title class="text-warning">
-                  {{ t('query.summary.cited-references-warning') }}
-                </v-list-item-title>
-              </v-list-item>
-              <v-list-item
-                v-if="wosRecordsFound !== null"
-                id="query-summary-records"
+            <div class="d-flex flex-wrap ga-2 align-center">
+              <v-chip
+                v-if="showQueryMessageChip"
+                id="query-summary-message"
+                size="small"
+                :color="wosValidationType === 'warning' ? 'orange' : 'error'"
+                variant="outlined"
               >
-                <v-list-item-title>
-                  {{ t('query.summary.records-found') }}: {{ wosRecordsFound }} | Query ID:
-                  {{ wosQueryId }}
-                </v-list-item-title>
-              </v-list-item>
-            </v-list>
+                {{ wosMessage }}
+              </v-chip>
+
+              <v-chip
+                size="small"
+                variant="tonal"
+              >
+                WOS
+              </v-chip>
+
+              <v-chip
+                v-for="chip in querySummaryChips"
+                :id="`query-summary-chip-${chip.id}`"
+                :key="chip.id"
+                size="small"
+                variant="outlined"
+              >
+                {{ chip.label }}
+              </v-chip>
+
+              <v-tooltip
+                v-if="addCitedReferences"
+                location="top"
+              >
+                <template #activator="{ props }">
+                  <v-chip
+                    id="query-summary-cited-warning"
+                    v-bind="props"
+                    size="small"
+                    color="orange"
+                    variant="tonal"
+                  >
+                    {{ t('query.summary.cited-references-short') }}
+                  </v-chip>
+                </template>
+                <span>{{ t('query.summary.cited-references-warning') }}</span>
+              </v-tooltip>
+            </div>
           </v-col>
 
           <v-col

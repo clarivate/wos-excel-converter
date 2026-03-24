@@ -69,6 +69,13 @@
       "edition": "edition",
       "created-time-span": "createdTimeSpan",
       "modified-time-span": "modifiedTimeSpan",
+      "query": "Query",
+      "database-id-short": "DB",
+      "edition-short": "Edition",
+      "created-short": "Created",
+      "modified-short": "Modified",
+      "records-short": "Records",
+      "cited-references-short": "Cited refs",
       "cited-references-warning": "Activating cited references leads to longer export time and higher memory usage.",
       "records-found": "Records found"
     },
