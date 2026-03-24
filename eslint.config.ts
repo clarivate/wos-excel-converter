@@ -26,7 +26,8 @@ export default defineConfig(
     '**/.vscode',
     '**/buildAssets/builder',
     '**/tests/results',
-    '**/package-lock.json'
+    '**/package-lock.json',
+    'CONTRIBUTION.md'
   ]),
   {
     files: ['**/*.{js,mjs,cjs,ts,vue}'],

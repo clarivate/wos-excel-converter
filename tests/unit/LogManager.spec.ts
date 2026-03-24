@@ -42,6 +42,7 @@ test.describe('LogManager Unit Tests', () => {
           unlinkSync(join(testLogDir, file))
         }
       })
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       // Ignore cleanup errors
     }
@@ -57,6 +58,7 @@ test.describe('LogManager Unit Tests', () => {
         })
         rmdirSync(testLogDir)
       }
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       // Ignore cleanup errors
     }
