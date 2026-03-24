@@ -1,7 +1,7 @@
 <script setup lang="tsx">
-import ConfigManager from '@/renderer/components/layout/ConfigManager.vue'
-import QueryDetailsManager from '@/renderer/components/layout/QueryDetailsManager.vue'
-import TokenManager from '@/renderer/components/layout/TokenManager.vue'
+import ConfigManager from '@/renderer/components/managers/ConfigManager.vue'
+import QueryDetailsManager from '@/renderer/components/managers/QueryDetailsManager.vue'
+import TokenManager from '@/renderer/components/managers/TokenManager.vue'
 </script>
 
 <template>
