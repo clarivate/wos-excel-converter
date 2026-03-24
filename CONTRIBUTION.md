@@ -177,14 +177,14 @@ Token verification header handling (live APIs):
 
 ## Important Files for Different Tasks
 
-| Task | Key Files |
-| --- | --- |
-| Adding IPC endpoint | `src/preload/index.ts` (whitelist), `src/main/IPCs.ts` (handler), `src/types/mainApi.d.ts` (type) |
-| New API integration | `src/main/apis/[service].ts` (singleton), `src/main/IPCs.ts` (expose to renderer) |
-| Renderer feature | `src/renderer/screens/` or `src/renderer/components/`, + Pinia store if state needed |
-| Logging/debugging | `src/main/utils/LogManager.ts` (thresholds), `src/renderer/screens/LogScreen.vue` (UI) |
-| Build config | `vite.config.mts` (Vite), `buildAssets/builder/config.js` (Electron-builder), `package.json` scripts |
-| Types & API surface | `src/types/mainApi.d.ts`, `tsconfig.json` (paths alias `@/*` = `src/*`) |
+| Task                | Key Files                                                                                            |
+|---------------------|------------------------------------------------------------------------------------------------------|
+| Adding IPC endpoint | `src/preload/index.ts` (whitelist), `src/main/IPCs.ts` (handler), `src/types/mainApi.d.ts` (type)    |
+| New API integration | `src/main/apis/[service].ts` (singleton), `src/main/IPCs.ts` (expose to renderer)                    |
+| Renderer feature    | `src/renderer/screens/` or `src/renderer/components/`, + Pinia store if state needed                 |
+| Logging/debugging   | `src/main/utils/LogManager.ts` (thresholds), `src/renderer/screens/LogScreen.vue` (UI)               |
+| Build config        | `vite.config.mts` (Vite), `buildAssets/builder/config.js` (Electron-builder), `package.json` scripts |
+| Types & API surface | `src/types/mainApi.d.ts`, `tsconfig.json` (paths alias `@/*` = `src/*`)                              |
 
 ## Security Boundaries
 

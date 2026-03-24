@@ -64,4 +64,4 @@ See **CONTRIBUTION.md** for:
 
 **IMPORTANT**: Do NOT create separate .md files for feature documentation. Consolidate all docs into CONTRIBUTION.md or appropriate section.
 
-Report/meta documentation goes to `/agentReports/` folder (not project root).
+Report/meta documentation goes to `agentReports/` folder.
