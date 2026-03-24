@@ -78,7 +78,7 @@
       "cited-references-short": "Cited Refs enabled",
       "cited-references-warning": "Activating cited references leads to longer export time and higher memory usage.",
       "records-found": "Records found",
-      "records-over-limit-warning": "Expanded API can paginate a maximum of 100,000 records. Consider narrowing your query (e.g. add PY=2017 to limit to one year)."
+      "records-over-limit-warning": "Expanded API can paginate a maximum of 100,000 records. Consider narrowing your query."
     },
     "validation": {
       "token-required": "Verify your Web of Science token before query validation.",

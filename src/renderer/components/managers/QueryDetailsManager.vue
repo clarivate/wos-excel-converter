@@ -232,7 +232,6 @@ watch(wosTokenSucceeded, async () => {
                 v-if="wosRecordsFound !== null && recordsOverLimit"
                 location="top"
                 max-width="300"
-                theme="dark"
                 content-class="query-tooltip"
               >
                 <template #activator="{ props }">
@@ -243,7 +242,9 @@ watch(wosTokenSucceeded, async () => {
                     color="warning"
                     variant="outlined"
                   >
-                    {{ t('query.summary.records-short') }}: {{ recordsFormatted }}
+                    <span class="text-medium-emphasis">
+                      {{ t('query.summary.records-short') }}: {{ recordsFormatted }}
+                    </span>
                   </v-chip>
                 </template>
                 <span>{{ t('query.summary.records-over-limit-warning') }}</span>
@@ -261,7 +262,6 @@ watch(wosTokenSucceeded, async () => {
               <v-tooltip
                 v-if="addCitedReferences"
                 location="top"
-                theme="dark"
                 content-class="query-tooltip"
               >
                 <template #activator="{ props }">
@@ -272,7 +272,9 @@ watch(wosTokenSucceeded, async () => {
                     color="warning"
                     variant="outlined"
                   >
-                    {{ t('query.summary.cited-references-short') }}
+                    <span class="text-medium-emphasis">
+                      {{ t('query.summary.cited-references-short') }}
+                    </span>
                   </v-chip>
                 </template>
                 <span>{{ t('query.summary.cited-references-warning') }}</span>
