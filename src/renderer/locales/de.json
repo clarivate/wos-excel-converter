@@ -114,6 +114,8 @@
       "time-span-date-hint": "Datumsbereich im API-Format: yyyy-mm-dd+yyyy-mm-dd",
       "usr-query": "usrQuery",
       "usr-query-hint": "Benutzerabfrage fur Datenanforderung, z. B. TS=(cadmium).",
+      "autocomplete-guidance": "Typeahead-Vorschläge dienen nur als Orientierung und ergeben nicht immer eine gültige Query. Prüfen Sie die Syntax in der Dokumentation.",
+      "autocomplete-start-typing": "Tippen Sie, um die Feld-Tags zu filtern.",
       "open-docs": "Query-Dokumentation öffnen",
       "validate": "Validieren",
       "verify-token-first": "Validieren Sie zuerst Ihr Token"

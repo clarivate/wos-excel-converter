@@ -38,6 +38,15 @@ const openWosQueryDialog = async (page: any): Promise<void> => {
 }
 
 test.describe('WosQueryInput Autocomplete Keyboard Navigation', () => {
+  test('shows autocomplete guidance with documentation link', async ({ page }) => {
+    await openWosQueryDialog(page)
+
+    await expect(
+      page.getByText(/Typeahead suggestions are provided as guidance only/i)
+    ).toBeVisible()
+    await expect(page.getByText('Open query documentation', { exact: true })).toBeVisible()
+  })
+
   test('navigates through suggestions with arrow keys', async ({ page }) => {
     await openWosQueryDialog(page)
 

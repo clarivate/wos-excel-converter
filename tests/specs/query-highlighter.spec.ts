@@ -1,5 +1,6 @@
 import { test, expect, beforeAll, afterAll } from '../fixtures.mjs'
 import '../../src/types/mainApi.d.ts'
+import { WOS_FIELD_TAGS } from '../../src/renderer/utils/wosFieldTags'
 
 test.beforeAll(beforeAll)
 test.afterAll(afterAll)
@@ -132,6 +133,27 @@ test.describe('WOS Query Highlighter - Syntax Highlighting', () => {
 })
 
 test.describe('WOS Query Highlighter - Type-Ahead/Autocomplete', () => {
+  test('opens field tag suggestions on focus for empty query and shows top filter hint', async ({
+    page
+  }) => {
+    await openWosQueryDialog(page)
+
+    const textarea = page.locator('#query-usr-query')
+    await textarea.clear()
+    await textarea.focus()
+
+    const menu = page.locator('.wos-ac-menu')
+    await expect(menu).toBeVisible({ timeout: 1000 })
+
+    const tagItems = page.locator('.wos-ac-item.wos-ac-tag')
+    await expect(tagItems).toHaveCount(WOS_FIELD_TAGS.length)
+
+    const helper = page.locator('.wos-ac-helper')
+    await expect(helper).toBeVisible()
+    await expect(helper).toContainText('Start typing to filter the fields.')
+    await expect(page.locator('.wos-ac-menu > :first-child')).toHaveClass(/wos-ac-helper/)
+  })
+
   test('shows autocomplete menu when typing field tag prefix', async ({ page }) => {
     await openWosQueryDialog(page)
 
@@ -313,6 +335,92 @@ test.describe('WOS Query Highlighter - Type-Ahead/Autocomplete', () => {
 
     const auItem = page.locator('.wos-ac-item').filter({ hasText: 'AU=' }).first()
     await expect(auItem).toBeVisible()
+  })
+
+  test('suggests AND/OR after a completed non-parenthesized clause', async ({ page }) => {
+    await openWosQueryDialog(page)
+
+    const textarea = page.locator('#query-usr-query')
+    await textarea.fill('TI=test ')
+
+    const boolItems = page.locator('.wos-ac-item.wos-ac-bool .wos-ac-code')
+    await expect(page.locator('.wos-ac-menu')).toBeVisible({ timeout: 1000 })
+    await expect(boolItems.filter({ hasText: /^AND$/ })).toBeVisible()
+    await expect(boolItems.filter({ hasText: /^OR$/ })).toBeVisible()
+  })
+
+  test('suggests in-value operators including NEAR/ before closing parenthesis', async ({
+    page
+  }) => {
+    await openWosQueryDialog(page)
+
+    const textarea = page.locator('#query-usr-query')
+    await textarea.fill('TI=(test ')
+
+    const boolItems = page.locator('.wos-ac-item.wos-ac-bool .wos-ac-code')
+    await expect(page.locator('.wos-ac-menu')).toBeVisible({ timeout: 1000 })
+    await expect(boolItems.filter({ hasText: /^AND$/ })).toBeVisible()
+    await expect(boolItems.filter({ hasText: /^OR$/ })).toBeVisible()
+    await expect(boolItems.filter({ hasText: /^NOT$/ })).toBeVisible()
+    await expect(boolItems.filter({ hasText: /^NEAR\/$/ })).toBeVisible()
+  })
+
+  test('suggests only clause operators after a closed parenthesized clause', async ({ page }) => {
+    await openWosQueryDialog(page)
+
+    const textarea = page.locator('#query-usr-query')
+    await textarea.fill('TI=(test) ')
+
+    const boolItems = page.locator('.wos-ac-item.wos-ac-bool .wos-ac-code')
+    await expect(page.locator('.wos-ac-menu')).toBeVisible({ timeout: 1000 })
+    await expect(boolItems.filter({ hasText: /^AND$/ })).toBeVisible()
+    await expect(boolItems.filter({ hasText: /^OR$/ })).toBeVisible()
+    await expect(boolItems.filter({ hasText: /^NOT$/ })).toHaveCount(0)
+    await expect(boolItems.filter({ hasText: /^NEAR\/$/ })).toHaveCount(0)
+  })
+
+  test('after AND space suggests open-group and field tags', async ({ page }) => {
+    await openWosQueryDialog(page)
+
+    const textarea = page.locator('#query-usr-query')
+    await textarea.fill('TI=(test) AND ')
+
+    await expect(page.locator('.wos-ac-menu')).toBeVisible({ timeout: 1000 })
+    await expect(
+      page.locator('.wos-ac-item.wos-ac-group .wos-ac-code').filter({ hasText: /^\($/ })
+    ).toBeVisible()
+    await expect(page.locator('.wos-ac-item.wos-ac-tag').first()).toBeVisible()
+  })
+
+  test('shows close-group suggestion after a completed grouped clause', async ({ page }) => {
+    await openWosQueryDialog(page)
+
+    const textarea = page.locator('#query-usr-query')
+    await textarea.fill('TI=(test) AND (TS=(cancer) ')
+
+    await expect(page.locator('.wos-ac-menu')).toBeVisible({ timeout: 1000 })
+    await expect(
+      page.locator('.wos-ac-item.wos-ac-group .wos-ac-code').filter({ hasText: /^\)$/ })
+    ).toBeVisible()
+  })
+
+  test('suggests AND when cursor is in middle of AN inside existing query', async ({ page }) => {
+    await openWosQueryDialog(page)
+
+    await page.fill('#query-usr-query', 'TI=test AND OG=Harvard University')
+    await page.evaluate(() => {
+      const el = document.querySelector('#query-usr-query') as HTMLTextAreaElement | null
+      if (!el) return
+      const index = el.value.indexOf('AND') + 2
+      el.focus()
+      el.setSelectionRange(index, index)
+      el.dispatchEvent(new KeyboardEvent('keyup', { key: 'N', bubbles: true }))
+    })
+
+    await expect(page.locator('.wos-ac-menu')).toBeVisible({ timeout: 1000 })
+    await expect(
+      page.locator('.wos-ac-item.wos-ac-bool .wos-ac-code').filter({ hasText: /^AND$/ })
+    ).toBeVisible()
   })
 })
 

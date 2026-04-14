@@ -303,7 +303,15 @@ The component stacks two elements sharing the same dimensions inside a `v-field`
 
 Colours use Vuetify theme variables (`rgb(var(--v-theme-primary))` for tags, `rgb(var(--v-theme-warning))` for reserved words) so they adapt automatically to the app's light/dark theme.
 
-Autocomplete fires on `input` and `keyup` using the live `textarea.value` + `selectionStart` (not `props.modelValue`, which lags the async store write). The dropdown is `Teleport`ed to `<body>` and anchored to the bottom of the textarea bounding rect. Suggestions are suppressed inside quoted strings (`isInsideQuotes`).
+Autocomplete fires on `focus`, `input`, and `keyup` using the live `textarea.value` + `selectionStart` (not `props.modelValue`, which lags the async store write). The dropdown is `Teleport`ed to `<body>` and anchored to the bottom of the textarea bounding rect. Suggestions are suppressed inside quoted strings (`isInsideQuotes`).
+
+Autocomplete is context-aware:
+
+- Empty cursor/start-of-clause: show all field tags in the scrollable menu plus top helper text (`query.wos.autocomplete-start-typing`).
+- Inside `TAG=(...)` after at least one value token: suggest in-value operators `AND`, `OR`, `NOT`, `NEAR/`.
+- After a completed clause (for example `TI=(test) ` or `TI=test `): suggest clause operators `AND`, `OR`.
+- After `AND ` / `OR `: suggest both `(` (start group) and field tags.
+- After a completed clause inside an open group: suggest `)` (close group) alongside clause-level operators.
 
 **`v-field` label interaction**: `v-field` requires `:active` and `:focused` to float the label. These are computed from `isFocused` and `modelValue.length > 0`.
 

@@ -1,11 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch, nextTick } from 'vue'
-import {
-  getFieldTagSuggestions,
-  isInsideQuotes,
-  WOS_RESERVED_WORDS
-} from '@/renderer/utils/wosFieldTags'
-import type { FieldTag } from '@/renderer/utils/wosFieldTags'
+import { useI18n } from 'vue-i18n'
+import { WOS_FIELD_TAGS, isInsideQuotes, WOS_RESERVED_WORDS } from '@/renderer/utils/wosFieldTags'
 
 // ── Types ───────────────────────────────────────────────────────────────────
 interface Props {
@@ -32,7 +28,8 @@ interface SuggestionItem {
   code: string
   label: string
   description: string
-  kind: 'tag' | 'bool'
+  kind: 'tag' | 'bool' | 'group'
+  insertText?: string
 }
 
 // ── Static data ──────────────────────────────────────────────────────────────
@@ -46,18 +43,17 @@ const BOOL_ITEMS: SuggestionItem[] = [
     kind: 'bool'
   },
   {
-    code: 'NEAR',
+    code: 'NEAR/',
     label: 'NEAR',
     description: 'Terms within a specified word distance',
-    kind: 'bool'
-  },
-  {
-    code: 'SAME',
-    label: 'SAME',
-    description: 'Terms in the same sentence or address',
-    kind: 'bool'
+    kind: 'bool',
+    insertText: 'NEAR/'
   }
 ]
+
+const CLAUSE_BOOL_ITEMS: SuggestionItem[] = BOOL_ITEMS.filter(
+  (item) => item.code === 'AND' || item.code === 'OR'
+)
 
 const reservedWordSet = new Set(WOS_RESERVED_WORDS)
 
@@ -72,6 +68,8 @@ const props = withDefaults(defineProps<Props>(), {
   id: '',
   spellcheck: false
 })
+
+const { t } = useI18n()
 
 const emit = defineEmits<{
   'update:modelValue': [value: string]
@@ -88,6 +86,7 @@ const suggestions = ref<SuggestionItem[]>([])
 const isFocused = ref(false)
 
 const NAVIGATION_KEYS = new Set(['ArrowDown', 'ArrowUp', 'Enter', 'Tab', 'Escape'])
+const showFieldTagFilterHint = computed(() => suggestions.value.some((item) => item.kind === 'tag'))
 
 // v-field needs active+focused to float the label properly
 const isActive = computed(() => isFocused.value || props.modelValue.length > 0)
@@ -174,6 +173,135 @@ const snapMenuPosition = (): { top: number; left: number } | null => {
   return { top: Math.round(r.bottom + 4), left: Math.round(r.left) }
 }
 
+type ContextKind = 'fieldTag' | 'inValueBool' | 'clauseBool' | 'groupOrFieldTag'
+
+const getWordBounds = (
+  text: string,
+  cursorPos: number
+): { start: number; end: number; word: string } => {
+  const isWordChar = (ch: string): boolean => /[A-Za-z/]/.test(ch)
+  let start = cursorPos
+  while (start > 0 && isWordChar(text[start - 1])) start--
+  let end = cursorPos
+  while (end < text.length && isWordChar(text[end])) end++
+  return { start, end, word: text.substring(start, end) }
+}
+
+const parseContext = (
+  text: string,
+  cursorPos: number
+): {
+  before: string
+  currentPrefix: string
+  previousWordUpper: string
+  insideFieldValue: boolean
+  hasValueInCurrentField: boolean
+  endsWithClosingParen: boolean
+  endsWithOpeningParen: boolean
+  clauseLooksComplete: boolean
+  openGroupDepth: number
+} => {
+  const before = text.substring(0, cursorPos)
+  const bounds = getWordBounds(text, cursorPos)
+  const currentPrefix = before.substring(bounds.start, cursorPos)
+  const beforePrefix = before.substring(0, bounds.start)
+  const beforePrefixTrimmed = beforePrefix.trimEnd()
+  const previousWordUpper = (beforePrefixTrimmed.split(/[\s()]+/).pop() ?? '').toUpperCase()
+  const endsWithClosingParen = beforePrefixTrimmed.endsWith(')')
+  const endsWithOpeningParen = beforePrefixTrimmed.endsWith('(')
+
+  const stack: Array<{ kind: 'field' | 'group'; pos: number }> = []
+  let inQuotes = false
+  let quoteChar = ''
+
+  for (let i = 0; i < before.length; i++) {
+    const ch = before[i]
+    if ((ch === '"' || ch === "'") && (i === 0 || before[i - 1] !== '\\')) {
+      if (!inQuotes) {
+        inQuotes = true
+        quoteChar = ch
+      } else if (quoteChar === ch) {
+        inQuotes = false
+      }
+      continue
+    }
+    if (inQuotes) continue
+
+    const tagMatch = before.substring(i).match(/^([A-Za-z]{2,5})=\(/)
+    if (tagMatch) {
+      stack.push({ kind: 'field', pos: i + tagMatch[1].length + 1 })
+      i += tagMatch[0].length - 1
+      continue
+    }
+
+    if (ch === '(') {
+      stack.push({ kind: 'group', pos: i })
+      continue
+    }
+
+    if (ch === ')' && stack.length > 0) {
+      stack.pop()
+    }
+  }
+
+  const lastField = [...stack].reverse().find((entry) => entry.kind === 'field')
+  const insideFieldValue = Boolean(lastField)
+  const hasValueInCurrentField =
+    Boolean(lastField) && before.substring((lastField?.pos ?? 0) + 1).trim().length > 0
+
+  const beforeTrimmed = beforePrefixTrimmed
+  const clauseLooksComplete =
+    endsWithClosingParen ||
+    /=\s*[^\s()]+$/.test(beforeTrimmed) ||
+    /=\s*"[^"]*"$/.test(beforeTrimmed) ||
+    /=\s*'[^']*'$/.test(beforeTrimmed)
+  const openGroupDepth = stack.filter((entry) => entry.kind === 'group').length
+
+  return {
+    before,
+    currentPrefix,
+    previousWordUpper,
+    insideFieldValue,
+    hasValueInCurrentField,
+    endsWithClosingParen,
+    endsWithOpeningParen,
+    clauseLooksComplete,
+    openGroupDepth
+  }
+}
+
+const toTagSuggestions = (prefix: string): SuggestionItem[] => {
+  const upperPrefix = prefix.toUpperCase()
+  const filtered =
+    upperPrefix.length === 0
+      ? WOS_FIELD_TAGS
+      : WOS_FIELD_TAGS.filter(
+          (tag) =>
+            tag.code.startsWith(upperPrefix) || tag.label.toUpperCase().startsWith(upperPrefix)
+        )
+  return filtered.map((tag) => ({ ...tag, kind: 'tag' as const }))
+}
+
+const toBoolSuggestions = (source: SuggestionItem[], prefix: string): SuggestionItem[] => {
+  const upperPrefix = prefix.toUpperCase()
+  return source.filter((item) => item.code.startsWith(upperPrefix))
+}
+
+const getContextKind = (ctx: ReturnType<typeof parseContext>): ContextKind => {
+  if (ctx.endsWithOpeningParen) return 'fieldTag'
+  if (ctx.insideFieldValue && ctx.hasValueInCurrentField) return 'inValueBool'
+  if (ctx.endsWithClosingParen || ctx.clauseLooksComplete) return 'clauseBool'
+  if (ctx.previousWordUpper === 'AND' || ctx.previousWordUpper === 'OR') return 'groupOrFieldTag'
+  return 'fieldTag'
+}
+
+const setSuggestions = (items: SuggestionItem[]): void => {
+  suggestions.value = items
+  selectedSuggestionIndex.value = -1
+  autocompletePos.value = snapMenuPosition()
+  autocompleteOpen.value = items.length > 0
+}
+
 /**
  * Context-aware autocomplete:
  * - After a closing `)` (end of a field value) → suggest boolean operators.
@@ -186,45 +314,52 @@ const updateAutocomplete = (text: string, cursorPos: number): void => {
     return
   }
 
-  const before = text.substring(0, cursorPos)
-  const lastLine = before.split('\n').pop() ?? ''
-  const lastWord = lastLine.split(/[\s()]+/).pop() ?? ''
-
-  // If lastWord doesn't match [A-Za-z]{1,5}, close menu
-  if (!/^[A-Za-z]{1,5}$/.test(lastWord)) {
+  const ctx = parseContext(text, cursorPos)
+  if (!/^[A-Za-z/]*$/.test(ctx.currentPrefix)) {
     autocompleteOpen.value = false
     return
   }
 
-  const upper = lastWord.toUpperCase()
-
-  // Determine context: what's the last non-space/non-paren character before the current partial word?
-  const beforePartial = lastLine.substring(0, lastLine.length - lastWord.length).trimEnd()
-  const afterClosingParen = beforePartial.endsWith(')')
-
-  if (afterClosingParen) {
-    // We're right after a field value ) — suggest boolean operators
-    const boolMatches = BOOL_ITEMS.filter((b) => b.code.startsWith(upper))
-    if (boolMatches.length > 0) {
-      suggestions.value = boolMatches
-      selectedSuggestionIndex.value = -1
-      autocompletePos.value = snapMenuPosition()
-      autocompleteOpen.value = true
-      return
-    }
-  }
-
-  // Default: suggest documented field tags
-  const found = getFieldTagSuggestions(text, cursorPos)
-  if (found.length > 0) {
-    suggestions.value = found.map((t: FieldTag): SuggestionItem => ({ ...t, kind: 'tag' }))
-    selectedSuggestionIndex.value = -1
-    autocompletePos.value = snapMenuPosition()
-    autocompleteOpen.value = true
+  const contextKind = getContextKind(ctx)
+  if (contextKind === 'fieldTag') {
+    setSuggestions(toTagSuggestions(ctx.currentPrefix))
     return
   }
 
-  autocompleteOpen.value = false
+  if (contextKind === 'inValueBool') {
+    setSuggestions(toBoolSuggestions(BOOL_ITEMS, ctx.currentPrefix))
+    return
+  }
+
+  if (contextKind === 'clauseBool') {
+    const closeGroupItem: SuggestionItem = {
+      code: ')',
+      label: 'Close Group',
+      description: 'Close the current grouped expression',
+      kind: 'group',
+      insertText: ')'
+    }
+    setSuggestions([
+      ...toBoolSuggestions(CLAUSE_BOOL_ITEMS, ctx.currentPrefix),
+      ...(ctx.openGroupDepth > 0 &&
+      (ctx.currentPrefix.length === 0 || ')'.startsWith(ctx.currentPrefix))
+        ? [closeGroupItem]
+        : [])
+    ])
+    return
+  }
+
+  const groupItem: SuggestionItem = {
+    code: '(',
+    label: 'Open Group',
+    description: 'Start a grouped expression',
+    kind: 'group',
+    insertText: '('
+  }
+  setSuggestions([
+    ...(ctx.currentPrefix.length === 0 || '('.startsWith(ctx.currentPrefix) ? [groupItem] : []),
+    ...toTagSuggestions(ctx.currentPrefix)
+  ])
 }
 
 // ── Keyboard navigation ───────────────────────────────────────────────────────
@@ -295,14 +430,18 @@ const commitSuggestion = (item: SuggestionItem): void => {
 
   const cursorPos = el.selectionStart ?? el.value.length
   const liveText = el.value
-  const before = liveText.substring(0, cursorPos)
-  const lastWord = (before.split('\n').pop() ?? '').split(/[\s()]+/).pop() ?? ''
-  const beforeWord = before.substring(0, before.length - lastWord.length)
-  const after = liveText.substring(cursorPos)
+  const bounds = getWordBounds(liveText, cursorPos)
+  const beforeWord = liveText.substring(0, bounds.start)
+  const afterWord = liveText.substring(bounds.end)
 
-  // Field tags: insert CODE=   Boolean operators: insert CODE  (trailing space)
-  const inserted = item.kind === 'tag' ? `${item.code}=` : `${item.code} `
-  emit('update:modelValue', beforeWord + inserted + after)
+  // Field tags: CODE=, booleans/group: custom insertText with trailing space when needed.
+  const inserted =
+    item.kind === 'tag'
+      ? `${item.code}=`
+      : item.insertText
+        ? `${item.insertText} `
+        : `${item.code} `
+  emit('update:modelValue', beforeWord + inserted + afterWord)
 
   nextTick(() => {
     if (!textareaRef.value) return
@@ -325,6 +464,9 @@ const scrollSuggestionIntoView = (): void => {
 // ── Focus / blur ──────────────────────────────────────────────────────────────
 const onFocus = (): void => {
   isFocused.value = true
+  const el = textareaRef.value
+  if (!el) return
+  updateAutocomplete(el.value, el.selectionStart ?? el.value.length)
 }
 
 const onBlur = (): void => {
@@ -397,6 +539,12 @@ watch(
         class="wos-ac-menu"
         :style="{ top: `${autocompletePos.top}px`, left: `${autocompletePos.left}px` }"
       >
+        <div
+          v-if="showFieldTagFilterHint"
+          class="wos-ac-helper"
+        >
+          {{ t('query.wos.autocomplete-start-typing') }}
+        </div>
         <div
           v-for="(item, index) in suggestions"
           :key="item.code"
@@ -571,5 +719,12 @@ watch(
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.wos-ac-helper {
+  padding: 8px 14px;
+  font-size: 0.72rem;
+  color: rgba(var(--v-theme-on-surface), 0.6);
+  border-bottom: 1px solid rgba(var(--v-theme-on-surface), 0.08);
 }
 </style>

@@ -389,16 +389,19 @@ const openWosDocs = (): void => {
               @update:model-value="persist({ usrQuery: String($event || '') })"
             >
               <template #message>
-                <a
-                  href="#"
-                  @click.prevent="openWosDocs"
-                >
-                  {{ t('query.wos.open-docs') }}
-                  <v-icon
-                    :icon="mdiOpenInNew"
-                    size="small"
-                  />
-                </a>
+                <div class="wos-query-guidance">
+                  <span>{{ t('query.wos.autocomplete-guidance') }}</span>
+                  <a
+                    href="#"
+                    @click.prevent="openWosDocs"
+                  >
+                    {{ t('query.wos.open-docs') }}
+                    <v-icon
+                      :icon="mdiOpenInNew"
+                      size="small"
+                    />
+                  </a>
+                </div>
               </template>
             </WosQueryInput>
           </v-col>
@@ -464,5 +467,12 @@ const openWosDocs = (): void => {
   white-space: normal;
   height: auto;
   max-width: 100%;
+}
+
+.wos-query-guidance {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
 }
 </style>
