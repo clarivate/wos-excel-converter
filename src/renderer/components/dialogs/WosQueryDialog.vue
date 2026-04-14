@@ -2,7 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useQueryDetailsStore } from '@/renderer/store/queryDetails'
-import { mdiOpenInNew } from '@mdi/js'
+import { mdiCalendarRange, mdiChevronDown, mdiOpenInNew } from '@mdi/js'
 
 const { t } = useI18n()
 const queryStore = useQueryDetailsStore()
@@ -13,7 +13,6 @@ type WosDatabaseOption = {
 }
 
 type TimeSpanType = 'createdTimeSpan' | 'modifiedTimeSpan' | 'tcModifiedTimeSpan'
-type TimeSpanPreset = 'custom' | 'lastDay' | 'last3Days' | 'lastWeek' | 'lastMonth'
 
 const wosDatabaseOptions: WosDatabaseOption[] = [
   { code: 'WOS', label: 'Web of Science Core Collection (WOS)' },
@@ -63,75 +62,55 @@ const wosMessage = computed(() => {
 })
 
 const selectedTimeSpanType = ref<TimeSpanType>('createdTimeSpan')
-const selectedTimeSpanPreset = ref<TimeSpanPreset>('custom')
-const timeSpanStartDate = ref('')
-const timeSpanEndDate = ref('')
+const timeSpanRawValue = ref('')
+const presetMenuOpen = ref(false)
+const typeMenuOpen = ref(false)
 
-const timeSpanTypeOptions = computed(() => {
-  const options: Array<{ value: TimeSpanType; label: string }> = [
-    { value: 'createdTimeSpan', label: t('query.wos.created-time-span') },
-    { value: 'modifiedTimeSpan', label: t('query.wos.modified-time-span') },
-    { value: 'tcModifiedTimeSpan', label: t('query.wos.tc-modified-time-span') }
-  ]
+// Label IS the API parameter name the user has chosen
+const selectedTimeSpanLabel = computed(() => selectedTimeSpanType.value)
 
+const timeSpanTypeOptions = computed((): TimeSpanType[] => {
+  const options: TimeSpanType[] = ['createdTimeSpan', 'modifiedTimeSpan', 'tcModifiedTimeSpan']
   if (props.databaseId === 'WOK') {
-    return options.filter((option) => option.value === 'createdTimeSpan')
+    return options.filter((o) => o === 'createdTimeSpan')
   }
-
   return options
 })
 
-const timeSpanPresetOptions = computed(() => [
-  { value: 'lastDay', label: t('query.wos.time-span-preset-last-day') },
-  { value: 'last3Days', label: t('query.wos.time-span-preset-last-3-days') },
-  { value: 'lastWeek', label: t('query.wos.time-span-preset-last-week') },
-  { value: 'lastMonth', label: t('query.wos.time-span-preset-last-month') },
-  { value: 'custom', label: t('query.wos.time-span-preset-custom') }
-])
-
-const timeSpanTypeHint = computed(() =>
+const timeSpanHint = computed(() =>
   props.databaseId === 'WOK'
     ? t('query.wos.time-span-type-hint-wok')
-    : t('query.wos.time-span-type-hint')
+    : t('query.wos.time-span-date-hint')
 )
 
-const parseTimeSpanRange = (value: string): { start: string; end: string } => {
-  if (!value) return { start: '', end: '' }
-  const [start, end] = value.split('+')
-  return {
-    start: start ?? '',
-    end: end ?? ''
-  }
-}
-
 const formatDate = (date: Date): string => {
-  const year = date.getFullYear()
-  const month = `${date.getMonth() + 1}`.padStart(2, '0')
-  const day = `${date.getDate()}`.padStart(2, '0')
-  return `${year}-${month}-${day}`
+  const y = date.getFullYear()
+  const m = `${date.getMonth() + 1}`.padStart(2, '0')
+  const d = `${date.getDate()}`.padStart(2, '0')
+  return `${y}-${m}-${d}`
 }
 
-const getPresetRange = (
-  preset: Exclude<TimeSpanPreset, 'custom'>
-): { start: string; end: string } => {
-  const endDate = new Date()
-  const startDate = new Date()
-
-  if (preset === 'lastDay') startDate.setDate(endDate.getDate() - 1)
-  if (preset === 'last3Days') startDate.setDate(endDate.getDate() - 3)
-  if (preset === 'lastWeek') startDate.setDate(endDate.getDate() - 7)
-  if (preset === 'lastMonth') startDate.setDate(endDate.getDate() - 30)
-
-  return {
-    start: formatDate(startDate),
-    end: formatDate(endDate)
+const presetRanges = computed(() => {
+  const today = new Date()
+  const fmt = formatDate
+  const offset = (days: number) => {
+    const d = new Date()
+    d.setDate(today.getDate() - days)
+    return d
   }
-}
-
-const buildTimeSpanRange = (start: string, end: string): string => {
-  if (!start || !end) return ''
-  return `${start}+${end}`
-}
+  return [
+    { label: t('query.wos.time-span-preset-last-day'), value: `${fmt(offset(1))}+${fmt(today)}` },
+    {
+      label: t('query.wos.time-span-preset-last-3-days'),
+      value: `${fmt(offset(3))}+${fmt(today)}`
+    },
+    { label: t('query.wos.time-span-preset-last-week'), value: `${fmt(offset(7))}+${fmt(today)}` },
+    {
+      label: t('query.wos.time-span-preset-last-month'),
+      value: `${fmt(offset(30))}+${fmt(today)}`
+    }
+  ]
+})
 
 const getTimeSpanValueForType = (type: TimeSpanType): string => {
   if (type === 'createdTimeSpan') return props.createdTimeSpan
@@ -149,10 +128,7 @@ const getActiveTypeFromProps = (): TimeSpanType => {
 
 const syncTimeSpanStateFromProps = (): void => {
   selectedTimeSpanType.value = getActiveTypeFromProps()
-  selectedTimeSpanPreset.value = 'custom'
-  const range = parseTimeSpanRange(getTimeSpanValueForType(selectedTimeSpanType.value))
-  timeSpanStartDate.value = range.start
-  timeSpanEndDate.value = range.end
+  timeSpanRawValue.value = getTimeSpanValueForType(selectedTimeSpanType.value)
 }
 
 watch(
@@ -165,14 +141,13 @@ const persist = async (payload: Record<string, unknown>): Promise<void> => {
   await queryStore.updateQueryDetails(payload)
 }
 
-const persistSelectedTimeSpan = async (value: string): Promise<void> => {
-  const effectiveType: TimeSpanType =
+const persistTimeSpan = async (value: string): Promise<void> => {
+  const type: TimeSpanType =
     props.databaseId === 'WOK' ? 'createdTimeSpan' : selectedTimeSpanType.value
-
   await persist({
-    createdTimeSpan: effectiveType === 'createdTimeSpan' ? value : '',
-    modifiedTimeSpan: effectiveType === 'modifiedTimeSpan' ? value : '',
-    tcModifiedTimeSpan: effectiveType === 'tcModifiedTimeSpan' ? value : ''
+    createdTimeSpan: type === 'createdTimeSpan' ? value : '',
+    modifiedTimeSpan: type === 'modifiedTimeSpan' ? value : '',
+    tcModifiedTimeSpan: type === 'tcModifiedTimeSpan' ? value : ''
   })
 }
 
@@ -187,45 +162,19 @@ const onDatabaseChanged = async (value: string | null): Promise<void> => {
 const onTimeSpanTypeChanged = async (value: TimeSpanType | null): Promise<void> => {
   const nextType = props.databaseId === 'WOK' ? 'createdTimeSpan' : (value ?? 'createdTimeSpan')
   selectedTimeSpanType.value = nextType
-  selectedTimeSpanPreset.value = 'custom'
-
-  const range = parseTimeSpanRange(getTimeSpanValueForType(nextType))
-  timeSpanStartDate.value = range.start
-  timeSpanEndDate.value = range.end
-
-  await persistSelectedTimeSpan(buildTimeSpanRange(range.start, range.end))
+  timeSpanRawValue.value = getTimeSpanValueForType(nextType)
+  await persistTimeSpan(timeSpanRawValue.value)
 }
 
-const onTimeSpanPresetChanged = async (value: TimeSpanPreset | null): Promise<void> => {
-  const nextPreset = value ?? 'custom'
-  selectedTimeSpanPreset.value = nextPreset
-
-  if (nextPreset === 'custom') {
-    await persistSelectedTimeSpan(
-      buildTimeSpanRange(timeSpanStartDate.value, timeSpanEndDate.value)
-    )
-    return
-  }
-
-  const range = getPresetRange(nextPreset)
-  timeSpanStartDate.value = range.start
-  timeSpanEndDate.value = range.end
-  await persistSelectedTimeSpan(buildTimeSpanRange(range.start, range.end))
+const onTimeSpanRawChanged = async (value: string | null): Promise<void> => {
+  timeSpanRawValue.value = String(value || '')
+  await persistTimeSpan(timeSpanRawValue.value)
 }
 
-const onTimeSpanDateChanged = async (): Promise<void> => {
-  selectedTimeSpanPreset.value = 'custom'
-  await persistSelectedTimeSpan(buildTimeSpanRange(timeSpanStartDate.value, timeSpanEndDate.value))
-}
-
-const onTimeSpanStartChanged = async (value: string | null): Promise<void> => {
-  timeSpanStartDate.value = String(value || '')
-  await onTimeSpanDateChanged()
-}
-
-const onTimeSpanEndChanged = async (value: string | null): Promise<void> => {
-  timeSpanEndDate.value = String(value || '')
-  await onTimeSpanDateChanged()
+const applyPreset = async (value: string): Promise<void> => {
+  timeSpanRawValue.value = value
+  presetMenuOpen.value = false
+  await persistTimeSpan(value)
 }
 
 const validate = async (): Promise<void> => {
@@ -321,75 +270,92 @@ const openWosDocs = (): void => {
           </v-col>
           <v-col
             cols="12"
-            xl="4"
-            lg="4"
+            xl="8"
+            lg="8"
           >
-            <v-select
-              id="query-time-span-type"
-              :model-value="selectedTimeSpanType"
-              :label="t('query.wos.time-span-type')"
-              :hint="timeSpanTypeHint"
-              persistent-hint
-              :items="timeSpanTypeOptions"
-              item-title="label"
-              item-value="value"
-              variant="outlined"
-              :disabled="databaseId === 'WOK'"
-              @update:model-value="onTimeSpanTypeChanged($event)"
-            />
-          </v-col>
-          <v-col
-            cols="12"
-            xl="4"
-            lg="4"
-          >
-            <v-select
-              id="query-time-span-preset"
-              :model-value="selectedTimeSpanPreset"
-              :label="t('query.wos.time-span-preset')"
-              :hint="t('query.wos.time-span-preset-hint')"
-              persistent-hint
-              :items="timeSpanPresetOptions"
-              item-title="label"
-              item-value="value"
-              variant="outlined"
-              @update:model-value="onTimeSpanPresetChanged($event)"
-            />
-          </v-col>
-        </v-row>
-
-        <v-row>
-          <v-col
-            cols="12"
-            xl="6"
-            lg="6"
-          >
+            <!--
+              Single combo-style field:
+              – label   = the selected API parameter name (e.g. createdTimeSpan)
+              – prepend = chip to switch between parameter types
+              – value   = raw API date range yyyy-mm-dd+yyyy-mm-dd
+              – append  = preset quick-pick button
+            -->
             <v-text-field
-              id="query-time-span-start"
-              :model-value="timeSpanStartDate"
-              :label="t('query.wos.time-span-start')"
-              :hint="t('query.wos.time-span-date-hint')"
+              id="query-time-span"
+              :model-value="timeSpanRawValue"
+              :label="selectedTimeSpanLabel"
+              :hint="timeSpanHint"
               persistent-hint
-              type="date"
+              placeholder="yyyy-mm-dd+yyyy-mm-dd"
               variant="outlined"
-              @update:model-value="onTimeSpanStartChanged($event)"
-            />
-          </v-col>
-          <v-col
-            cols="12"
-            xl="6"
-            lg="6"
-          >
-            <v-text-field
-              id="query-time-span-end"
-              :model-value="timeSpanEndDate"
-              :label="t('query.wos.time-span-end')"
-              :hint="t('query.wos.time-span-date-hint')"
-              persistent-hint
-              type="date"
-              variant="outlined"
-              @update:model-value="onTimeSpanEndChanged($event)"
-            />
+              @update:model-value="onTimeSpanRawChanged($event)"
+            >
+              <template #prepend-inner>
+                <v-menu
+                  v-model="typeMenuOpen"
+                  :close-on-content-click="true"
+                  location="bottom start"
+                >
+                  <template #activator="{ props: typeProps }">
+                    <v-chip
+                      v-bind="typeProps"
+                      size="small"
+                      variant="tonal"
+                      :disabled="databaseId === 'WOK'"
+                      class="mr-2 type-chip"
+                    >
+                      {{ selectedTimeSpanType }}
+                      <v-icon
+                        :icon="mdiChevronDown"
+                        size="x-small"
+                        end
+                      />
+                    </v-chip>
+                  </template>
+                  <v-list
+                    density="compact"
+                    nav
+                  >
+                    <v-list-item
+                      v-for="opt in timeSpanTypeOptions"
+                      :key="opt"
+                      :title="opt"
+                      :active="selectedTimeSpanType === opt"
+                      @click="onTimeSpanTypeChanged(opt)"
+                    />
+                  </v-list>
+                </v-menu>
+              </template>
+              <template #append-inner>
+                <v-menu
+                  v-model="presetMenuOpen"
+                  :close-on-content-click="false"
+                  location="bottom end"
+                >
+                  <template #activator="{ props: presetProps }">
+                    <v-btn
+                      v-bind="presetProps"
+                      :icon="mdiCalendarRange"
+                      size="small"
+                      variant="text"
+                      :title="t('query.wos.time-span-presets')"
+                    />
+                  </template>
+                  <v-list
+                    density="compact"
+                    nav
+                  >
+                    <v-list-item
+                      v-for="preset in presetRanges"
+                      :key="preset.value"
+                      :title="preset.label"
+                      :subtitle="preset.value"
+                      @click="applyPreset(preset.value)"
+                    />
+                  </v-list>
+                </v-menu>
+              </template>
+            </v-text-field>
           </v-col>
         </v-row>
 
@@ -460,3 +426,10 @@ const openWosDocs = (): void => {
     </v-card>
   </v-dialog>
 </template>
+
+<style scoped>
+.type-chip {
+  cursor: pointer;
+  user-select: none;
+}
+</style>
