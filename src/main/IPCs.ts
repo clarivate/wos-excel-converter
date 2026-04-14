@@ -30,6 +30,32 @@ export default class IPCs {
   static initialize(): void {
     const configStore = ConfigStore.getInstance()
     const safeErrorMessage = (error: unknown): string => {
+      const responseMessage =
+        typeof error === 'object' &&
+        error !== null &&
+        'response' in error &&
+        typeof error.response === 'object' &&
+        error.response !== null &&
+        'data' in error.response &&
+        typeof error.response.data === 'object' &&
+        error.response.data !== null &&
+        'message' in error.response.data &&
+        typeof error.response.data.message === 'string'
+          ? error.response.data.message.trim()
+          : null
+
+      if (responseMessage) {
+        const parserPrefix = /^Server\.Parser\.[^,]+,\s*Translation Exception\s*:\s*/i
+        const normalizedMessage = responseMessage.replace(parserPrefix, '').trim()
+        const illegalTagMatch = normalizedMessage.match(/^Illegal tag name\s+([A-Z0-9_]+)/i)
+
+        if (illegalTagMatch) {
+          return `Unknown field tag "${illegalTagMatch[1]}". Check the field tags and query syntax.`
+        }
+
+        return normalizedMessage
+      }
+
       if (error instanceof Error) return error.message
       if (typeof error === 'string') return error
       return 'Unknown error'
@@ -387,8 +413,7 @@ export default class IPCs {
             type: 'success',
             messageKey: 'query.validation.success',
             messageParams: {
-              recordsFound: validation.recordsFound,
-              queryId: validation.queryId
+              recordsFound: validation.recordsFound
             },
             recordsFound: validation.recordsFound,
             queryId: validation.queryId

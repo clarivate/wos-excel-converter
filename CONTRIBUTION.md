@@ -173,6 +173,25 @@ WOS time span selector coverage and behavior:
   - `IPC: enforces only one time span field at a time`
   - `IPC: WOK rejects modified and tcModified time spans`
 
+WOS query validation UX:
+
+- `usrQuery` disables browser spelling helpers (`spellcheck`, `autocorrect`, `autocapitalize`, `autocomplete`) so advanced query syntax is not altered.
+- WOS validation auto-refreshes after edits to WOS query parameters (`databaseId`, `edition`, `lang`, time spans, `usrQuery`) using a debounced store-side validation flow.
+- Manual validation remains available through the `Validate` button for explicit re-checks.
+- Success feedback in the dialog is shown as a compact records-found chip; warning/error states continue to use alert messaging.
+- User-facing success copy no longer shows query ID, though the raw validation response still carries it internally.
+- Parser/tag validation errors are normalized into end-user wording when the backend returns parser messages (for example, `PYS=2017` becomes `Unknown field tag "PYS". Check the field tags and query syntax.`).
+- `src/renderer/components/shared/WosRecordsFoundChip.vue` is shared by `QueryDetailsManager.vue` and `WosQueryDialog.vue` so records-found formatting and the `>100,000` warning tooltip remain consistent across views and themes.
+
+Live WOS validation scenarios:
+
+- `tests/specs/token-live.spec.ts` includes token-backed WOS query validation coverage.
+- Known-valid query used in live verification: `PY=2017`
+- Known-invalid query used in live verification: `PYS=2017`
+- Observed live response shape:
+  - valid query returns HTTP `200` with `QueryResult.RecordsFound`
+  - invalid query returns HTTP `400` with backend parser message such as `Illegal tag name PYS`
+
 #### Local Token Setup for Live Tests
 
 Create a local `.env` file in the repo root (it is gitignored) or copy from `.env.example`:

@@ -17,6 +17,43 @@ const fillTokenField = async (page: any, label: string, token: string): Promise<
   await field.fill(token)
 }
 
+const openQueryPanel = async (page: any): Promise<void> => {
+  const queryTitle = page.getByText('Query Details', { exact: true }).first()
+  await expect(queryTitle).toBeVisible()
+  await queryTitle.click()
+
+  const idsButton = page.locator('#query-ids-file-btn')
+  if (!(await idsButton.isVisible())) {
+    await queryTitle.click()
+  }
+}
+
+const seedLiveWosState = async (page: any, usrQuery: string): Promise<void> => {
+  await page.evaluate(
+    ({ token, query }) =>
+      Promise.all([
+        window.mainApi.invoke('msgRequestSetApiTokens', {
+          wosExpandedToken: token
+        }),
+        window.mainApi.invoke('msgRequestSetQueryDetails', {
+          databaseId: 'WOS',
+          edition: '',
+          lang: '',
+          createdTimeSpan: '',
+          modifiedTimeSpan: '',
+          tcModifiedTimeSpan: '',
+          usrQuery: query,
+          disableWosQuery: false
+        })
+      ]),
+    { token: wosExpandedToken, query: usrQuery }
+  )
+
+  await page.reload()
+  await page.waitForLoadState('domcontentloaded')
+  await openQueryPanel(page)
+}
+
 test.describe('@requires-token Token Live Verification', () => {
   test.skip(!hasTokenEnv, 'WOS_EXPANDED_TOKEN and INCITES_TOKEN are required for live token tests')
 
@@ -73,6 +110,88 @@ test.describe('@requires-token Token Live Verification', () => {
 
     await page.waitForTimeout(800)
     await util.captureScreenshot(page, 'token-live-wos-verified')
+  })
+
+  test('validates a live successful WOS query', async ({ page }) => {
+    await page.evaluate(
+      (token) =>
+        window.mainApi.invoke('msgRequestSetApiTokens', {
+          wosExpandedToken: token
+        }),
+      wosExpandedToken
+    )
+
+    const result = await page.evaluate(() =>
+      window.mainApi.invoke('msgRequestValidateWosQuery', {
+        databaseId: 'WOS',
+        usrQuery: 'PY=2017'
+      })
+    )
+
+    expect(result.type).toBe('success')
+    expect(result.messageKey).toBe('query.validation.success')
+    expect(typeof result.recordsFound).toBe('number')
+    expect(result.recordsFound).toBeGreaterThan(0)
+    expect(result.queryId === null || typeof result.queryId === 'number').toBe(true)
+  })
+
+  test('returns a user-friendly error for an invalid live WOS query', async ({ page }) => {
+    await page.evaluate(
+      (token) =>
+        window.mainApi.invoke('msgRequestSetApiTokens', {
+          wosExpandedToken: token
+        }),
+      wosExpandedToken
+    )
+
+    const result = await page.evaluate(() =>
+      window.mainApi.invoke('msgRequestValidateWosQuery', {
+        databaseId: 'WOS',
+        usrQuery: 'PYS=2017'
+      })
+    )
+
+    expect(result.type).toBe('error')
+    expect(result.messageKey).toBe('query.validation.error')
+    expect(result.recordsFound).toBeNull()
+    expect(result.queryId).toBeNull()
+    expect(result.messageParams?.error).toContain('PYS')
+    expect(result.messageParams?.error).toContain('field tag')
+  })
+
+  test('reuses the same records-found and error feedback patterns in summary and WOS dialog', async ({
+    page
+  }) => {
+    await seedLiveWosState(page, 'PY=2017')
+
+    const summaryRecordsChip = page.locator('#query-summary-chip-records-found')
+    await expect(summaryRecordsChip).toBeVisible({ timeout: 15000 })
+    await expect(summaryRecordsChip).toContainText('Records found')
+
+    const wosButton = page.locator('#query-open-wos-dialog-btn')
+    await expect(wosButton).toBeEnabled({ timeout: 15000 })
+    await wosButton.click()
+
+    const dialogRecordsChip = page.locator('#query-validation-records')
+    await expect(dialogRecordsChip).toBeVisible({ timeout: 15000 })
+    await expect(dialogRecordsChip).toContainText('Records found')
+
+    await page.locator('#query-validate-btn').click()
+    await expect(dialogRecordsChip).toBeVisible({ timeout: 15000 })
+
+    await page.getByText('Close', { exact: true }).click()
+
+    await seedLiveWosState(page, 'PYS=2017')
+
+    const summaryErrorChip = page.locator('#query-summary-message')
+    await expect(summaryErrorChip).toBeVisible({ timeout: 15000 })
+    await expect(summaryErrorChip).toContainText('Unknown field tag "PYS"')
+
+    await page.locator('#query-open-wos-dialog-btn').click()
+    const dialogErrorChip = page.locator('#query-validation-alert')
+    await expect(dialogErrorChip).toBeVisible({ timeout: 15000 })
+    await expect(dialogErrorChip).toContainText('Unknown field tag "PYS"')
+    await page.getByText('Close', { exact: true }).click()
   })
 
   // @ts-expect-error: `util` is not using types in playwright

@@ -84,7 +84,7 @@
     "validation": {
       "token-required": "Validieren Sie Ihr Web of Science-Token vor der Query-Validierung.",
       "empty": "Geben Sie vor der Validierung eine usrQuery ein.",
-      "success": "Abfrage ist gültig. Gefundene Datensatze: {recordsFound}. Query-ID: {queryId}.",
+      "success": "Abfrage ist gültig. Gefundene Datensatze: {recordsFound}.",
       "error": "Query-Validierung fehlgeschlagen: {error}"
     },
     "wos": {

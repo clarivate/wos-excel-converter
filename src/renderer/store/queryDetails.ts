@@ -67,6 +67,8 @@ export const icSchemaOptions: Array<{ code: string; name: string }> = [
 ]
 
 export const useQueryDetailsStore = defineStore('queryDetails', () => {
+  const AUTO_VALIDATE_DELAY_MS = 450
+
   const databaseId = ref(defaultState.databaseId)
   const edition = ref(defaultState.edition)
   const lang = ref(defaultState.lang)
@@ -91,6 +93,8 @@ export const useQueryDetailsStore = defineStore('queryDetails', () => {
   const wosRecordsFound = ref<number | null>(null)
   const wosQueryId = ref<number | null>(null)
   const validationInProgress = ref(false)
+  let autoValidateTimer: ReturnType<typeof setTimeout> | null = null
+  let latestValidationRunId = 0
 
   const queryPreview = computed(() =>
     usrQuery.value.length > 60 ? `${usrQuery.value.slice(0, 60)}...` : usrQuery.value
@@ -114,6 +118,11 @@ export const useQueryDetailsStore = defineStore('queryDetails', () => {
   })
 
   async function loadQueryDetails(): Promise<void> {
+    if (autoValidateTimer) {
+      clearTimeout(autoValidateTimer)
+      autoValidateTimer = null
+    }
+
     const payload = await window.mainApi.invoke('msgRequestGetQueryDetails')
     databaseId.value = payload.databaseId
     edition.value = payload.edition
@@ -140,6 +149,31 @@ export const useQueryDetailsStore = defineStore('queryDetails', () => {
     wosValidationMessageParams.value = undefined
     wosRecordsFound.value = null
     wosQueryId.value = null
+  }
+
+  const payloadAffectsWosValidation = (payload: Partial<QueryDetailsPayload>): boolean => {
+    return (
+      typeof payload.databaseId === 'string' ||
+      typeof payload.edition === 'string' ||
+      typeof payload.lang === 'string' ||
+      typeof payload.createdTimeSpan === 'string' ||
+      typeof payload.modifiedTimeSpan === 'string' ||
+      typeof payload.tcModifiedTimeSpan === 'string' ||
+      typeof payload.usrQuery === 'string'
+    )
+  }
+
+  const scheduleAutoValidate = (): void => {
+    if (disableWosQuery.value) return
+
+    if (autoValidateTimer) {
+      clearTimeout(autoValidateTimer)
+    }
+
+    autoValidateTimer = setTimeout(() => {
+      autoValidateTimer = null
+      void validateWosQuery()
+    }, AUTO_VALIDATE_DELAY_MS)
   }
 
   const normalizeWosTimeSpans = (
@@ -237,9 +271,19 @@ export const useQueryDetailsStore = defineStore('queryDetails', () => {
     if (typeof payloadToPersist.idsFile === 'string') idsFile.value = payloadToPersist.idsFile
     if (payloadToPersist.icSchema) icSchema.value = payloadToPersist.icSchema
     if (payloadToPersist.icEsci) icEsci.value = payloadToPersist.icEsci
+
+    if (payloadAffectsWosValidation(payloadToPersist)) {
+      scheduleAutoValidate()
+    }
   }
 
   async function validateWosQuery(): Promise<WosValidationResult> {
+    if (autoValidateTimer) {
+      clearTimeout(autoValidateTimer)
+      autoValidateTimer = null
+    }
+
+    const currentRunId = ++latestValidationRunId
     validationInProgress.value = true
     try {
       const result = await window.mainApi.invoke('msgRequestValidateWosQuery', {
@@ -251,14 +295,20 @@ export const useQueryDetailsStore = defineStore('queryDetails', () => {
         tcModifiedTimeSpan: tcModifiedTimeSpan.value,
         usrQuery: usrQuery.value
       })
-      wosValidationType.value = result.type
-      wosValidationMessageKey.value = result.messageKey
-      wosValidationMessageParams.value = result.messageParams
-      wosRecordsFound.value = result.recordsFound
-      wosQueryId.value = result.queryId
+
+      if (currentRunId === latestValidationRunId) {
+        wosValidationType.value = result.type
+        wosValidationMessageKey.value = result.messageKey
+        wosValidationMessageParams.value = result.messageParams
+        wosRecordsFound.value = result.recordsFound
+        wosQueryId.value = result.queryId
+      }
+
       return result
     } finally {
-      validationInProgress.value = false
+      if (currentRunId === latestValidationRunId) {
+        validationInProgress.value = false
+      }
     }
   }
 

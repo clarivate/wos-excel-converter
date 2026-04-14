@@ -61,6 +61,9 @@ export default defineConfig(
       'vue/v-on-event-hyphenation': 'off',
       'vue/no-v-text-v-html-on-component': 'off',
       'vue/attribute-hyphenation': 'off',
+      'vue/singleline-html-element-content-newline': 'off',
+      'vue/html-closing-bracket-spacing': 'off',
+      'vue/html-self-closing': 'off',
       'vue/max-attributes-per-line': [
         'error',
         {

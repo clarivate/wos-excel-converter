@@ -2,6 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useQueryDetailsStore } from '@/renderer/store/queryDetails'
+import WosRecordsFoundChip from '@/renderer/components/shared/WosRecordsFoundChip.vue'
 import { mdiCalendarRange, mdiChevronDown, mdiOpenInNew } from '@mdi/js'
 
 const { t } = useI18n()
@@ -46,6 +47,7 @@ const props = defineProps<{
   modifiedTimeSpan: string
   tcModifiedTimeSpan: string
   usrQuery: string
+  wosRecordsFound: number | null
   wosValidationType: 'success' | 'error' | 'warning' | 'info' | null | undefined
   wosValidationMessageKey: string | null
   wosValidationMessageParams: Record<string, any> | null | undefined
@@ -59,6 +61,20 @@ const emit = defineEmits<{
 const wosMessage = computed(() => {
   if (!props.wosValidationMessageKey) return ''
   return t(props.wosValidationMessageKey, props.wosValidationMessageParams ?? {})
+})
+
+const showValidationAlert = computed(
+  () => !!props.wosValidationType && props.wosValidationType !== 'success'
+)
+
+const showValidationSuccess = computed(
+  () => props.wosValidationType === 'success' && props.wosRecordsFound !== null
+)
+
+const validationChipColor = computed(() => {
+  if (props.wosValidationType === 'warning') return 'warning'
+  if (props.wosValidationType === 'info') return 'info'
+  return 'error'
 })
 
 const selectedTimeSpanType = ref<TimeSpanType>('createdTimeSpan')
@@ -367,6 +383,10 @@ const openWosDocs = (): void => {
               :label="t('query.wos.usr-query')"
               :hint="t('query.wos.usr-query-hint')"
               persistent-hint
+              spellcheck="false"
+              autocorrect="off"
+              autocapitalize="off"
+              autocomplete="off"
               variant="outlined"
               @update:model-value="persist({ usrQuery: String($event || '') })"
             >
@@ -402,7 +422,8 @@ const openWosDocs = (): void => {
           </v-col>
           <v-col
             cols="12"
-            md="10"
+            md="4"
+            class="d-flex flex-column justify-center ga-2"
           >
             <v-alert
               v-if="!wosTokenSucceeded"
@@ -412,14 +433,22 @@ const openWosDocs = (): void => {
             >
               {{ t('query.wos.verify-token-first') }}
             </v-alert>
-            <v-alert
-              v-if="wosValidationType"
-              id="query-validation-alert"
-              :type="wosValidationType"
-              variant="tonal"
-              density="compact"
-              v-html="wosMessage"
+            <WosRecordsFoundChip
+              v-if="showValidationSuccess"
+              :records-found="wosRecordsFound"
+              chip-id="query-validation-records"
+              class="align-self-start"
             />
+            <v-chip
+              v-if="showValidationAlert"
+              id="query-validation-alert"
+              :color="validationChipColor"
+              variant="tonal"
+              size="small"
+              class="align-self-start validation-feedback-chip"
+            >
+              {{ wosMessage }}
+            </v-chip>
           </v-col>
         </v-row>
       </v-container>
@@ -431,5 +460,11 @@ const openWosDocs = (): void => {
 .type-chip {
   cursor: pointer;
   user-select: none;
+}
+
+.validation-feedback-chip {
+  white-space: normal;
+  height: auto;
+  max-width: 100%;
 }
 </style>

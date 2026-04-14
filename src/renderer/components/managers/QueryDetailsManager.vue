@@ -6,6 +6,7 @@ import { useI18n } from 'vue-i18n'
 import { useConfigsStore } from '@/renderer/store/configs'
 import { useQueryDetailsStore } from '@/renderer/store/queryDetails'
 import { useTokensStore } from '@/renderer/store/tokens'
+import WosRecordsFoundChip from '@/renderer/components/shared/WosRecordsFoundChip.vue'
 import WosQueryDialog from '@/renderer/components/dialogs/WosQueryDialog.vue'
 import IncitesQueryDialog from '@/renderer/components/dialogs/IncitesQueryDialog.vue'
 
@@ -53,8 +54,6 @@ const wosMessage = computed(() => {
 
 type SummaryChip = { id: string; label: string }
 
-const fmt = (value: number): string => new Intl.NumberFormat('en-US').format(value)
-
 const QUERY_CHIP_MAX = 32
 const queryChipLabel = computed(() =>
   usrQuery.value.length > QUERY_CHIP_MAX
@@ -65,13 +64,6 @@ const queryChipLabel = computed(() =>
 const showQuerySummary = computed(() => queryValidated.value && wosTokenSucceeded.value)
 const showQueryMessageChip = computed(
   () => showQuerySummary.value && !!wosMessage.value && wosValidationType.value !== 'success'
-)
-
-const recordsOverLimit = computed(
-  () => wosRecordsFound.value !== null && wosRecordsFound.value > 100000
-)
-const recordsFormatted = computed(() =>
-  wosRecordsFound.value !== null ? fmt(wosRecordsFound.value) : ''
 )
 
 const querySummaryChips = computed((): SummaryChip[] => {
@@ -235,36 +227,10 @@ watch(wosTokenSucceeded, async () => {
                 {{ chip.label }}
               </v-chip>
 
-              <!-- Records found: US-formatted, orange warning chip + tooltip when > 100k -->
-              <v-tooltip
-                v-if="wosRecordsFound !== null && recordsOverLimit"
-                location="top"
-                max-width="300"
-                content-class="query-tooltip"
-              >
-                <template #activator="{ props }">
-                  <v-chip
-                    id="query-summary-chip-records-found"
-                    v-bind="props"
-                    size="small"
-                    color="warning"
-                    variant="outlined"
-                  >
-                    <span class="text-medium-emphasis">
-                      {{ t('query.summary.records-short') }}: {{ recordsFormatted }}
-                    </span>
-                  </v-chip>
-                </template>
-                <span>{{ t('query.summary.records-over-limit-warning') }}</span>
-              </v-tooltip>
-              <v-chip
-                v-else-if="wosRecordsFound !== null"
-                id="query-summary-chip-records-found"
-                size="small"
-                variant="outlined"
-              >
-                {{ t('query.summary.records-short') }}: {{ recordsFormatted }}
-              </v-chip>
+              <WosRecordsFoundChip
+                :records-found="wosRecordsFound"
+                chip-id="query-summary-chip-records-found"
+              />
 
               <!-- Cited refs: outlined warning border, default text -->
               <v-tooltip
@@ -520,6 +486,7 @@ watch(wosTokenSucceeded, async () => {
     :modified-time-span="modifiedTimeSpan"
     :tc-modified-time-span="tcModifiedTimeSpan"
     :usr-query="usrQuery"
+    :wos-records-found="wosRecordsFound"
     :wos-validation-type="wosValidationType"
     :wos-validation-message-key="wosValidationMessageKey"
     :wos-validation-message-params="wosValidationMessageParams"

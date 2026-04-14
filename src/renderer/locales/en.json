@@ -84,7 +84,7 @@
     "validation": {
       "token-required": "Verify your Web of Science token before query validation.",
       "empty": "Enter a usrQuery before validation.",
-      "success": "Query is valid. Records found: {recordsFound}. Query ID: {queryId}.",
+      "success": "Query is valid. Records found: {recordsFound}.",
       "error": "Query validation failed: {error}"
     },
     "wos": {
