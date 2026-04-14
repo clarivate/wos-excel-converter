@@ -9,6 +9,7 @@ type QueryDetailsPayload = {
   lang: string
   createdTimeSpan: string
   modifiedTimeSpan: string
+  tcModifiedTimeSpan: string
   usrQuery: string
   disableWosQuery: boolean
   addCitedReferences: boolean
@@ -31,6 +32,7 @@ const defaultState: QueryDetailsPayload = {
   lang: '',
   createdTimeSpan: '',
   modifiedTimeSpan: '',
+  tcModifiedTimeSpan: '',
   usrQuery: 'TS=covid* and PY=2020',
   disableWosQuery: false,
   addCitedReferences: true,
@@ -70,6 +72,7 @@ export const useQueryDetailsStore = defineStore('queryDetails', () => {
   const lang = ref(defaultState.lang)
   const createdTimeSpan = ref(defaultState.createdTimeSpan)
   const modifiedTimeSpan = ref(defaultState.modifiedTimeSpan)
+  const tcModifiedTimeSpan = ref(defaultState.tcModifiedTimeSpan)
   const usrQuery = ref(defaultState.usrQuery)
   const disableWosQuery = ref(defaultState.disableWosQuery)
   const addCitedReferences = ref(defaultState.addCitedReferences)
@@ -117,6 +120,7 @@ export const useQueryDetailsStore = defineStore('queryDetails', () => {
     lang.value = payload.lang
     createdTimeSpan.value = payload.createdTimeSpan
     modifiedTimeSpan.value = payload.modifiedTimeSpan
+    tcModifiedTimeSpan.value = payload.tcModifiedTimeSpan
     usrQuery.value = payload.usrQuery
     disableWosQuery.value = payload.disableWosQuery
     addCitedReferences.value = payload.addCitedReferences
@@ -138,24 +142,101 @@ export const useQueryDetailsStore = defineStore('queryDetails', () => {
     wosQueryId.value = null
   }
 
-  async function updateQueryDetails(payload: Partial<QueryDetailsPayload>): Promise<void> {
-    await window.mainApi.invoke('msgRequestSetQueryDetails', payload)
-
-    if (typeof payload.databaseId === 'string') databaseId.value = payload.databaseId
-    if (typeof payload.edition === 'string') edition.value = payload.edition
-    if (typeof payload.lang === 'string') lang.value = payload.lang
-    if (typeof payload.createdTimeSpan === 'string') createdTimeSpan.value = payload.createdTimeSpan
-    if (typeof payload.modifiedTimeSpan === 'string')
-      modifiedTimeSpan.value = payload.modifiedTimeSpan
-    if (typeof payload.usrQuery === 'string') usrQuery.value = payload.usrQuery
-    if (typeof payload.disableWosQuery === 'boolean')
-      disableWosQuery.value = payload.disableWosQuery
-    if (typeof payload.addCitedReferences === 'boolean') {
-      addCitedReferences.value = payload.addCitedReferences
+  const normalizeWosTimeSpans = (
+    currentDatabaseId: string,
+    nextCreatedTimeSpan: string,
+    nextModifiedTimeSpan: string,
+    nextTcModifiedTimeSpan: string
+  ): { createdTimeSpan: string; modifiedTimeSpan: string; tcModifiedTimeSpan: string } => {
+    if (currentDatabaseId === 'WOK') {
+      return {
+        createdTimeSpan: nextCreatedTimeSpan,
+        modifiedTimeSpan: '',
+        tcModifiedTimeSpan: ''
+      }
     }
-    if (typeof payload.idsFile === 'string') idsFile.value = payload.idsFile
-    if (payload.icSchema) icSchema.value = payload.icSchema
-    if (payload.icEsci) icEsci.value = payload.icEsci
+
+    if (nextCreatedTimeSpan) {
+      return {
+        createdTimeSpan: nextCreatedTimeSpan,
+        modifiedTimeSpan: '',
+        tcModifiedTimeSpan: ''
+      }
+    }
+
+    if (nextModifiedTimeSpan) {
+      return {
+        createdTimeSpan: '',
+        modifiedTimeSpan: nextModifiedTimeSpan,
+        tcModifiedTimeSpan: ''
+      }
+    }
+
+    if (nextTcModifiedTimeSpan) {
+      return {
+        createdTimeSpan: '',
+        modifiedTimeSpan: '',
+        tcModifiedTimeSpan: nextTcModifiedTimeSpan
+      }
+    }
+
+    return {
+      createdTimeSpan: '',
+      modifiedTimeSpan: '',
+      tcModifiedTimeSpan: ''
+    }
+  }
+
+  async function updateQueryDetails(payload: Partial<QueryDetailsPayload>): Promise<void> {
+    const nextDatabaseId =
+      typeof payload.databaseId === 'string' ? payload.databaseId : databaseId.value
+    const hasTimeSpanUpdate =
+      typeof payload.createdTimeSpan === 'string' ||
+      typeof payload.modifiedTimeSpan === 'string' ||
+      typeof payload.tcModifiedTimeSpan === 'string' ||
+      nextDatabaseId === 'WOK'
+
+    const payloadToPersist: Partial<QueryDetailsPayload> = { ...payload }
+    if (hasTimeSpanUpdate) {
+      const normalized = normalizeWosTimeSpans(
+        nextDatabaseId,
+        typeof payload.createdTimeSpan === 'string'
+          ? payload.createdTimeSpan
+          : createdTimeSpan.value,
+        typeof payload.modifiedTimeSpan === 'string'
+          ? payload.modifiedTimeSpan
+          : modifiedTimeSpan.value,
+        typeof payload.tcModifiedTimeSpan === 'string'
+          ? payload.tcModifiedTimeSpan
+          : tcModifiedTimeSpan.value
+      )
+      payloadToPersist.createdTimeSpan = normalized.createdTimeSpan
+      payloadToPersist.modifiedTimeSpan = normalized.modifiedTimeSpan
+      payloadToPersist.tcModifiedTimeSpan = normalized.tcModifiedTimeSpan
+    }
+
+    await window.mainApi.invoke('msgRequestSetQueryDetails', payloadToPersist)
+
+    if (typeof payloadToPersist.databaseId === 'string') {
+      databaseId.value = payloadToPersist.databaseId
+    }
+    if (typeof payloadToPersist.edition === 'string') edition.value = payloadToPersist.edition
+    if (typeof payloadToPersist.lang === 'string') lang.value = payloadToPersist.lang
+    if (typeof payloadToPersist.createdTimeSpan === 'string')
+      createdTimeSpan.value = payloadToPersist.createdTimeSpan
+    if (typeof payloadToPersist.modifiedTimeSpan === 'string')
+      modifiedTimeSpan.value = payloadToPersist.modifiedTimeSpan
+    if (typeof payloadToPersist.tcModifiedTimeSpan === 'string')
+      tcModifiedTimeSpan.value = payloadToPersist.tcModifiedTimeSpan
+    if (typeof payloadToPersist.usrQuery === 'string') usrQuery.value = payloadToPersist.usrQuery
+    if (typeof payloadToPersist.disableWosQuery === 'boolean')
+      disableWosQuery.value = payloadToPersist.disableWosQuery
+    if (typeof payloadToPersist.addCitedReferences === 'boolean') {
+      addCitedReferences.value = payloadToPersist.addCitedReferences
+    }
+    if (typeof payloadToPersist.idsFile === 'string') idsFile.value = payloadToPersist.idsFile
+    if (payloadToPersist.icSchema) icSchema.value = payloadToPersist.icSchema
+    if (payloadToPersist.icEsci) icEsci.value = payloadToPersist.icEsci
   }
 
   async function validateWosQuery(): Promise<WosValidationResult> {
@@ -167,6 +248,7 @@ export const useQueryDetailsStore = defineStore('queryDetails', () => {
         lang: lang.value,
         createdTimeSpan: createdTimeSpan.value,
         modifiedTimeSpan: modifiedTimeSpan.value,
+        tcModifiedTimeSpan: tcModifiedTimeSpan.value,
         usrQuery: usrQuery.value
       })
       wosValidationType.value = result.type
@@ -220,6 +302,7 @@ export const useQueryDetailsStore = defineStore('queryDetails', () => {
     lang,
     createdTimeSpan,
     modifiedTimeSpan,
+    tcModifiedTimeSpan,
     usrQuery,
     disableWosQuery,
     addCitedReferences,

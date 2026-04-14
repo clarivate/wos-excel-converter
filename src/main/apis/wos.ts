@@ -130,7 +130,8 @@ export default class WosExpanded {
     edition: string | null = null,
     lang: string | null = null,
     createdSpan: string | null = null,
-    modifiedSpan: string | null = null
+    modifiedSpan: string | null = null,
+    tcModifiedSpan: string | null = null
   ): Promise<WOSQueryFeedback> {
     const params: Record<string, string | number | null> = {
       databaseId: databaseId,
@@ -142,7 +143,8 @@ export default class WosExpanded {
       count: 0
     }
 
-    if (databaseId !== 'WOK' || modifiedSpan) params.modifiedTimeSpan = modifiedSpan
+    if (databaseId !== 'WOK' && modifiedSpan) params.modifiedTimeSpan = modifiedSpan
+    if (databaseId !== 'WOK' && tcModifiedSpan) params.tcModifiedTimeSpan = tcModifiedSpan
 
     const response = await this._axiosInstance.post('/', params)
     if (response.status !== 200) {
@@ -197,6 +199,7 @@ export default class WosExpanded {
     count: number,
     createdSpan: string | null = null,
     modifiedSpan: string | null = null,
+    tcModifiedSpan: string | null = null,
     isXml = false
   ): Promise<AxiosResponse> {
     const params: Record<string, string | number | null> = {
@@ -211,8 +214,11 @@ export default class WosExpanded {
     if (lang) {
       params.lang = lang
     }
-    if (databaseId !== 'WOK' || modifiedSpan) {
+    if (databaseId !== 'WOK' && modifiedSpan) {
       params.modifiedSpan = modifiedSpan
+    }
+    if (databaseId !== 'WOK' && tcModifiedSpan) {
+      params.tcModifiedTimeSpan = tcModifiedSpan
     }
 
     const response = await this._axiosInstance.post('', params, {

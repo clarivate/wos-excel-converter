@@ -164,6 +164,15 @@ WOS database selector coverage and behavior:
 - Supported codes: `WOS`, `BCI`, `BIOABS`, `BIOSIS`, `CABI`, `CCC`, `CSCD`, `DCI`, `DIIDW`, `FSTA`, `GRANTS`, `INSPEC`, `MEDLINE`, `PPRN`, `PQDT`, `RC`, `SCIELO`, `WOK`, `ZOOREC`.
 - `tests/specs/query-details-ipc.spec.ts`: regression test `IPC: supports all configured WOS database codes` verifies round-trip persistence for all supported codes.
 
+WOS time span selector coverage and behavior:
+
+- The WOS dialog uses one time span workflow and persists exactly one key at a time: `createdTimeSpan`, `modifiedTimeSpan`, or `tcModifiedTimeSpan`.
+- For `WOK`, only `createdTimeSpan` is allowed; `modifiedTimeSpan` and `tcModifiedTimeSpan` are cleared by normalization.
+- Presets (`Last day`, `Last 3 days`, `Last week`, `Last month`) and custom date ranges serialize to `yyyy-mm-dd+yyyy-mm-dd`.
+- `tests/specs/query-details-ipc.spec.ts` includes regressions:
+  - `IPC: enforces only one time span field at a time`
+  - `IPC: WOK rejects modified and tcModified time spans`
+
 #### Local Token Setup for Live Tests
 
 Create a local `.env` file in the repo root (it is gitignored) or copy from `.env.example`:

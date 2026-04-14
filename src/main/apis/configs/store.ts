@@ -24,7 +24,8 @@ const DEFAULT_CONFIG: WOSConverterConfig = {
     lang: '',
     usrQuery: 'TS=covid* and PY=2020',
     timeSpan: '',
-    modifiedTimeSpan: ''
+    modifiedTimeSpan: '',
+    tcModifiedTimeSpan: ''
   },
   disableWosQuery: false,
   addCitedReferences: true,
@@ -364,6 +365,16 @@ export default class ConfigStore {
     return cfg.wosSearchDetails.modifiedTimeSpan
   }
 
+  async setTcModifiedTimeSpan(timeSpan: string | null): Promise<void> {
+    await this.setChosenConfig((cfg) => {
+      cfg.wosSearchDetails.tcModifiedTimeSpan = timeSpan
+    })
+  }
+  async getTcModifiedTimeSpan(): Promise<string | null> {
+    const cfg = await this.getChosenConfig()
+    return cfg.wosSearchDetails.tcModifiedTimeSpan ?? null
+  }
+
   async setWosUsrQuery(usrQuery: string): Promise<void> {
     await this.setChosenConfig((cfg) => {
       cfg.wosSearchDetails.usrQuery = usrQuery
@@ -477,6 +488,7 @@ export interface WOSExpandedQueryDetails {
   usrQuery: string
   timeSpan: string
   modifiedTimeSpan: string | null
+  tcModifiedTimeSpan?: string | null
 }
 
 export interface InCitesQueryDetails {

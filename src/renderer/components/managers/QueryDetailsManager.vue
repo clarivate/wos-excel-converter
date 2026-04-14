@@ -23,6 +23,7 @@ const {
   lang,
   createdTimeSpan,
   modifiedTimeSpan,
+  tcModifiedTimeSpan,
   usrQuery,
   disableWosQuery,
   addCitedReferences,
@@ -97,6 +98,11 @@ const querySummaryChips = computed((): SummaryChip[] => {
     chips.push({
       id: 'modified-time-span',
       label: `${t('query.summary.modified-short')}: ${modifiedTimeSpan.value}`
+    })
+  if (tcModifiedTimeSpan.value)
+    chips.push({
+      id: 'tc-modified-time-span',
+      label: `${t('query.summary.tc-modified-short')}: ${tcModifiedTimeSpan.value}`
     })
 
   return chips
@@ -512,6 +518,7 @@ watch(wosTokenSucceeded, async () => {
     :lang="lang"
     :created-time-span="createdTimeSpan"
     :modified-time-span="modifiedTimeSpan"
+    :tc-modified-time-span="tcModifiedTimeSpan"
     :usr-query="usrQuery"
     :wos-validation-type="wosValidationType"
     :wos-validation-message-key="wosValidationMessageKey"

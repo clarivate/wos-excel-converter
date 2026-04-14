@@ -14,6 +14,7 @@ type QueryDetailsPayload = {
   lang: string
   createdTimeSpan: string
   modifiedTimeSpan: string
+  tcModifiedTimeSpan: string
   usrQuery: string
   disableWosQuery: boolean
   addCitedReferences: boolean
@@ -32,6 +33,59 @@ export default class IPCs {
       if (error instanceof Error) return error.message
       if (typeof error === 'string') return error
       return 'Unknown error'
+    }
+
+    const normalizeWosTimeSpans = (
+      databaseId: string,
+      createdTimeSpan: string | null | undefined,
+      modifiedTimeSpan: string | null | undefined,
+      tcModifiedTimeSpan: string | null | undefined
+    ): {
+      createdTimeSpan: string
+      modifiedTimeSpan: string | null
+      tcModifiedTimeSpan: string | null
+    } => {
+      const created = createdTimeSpan ?? ''
+      const modified = modifiedTimeSpan ?? ''
+      const tcModified = tcModifiedTimeSpan ?? ''
+
+      if (databaseId === 'WOK') {
+        return {
+          createdTimeSpan: created,
+          modifiedTimeSpan: null,
+          tcModifiedTimeSpan: null
+        }
+      }
+
+      if (created) {
+        return {
+          createdTimeSpan: created,
+          modifiedTimeSpan: null,
+          tcModifiedTimeSpan: null
+        }
+      }
+
+      if (modified) {
+        return {
+          createdTimeSpan: '',
+          modifiedTimeSpan: modified,
+          tcModifiedTimeSpan: null
+        }
+      }
+
+      if (tcModified) {
+        return {
+          createdTimeSpan: '',
+          modifiedTimeSpan: null,
+          tcModifiedTimeSpan: tcModified
+        }
+      }
+
+      return {
+        createdTimeSpan: '',
+        modifiedTimeSpan: null,
+        tcModifiedTimeSpan: null
+      }
     }
 
     log.hooks.push((message, transport) => {
@@ -151,6 +205,7 @@ export default class IPCs {
         lang,
         createdTimeSpan,
         modifiedTimeSpan,
+        tcModifiedTimeSpan,
         usrQuery,
         disableWosQuery,
         addCitedReferences,
@@ -163,6 +218,7 @@ export default class IPCs {
         configStore.getWosLang(),
         configStore.getWosTimeSpan(),
         configStore.getModifiedTimeSpan(),
+        configStore.getTcModifiedTimeSpan(),
         configStore.getWosUsrQuery(),
         configStore.getDisableWosQuery(),
         configStore.getAddCitedReferences(),
@@ -177,6 +233,7 @@ export default class IPCs {
         lang,
         createdTimeSpan,
         modifiedTimeSpan: modifiedTimeSpan ?? '',
+        tcModifiedTimeSpan: tcModifiedTimeSpan ?? '',
         usrQuery,
         disableWosQuery,
         addCitedReferences,
@@ -199,11 +256,34 @@ export default class IPCs {
         if (typeof payload.lang === 'string') {
           await configStore.setWosLang(payload.lang)
         }
-        if (typeof payload.createdTimeSpan === 'string') {
-          await configStore.setWosTimeSpan(payload.createdTimeSpan)
-        }
-        if (typeof payload.modifiedTimeSpan === 'string') {
-          await configStore.setModifiedTimeSpan(payload.modifiedTimeSpan || null)
+        const hasTimeSpanUpdate =
+          typeof payload.createdTimeSpan === 'string' ||
+          typeof payload.modifiedTimeSpan === 'string' ||
+          typeof payload.tcModifiedTimeSpan === 'string' ||
+          payload.databaseId === 'WOK'
+
+        if (hasTimeSpanUpdate) {
+          const currentDatabaseId = await configStore.getWosDatabaseId()
+          const [currentCreated, currentModified, currentTcModified] = await Promise.all([
+            configStore.getWosTimeSpan(),
+            configStore.getModifiedTimeSpan(),
+            configStore.getTcModifiedTimeSpan()
+          ])
+
+          const normalized = normalizeWosTimeSpans(
+            payload.databaseId ?? currentDatabaseId,
+            typeof payload.createdTimeSpan === 'string' ? payload.createdTimeSpan : currentCreated,
+            typeof payload.modifiedTimeSpan === 'string'
+              ? payload.modifiedTimeSpan
+              : currentModified,
+            typeof payload.tcModifiedTimeSpan === 'string'
+              ? payload.tcModifiedTimeSpan
+              : currentTcModified
+          )
+
+          await configStore.setWosTimeSpan(normalized.createdTimeSpan)
+          await configStore.setModifiedTimeSpan(normalized.modifiedTimeSpan)
+          await configStore.setTcModifiedTimeSpan(normalized.tcModifiedTimeSpan)
         }
         if (typeof payload.usrQuery === 'string') {
           await configStore.setWosUsrQuery(payload.usrQuery)
@@ -233,7 +313,13 @@ export default class IPCs {
         payload?: Partial<
           Pick<
             QueryDetailsPayload,
-            'databaseId' | 'edition' | 'lang' | 'createdTimeSpan' | 'modifiedTimeSpan' | 'usrQuery'
+            | 'databaseId'
+            | 'edition'
+            | 'lang'
+            | 'createdTimeSpan'
+            | 'modifiedTimeSpan'
+            | 'tcModifiedTimeSpan'
+            | 'usrQuery'
           >
         >
       ): Promise<{
@@ -253,15 +339,30 @@ export default class IPCs {
           }
         }
 
-        const [databaseId, edition, lang, createdTimeSpan, modifiedTimeSpan, usrQuery] =
-          await Promise.all([
-            payload?.databaseId ?? configStore.getWosDatabaseId(),
-            payload?.edition ?? configStore.getWosEdition(),
-            payload?.lang ?? configStore.getWosLang(),
-            payload?.createdTimeSpan ?? configStore.getWosTimeSpan(),
-            payload?.modifiedTimeSpan ?? configStore.getModifiedTimeSpan(),
-            payload?.usrQuery ?? configStore.getWosUsrQuery()
-          ])
+        const [
+          databaseId,
+          edition,
+          lang,
+          createdTimeSpan,
+          modifiedTimeSpan,
+          tcModifiedTimeSpan,
+          usrQuery
+        ] = await Promise.all([
+          payload?.databaseId ?? configStore.getWosDatabaseId(),
+          payload?.edition ?? configStore.getWosEdition(),
+          payload?.lang ?? configStore.getWosLang(),
+          payload?.createdTimeSpan ?? configStore.getWosTimeSpan(),
+          payload?.modifiedTimeSpan ?? configStore.getModifiedTimeSpan(),
+          payload?.tcModifiedTimeSpan ?? configStore.getTcModifiedTimeSpan(),
+          payload?.usrQuery ?? configStore.getWosUsrQuery()
+        ])
+
+        const normalized = normalizeWosTimeSpans(
+          databaseId,
+          createdTimeSpan,
+          modifiedTimeSpan,
+          tcModifiedTimeSpan
+        )
 
         if (!usrQuery?.trim()) {
           return {
@@ -278,8 +379,9 @@ export default class IPCs {
             databaseId,
             edition || null,
             lang || null,
-            createdTimeSpan || null,
-            modifiedTimeSpan || null
+            normalized.createdTimeSpan || null,
+            normalized.modifiedTimeSpan || null,
+            normalized.tcModifiedTimeSpan || null
           )
           return {
             type: 'success',

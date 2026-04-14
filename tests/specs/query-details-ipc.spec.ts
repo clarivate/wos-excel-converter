@@ -33,7 +33,8 @@ test.describe('Query Details IPC Handler Tests', () => {
         edition: 'WOS+SCI',
         lang: 'en',
         createdTimeSpan: '2020-01-01+2020-12-31',
-        modifiedTimeSpan: '2021-01-01+2021-12-31',
+        modifiedTimeSpan: '',
+        tcModifiedTimeSpan: '',
         usrQuery: 'TS=(cadmium)',
         disableWosQuery: true,
         addCitedReferences: false,
@@ -48,7 +49,8 @@ test.describe('Query Details IPC Handler Tests', () => {
     expect(details.edition).toBe('WOS+SCI')
     expect(details.lang).toBe('en')
     expect(details.createdTimeSpan).toBe('2020-01-01+2020-12-31')
-    expect(details.modifiedTimeSpan).toBe('2021-01-01+2021-12-31')
+    expect(details.modifiedTimeSpan).toBe('')
+    expect(details.tcModifiedTimeSpan).toBe('')
     expect(details.usrQuery).toBe('TS=(cadmium)')
     expect(details.disableWosQuery).toBe(true)
     expect(details.addCitedReferences).toBe(false)
@@ -92,6 +94,53 @@ test.describe('Query Details IPC Handler Tests', () => {
       const details = await page.evaluate(() => window.mainApi.invoke('msgRequestGetQueryDetails'))
       expect(details.databaseId).toBe(code)
     }
+  })
+
+  test('IPC: enforces only one time span field at a time', async ({ page }) => {
+    await page.evaluate(() =>
+      window.mainApi.invoke('msgRequestSetQueryDetails', {
+        databaseId: 'WOS',
+        createdTimeSpan: '2020-01-01+2020-01-31',
+        modifiedTimeSpan: '2021-01-01+2021-01-31',
+        tcModifiedTimeSpan: '2022-01-01+2022-01-31'
+      })
+    )
+
+    const details = await page.evaluate(() => window.mainApi.invoke('msgRequestGetQueryDetails'))
+    expect(details.createdTimeSpan).toBe('2020-01-01+2020-01-31')
+    expect(details.modifiedTimeSpan).toBe('')
+    expect(details.tcModifiedTimeSpan).toBe('')
+
+    await page.evaluate(() =>
+      window.mainApi.invoke('msgRequestSetQueryDetails', {
+        databaseId: 'WOS',
+        createdTimeSpan: '',
+        modifiedTimeSpan: '',
+        tcModifiedTimeSpan: '2022-01-01+2022-01-31'
+      })
+    )
+
+    const tcOnly = await page.evaluate(() => window.mainApi.invoke('msgRequestGetQueryDetails'))
+    expect(tcOnly.createdTimeSpan).toBe('')
+    expect(tcOnly.modifiedTimeSpan).toBe('')
+    expect(tcOnly.tcModifiedTimeSpan).toBe('2022-01-01+2022-01-31')
+  })
+
+  test('IPC: WOK rejects modified and tcModified time spans', async ({ page }) => {
+    await page.evaluate(() =>
+      window.mainApi.invoke('msgRequestSetQueryDetails', {
+        databaseId: 'WOK',
+        createdTimeSpan: '2020-01-01+2020-01-31',
+        modifiedTimeSpan: '2021-01-01+2021-01-31',
+        tcModifiedTimeSpan: '2022-01-01+2022-01-31'
+      })
+    )
+
+    const details = await page.evaluate(() => window.mainApi.invoke('msgRequestGetQueryDetails'))
+    expect(details.databaseId).toBe('WOK')
+    expect(details.createdTimeSpan).toBe('2020-01-01+2020-01-31')
+    expect(details.modifiedTimeSpan).toBe('')
+    expect(details.tcModifiedTimeSpan).toBe('')
   })
 
   test('IPC: query details remain isolated per config', async ({ page }) => {

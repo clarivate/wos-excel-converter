@@ -84,6 +84,7 @@ export interface MainApi {
       lang: string
       createdTimeSpan: string
       modifiedTimeSpan: string
+      tcModifiedTimeSpan: string
       usrQuery: string
       disableWosQuery: boolean
       addCitedReferences: boolean
@@ -99,6 +100,7 @@ export interface MainApi {
         lang: string
         createdTimeSpan: string
         modifiedTimeSpan: string
+        tcModifiedTimeSpan: string
         usrQuery: string
         disableWosQuery: boolean
         addCitedReferences: boolean
@@ -115,6 +117,7 @@ export interface MainApi {
         lang: string
         createdTimeSpan: string
         modifiedTimeSpan: string
+        tcModifiedTimeSpan: string
         usrQuery: string
       }>
     ): Promise<{
