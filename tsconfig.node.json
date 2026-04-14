@@ -15,9 +15,6 @@
     "package.json",
     "eslint.config.ts",
     "vite.config.mts",
-    "buildAssets/builder",
-    "tests/**/*.ts",
-    "tests/**/*.mts",
-    "tests/**/*.spec.ts"
+    "buildAssets/builder"
   ]
 }

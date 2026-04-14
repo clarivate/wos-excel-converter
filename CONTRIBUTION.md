@@ -282,6 +282,49 @@ npm run dev
 4. Import i18n keys from `src/renderer/locales/*.json` (en.json, de.json)
 5. Use Vuetify components from `@/renderer/components/`
 
+## WOS Query Highlighter & Field Tag Autocomplete
+
+### Involved files
+
+| File | Role |
+|------|------|
+| `src/renderer/utils/wosFieldTags.ts` | Field tag definitions, parser (`parseFieldTags`), suggestion helper (`getFieldTagSuggestions`), quote detector (`isInsideQuotes`) |
+| `src/renderer/components/shared/WosQueryInput.vue` | Drop-in textarea replacement: overlay highlighting + type-ahead autocomplete |
+| `src/renderer/components/dialogs/WosQueryDialog.vue` | Consumes `WosQueryInput` for the `usrQuery` field |
+| `tests/unit/wosFieldTags.spec.ts` | Unit coverage for parser and suggestion logic |
+| `tests/specs/query-highlighter.spec.ts` | E2E coverage for highlighting and autocomplete UI |
+
+### How it works
+
+The component stacks two elements sharing the same dimensions inside a `v-field`:
+
+1. **Highlight overlay** (`div.wos-hl`, `pointer-events: none`) — `v-html` of the tokenised query. Three token classes are emitted: `.wos-tag` (field tag code), `.wos-eq` (`=`), `.wos-kw` (reserved word).
+2. **Textarea** (on top, `color: transparent`, `caret-color` visible) — receives all input and scroll events; its transparent text reveals the coloured overlay beneath.
+
+Colours use Vuetify theme variables (`rgb(var(--v-theme-primary))` for tags, `rgb(var(--v-theme-warning))` for reserved words) so they adapt automatically to the app's light/dark theme.
+
+Autocomplete fires on `input` and `keyup` using the live `textarea.value` + `selectionStart` (not `props.modelValue`, which lags the async store write). The dropdown is `Teleport`ed to `<body>` and anchored to the bottom of the textarea bounding rect. Suggestions are suppressed inside quoted strings (`isInsideQuotes`).
+
+**`v-field` label interaction**: `v-field` requires `:active` and `:focused` to float the label. These are computed from `isFocused` and `modelValue.length > 0`.
+
+**Scoped CSS and `v-html`**: Vue scoped styles do not reach elements injected via `v-html`. All span rules inside the overlay must use `:deep()`:
+```css
+.wos-hl :deep(.wos-tag) { … }
+```
+
+### Field tag allowlist
+
+The tag list in `WOS_FIELD_TAGS` is the strict allowlist for both highlighting and autocomplete. It is sourced exclusively from the [official WOS Core Collection Advanced Search Field Tags page](https://webofscience.zendesk.com/hc/en-us/articles/26916347018257). **Do not add tags that are not listed there.**
+
+Current documented codes (2-5 uppercase letters, always followed by `=` in queries):
+`AB`, `AD`, `AI`, `AK`, `ALL`, `AU`, `CF`, `CI`, `CU`, `DO`, `DOP`, `ED`, `FD`, `FG`, `FO`, `FPY`, `FT`, `GP`, `IS`, `KP`, `OG`, `OO`, `PMID`, `PS`, `PUBL`, `PY`, `SA`, `SDG`, `SG`, `SO`, `SU`, `TI`, `TMAC`, `TMIC`, `TMSO`, `TS`, `UT`, `WC`, `ZP`
+
+To add or remove a tag, edit the `WOS_FIELD_TAGS` array in `src/renderer/utils/wosFieldTags.ts`. The parser, highlighter, and autocomplete all derive from that single source.
+
+### Reserved words
+
+`WOS_RESERVED_WORDS` = `AND`, `OR`, `NOT`, `NEAR`, `SAME` — highlighted in warning colour. These are matched only when followed immediately by whitespace or `(` to avoid false-positives inside values.
+
 ### Handling Errors Across Processes
 
 - **Renderer uncaught**: Caught by app.config.errorHandler in `src/renderer/main.ts`, logged via `console.error()`

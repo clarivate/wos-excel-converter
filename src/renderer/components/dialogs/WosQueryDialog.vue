@@ -3,6 +3,7 @@ import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useQueryDetailsStore } from '@/renderer/store/queryDetails'
 import WosRecordsFoundChip from '@/renderer/components/shared/WosRecordsFoundChip.vue'
+import WosQueryInput from '@/renderer/components/shared/WosQueryInput.vue'
 import { mdiCalendarRange, mdiChevronDown, mdiOpenInNew } from '@mdi/js'
 
 const { t } = useI18n()
@@ -377,16 +378,13 @@ const openWosDocs = (): void => {
 
         <v-row class="pt-4">
           <v-col cols="12">
-            <v-textarea
+            <WosQueryInput
               id="query-usr-query"
               :model-value="usrQuery"
               :label="t('query.wos.usr-query')"
               :hint="t('query.wos.usr-query-hint')"
               persistent-hint
-              spellcheck="false"
-              autocorrect="off"
-              autocapitalize="off"
-              autocomplete="off"
+              :spellcheck="false"
               variant="outlined"
               @update:model-value="persist({ usrQuery: String($event || '') })"
             >
@@ -402,7 +400,7 @@ const openWosDocs = (): void => {
                   />
                 </a>
               </template>
-            </v-textarea>
+            </WosQueryInput>
           </v-col>
         </v-row>
 

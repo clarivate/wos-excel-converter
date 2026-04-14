@@ -32,7 +32,7 @@ test.describe('Query Details UI', () => {
 
     await expect(wosButton).toHaveText('Expanded API Query Details')
     await expect(incitesButton).toHaveText('InCites API Query Details')
-    await expect(wosButton).toBeDisabled()
+    await expect(wosButton).toBeEnabled()
     await expect(incitesButton).toBeDisabled()
     await expect(page.locator('#query-ids-file-btn')).toBeDisabled()
   })

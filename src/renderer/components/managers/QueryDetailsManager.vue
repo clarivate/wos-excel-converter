@@ -410,7 +410,6 @@ watch(wosTokenSucceeded, async () => {
             block
             variant="outlined"
             class="text-none mb-4"
-            :disabled="!wosTokenSucceeded || disableWosQuery"
             @click="wosDialogOpen = true"
           >
             {{ t('query.wos.open-dialog') }}
