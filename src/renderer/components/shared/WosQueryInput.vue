@@ -578,10 +578,24 @@ watch(
   position: relative;
   width: 100%;
   min-height: 120px;
-  /* FIX 1: slightly larger font */
+  /* Use the same text metrics for both layers to keep caret and overlay aligned. */
   font-family: 'Courier New', Courier, monospace;
   font-size: 1rem;
   line-height: 1.6;
+}
+
+.wos-hl,
+.wos-ta {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  letter-spacing: 0;
+  font-feature-settings: 'zero' on;
+  font-variant-ligatures: none;
+  tab-size: 2;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 /* ── Highlight overlay ────────────────────────────────────────────────────── */
@@ -589,33 +603,28 @@ watch(
   position: absolute;
   inset: 0;
   box-sizing: border-box;
-  /* FIX 2: padding so text does not touch the border */
   padding: 10px 14px;
   pointer-events: none;
   overflow: hidden;
-  white-space: pre-wrap;
-  word-break: break-word;
-  font-family: inherit;
-  font-size: inherit;
-  line-height: inherit;
   color: rgb(var(--v-theme-on-surface));
 }
 
 /* :deep() required — Vue scoped CSS does not reach v-html content */
 .wos-hl :deep(.wos-tag) {
   color: rgb(var(--v-theme-primary));
-  font-weight: 700;
+  /* Faux-bold keeps text metrics stable while restoring emphasis. */
+  text-shadow:
+    0 0 0 currentColor,
+    1px 0 0 currentColor;
 }
 
 .wos-hl :deep(.wos-eq) {
   color: rgb(var(--v-theme-primary));
   opacity: 0.7;
-  font-weight: 700;
 }
 
 .wos-hl :deep(.wos-kw) {
   color: rgb(var(--v-theme-warning));
-  font-weight: 700;
 }
 
 /* ── Transparent textarea (caret visible, text invisible) ─────────────────── */
@@ -633,12 +642,6 @@ watch(
   background: transparent;
   color: transparent;
   caret-color: rgb(var(--v-theme-on-surface));
-  /* Match monospace settings for character alignment */
-  font-family: inherit;
-  font-size: inherit;
-  line-height: inherit;
-  letter-spacing: 0;
-  font-feature-settings: 'zero' on;
   overflow: auto;
 }
 
