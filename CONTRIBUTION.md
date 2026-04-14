@@ -158,6 +158,12 @@ Query Details migration test coverage:
 - `tests/specs/query-details-ipc.spec.ts`: validates IPC contracts for query settings persistence, config isolation, WOS validation response shape, and ID file cleanup behavior.
 - `tests/specs/query-details-ui.spec.ts`: validates renderer-level Query Details panel rendering and token-gated UI states.
 
+WOS database selector coverage and behavior:
+
+- `src/renderer/components/dialogs/WosQueryDialog.vue`: database selector uses labeled options while persisting the API code in `databaseId`.
+- Supported codes: `WOS`, `BCI`, `BIOABS`, `BIOSIS`, `CABI`, `CCC`, `CSCD`, `DCI`, `DIIDW`, `FSTA`, `GRANTS`, `INSPEC`, `MEDLINE`, `PPRN`, `PQDT`, `RC`, `SCIELO`, `WOK`, `ZOOREC`.
+- `tests/specs/query-details-ipc.spec.ts`: regression test `IPC: supports all configured WOS database codes` verifies round-trip persistence for all supported codes.
+
 #### Local Token Setup for Live Tests
 
 Create a local `.env` file in the repo root (it is gitignored) or copy from `.env.example`:

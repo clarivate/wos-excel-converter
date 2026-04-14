@@ -7,6 +7,33 @@ import { mdiOpenInNew } from '@mdi/js'
 const { t } = useI18n()
 const queryStore = useQueryDetailsStore()
 
+type WosDatabaseOption = {
+  code: string
+  label: string
+}
+
+const wosDatabaseOptions: WosDatabaseOption[] = [
+  { code: 'WOS', label: 'Web of Science Core Collection (WOS)' },
+  { code: 'BCI', label: 'BIOSIS Citation Index (BCI)' },
+  { code: 'BIOABS', label: 'Biological Abstracts (BIOABS)' },
+  { code: 'BIOSIS', label: 'BIOSIS Previews (BIOSIS)' },
+  { code: 'CABI', label: 'CABI: CAB Abstracts and Global Health (CABI)' },
+  { code: 'CCC', label: 'Current Contents Connect (CCC)' },
+  { code: 'CSCD', label: 'Chinese Science Citation Database (CSCD)' },
+  { code: 'DCI', label: 'Data Citation Index (DCI)' },
+  { code: 'DIIDW', label: 'Derwent Innovations Index (DIIDW)' },
+  { code: 'FSTA', label: 'FSTA - the food science resource (FSTA)' },
+  { code: 'GRANTS', label: 'Grants Index (GRANTS)' },
+  { code: 'INSPEC', label: 'Inspec (INSPEC)' },
+  { code: 'MEDLINE', label: 'MEDLINE (MEDLINE)' },
+  { code: 'PPRN', label: 'Preprint Citation Index (PPRN)' },
+  { code: 'PQDT', label: 'ProQuest Dissertations and Theses Citation Index (PQDT)' },
+  { code: 'RC', label: 'Research Commons (RC)' },
+  { code: 'SCIELO', label: 'SciELO Citation Index (SCIELO)' },
+  { code: 'WOK', label: 'All Databases (WOK)' },
+  { code: 'ZOOREC', label: 'Zoological Record (ZOOREC)' }
+]
+
 const props = defineProps<{
   modelValue: boolean
   wosTokenSucceeded: boolean
@@ -83,24 +110,15 @@ const openWosDocs = (): void => {
             lg="6"
             xl="6"
           >
-            <v-combobox
+            <v-select
               id="query-database-id"
               :model-value="databaseId"
               :label="t('query.wos.database-id')"
               :hint="t('query.wos.database-id-hint')"
               persistent-hint
-              :items="[
-                'BCI',
-                'BIOABS',
-                'BIOSIS',
-                'CCC',
-                'DCI',
-                'DIIDW',
-                'MEDLINE',
-                'WOK',
-                'WOS',
-                'ZOOREC'
-              ]"
+              :items="wosDatabaseOptions"
+              item-title="label"
+              item-value="code"
               variant="outlined"
               @update:model-value="persist({ databaseId: String($event || 'WOS') })"
             />

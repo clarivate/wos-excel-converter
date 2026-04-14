@@ -57,6 +57,43 @@ test.describe('Query Details IPC Handler Tests', () => {
     expect(details.icEsci).toBe('y')
   })
 
+  test('IPC: supports all configured WOS database codes', async ({ page }) => {
+    const supportedDatabaseCodes = [
+      'WOS',
+      'BCI',
+      'BIOABS',
+      'BIOSIS',
+      'CABI',
+      'CCC',
+      'CSCD',
+      'DCI',
+      'DIIDW',
+      'FSTA',
+      'GRANTS',
+      'INSPEC',
+      'MEDLINE',
+      'PPRN',
+      'PQDT',
+      'RC',
+      'SCIELO',
+      'WOK',
+      'ZOOREC'
+    ]
+
+    for (const code of supportedDatabaseCodes) {
+      await page.evaluate(
+        (databaseId) =>
+          window.mainApi.invoke('msgRequestSetQueryDetails', {
+            databaseId
+          }),
+        code
+      )
+
+      const details = await page.evaluate(() => window.mainApi.invoke('msgRequestGetQueryDetails'))
+      expect(details.databaseId).toBe(code)
+    }
+  })
+
   test('IPC: query details remain isolated per config', async ({ page }) => {
     const baseName = await page.evaluate(() => window.mainApi.invoke('msgRequestGetConfigName'))
 
