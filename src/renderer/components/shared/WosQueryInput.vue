@@ -143,6 +143,14 @@ const highlightedHTML = computed((): string => {
         continue
       }
 
+      // Proximity operator form: NEAR/x or NEAR/ — highlight as reserved keyword.
+      const nearMatch = text.substring(i).match(/^(NEAR\/[A-Za-z0-9]+|NEAR\/)(?=[\s()])/i)
+      if (nearMatch) {
+        html += `<span class="wos-kw">${escapeHtml(nearMatch[1])}</span>`
+        i += nearMatch[1].length
+        continue
+      }
+
       // Reserved / boolean word – only when followed by whitespace or `(` (avoid partial matches)
       const wordMatch = text.substring(i).match(/^([A-Za-z]+)(?=[\s()])/)
       if (wordMatch && reservedWordSet.has(wordMatch[1].toUpperCase())) {

@@ -130,6 +130,19 @@ test.describe('WOS Query Highlighter - Syntax Highlighting', () => {
     const tagCount = await getTagCount(page)
     expect(tagCount).toBeGreaterThanOrEqual(1) // At least TS tag
   })
+
+  test('highlights NEAR/x as a reserved keyword', async ({ page }) => {
+    await openWosQueryDialog(page)
+
+    const textarea = page.locator('#query-usr-query')
+    await textarea.click()
+    await textarea.clear()
+    await textarea.fill('TI=(alpha NEAR/3 beta)')
+
+    await expect.poll(async () => getHighlighterHtml(page)).toContain('wos-kw')
+    const html = await getHighlighterHtml(page)
+    expect(html).toContain('NEAR/3')
+  })
 })
 
 test.describe('WOS Query Highlighter - Type-Ahead/Autocomplete', () => {
@@ -220,9 +233,8 @@ test.describe('WOS Query Highlighter - Type-Ahead/Autocomplete', () => {
     // Selection closes the menu and commits insertion through mousedown handler.
     await expect(page.locator('.wos-ac-menu')).toBeHidden({ timeout: 500 })
 
-    // And the input should contain a committed field tag.
-    const value = await page.locator('#query-usr-query').inputValue()
-    expect(value).toContain('=')
+    // Commit propagates via async model update; poll to avoid race-related flakes.
+    await expect.poll(async () => page.locator('#query-usr-query').inputValue()).toContain('=')
   })
 
   test('closes autocomplete after selection', async ({ page }) => {
