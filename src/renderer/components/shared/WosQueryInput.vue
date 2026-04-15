@@ -43,6 +43,13 @@ const BOOL_ITEMS: SuggestionItem[] = [
     kind: 'bool'
   },
   {
+    code: 'SAME',
+    label: 'SAME',
+    description:
+      'Terms in the same address sub-field — use inside AD= searches (e.g. AD=(MIT SAME Cambridge))',
+    kind: 'bool'
+  },
+  {
     code: 'NEAR',
     label: 'NEAR',
     description: 'Terms within 15 words of each other (default — equivalent to NEAR/15)',
