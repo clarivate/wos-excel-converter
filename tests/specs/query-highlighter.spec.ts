@@ -143,6 +143,35 @@ test.describe('WOS Query Highlighter - Syntax Highlighting', () => {
     const html = await getHighlighterHtml(page)
     expect(html).toContain('NEAR/3')
   })
+
+  test('highlights plain NEAR (without /x) as a reserved keyword', async ({ page }) => {
+    await openWosQueryDialog(page)
+
+    const textarea = page.locator('#query-usr-query')
+    await textarea.click()
+    await textarea.clear()
+    // Plain NEAR is documented as equivalent to NEAR/15 — must be highlighted.
+    await textarea.fill('TI=(alpha NEAR beta)')
+
+    await expect.poll(async () => getHighlighterHtml(page)).toContain('wos-kw')
+    const html = await getHighlighterHtml(page)
+    // Plain NEAR should be wrapped in a wos-kw span (not inside wos-tag or plain text).
+    expect(html).toContain('<span class="wos-kw">NEAR</span>')
+  })
+
+  test('highlights NEAR/x when it is the last token (no trailing whitespace)', async ({ page }) => {
+    await openWosQueryDialog(page)
+
+    const textarea = page.locator('#query-usr-query')
+    await textarea.click()
+    await textarea.clear()
+    // NEAR/3 at end of string — lookahead must also accept end-of-string.
+    await textarea.fill('TI=(alpha NEAR/3')
+
+    await expect.poll(async () => getHighlighterHtml(page)).toContain('wos-kw')
+    const html = await getHighlighterHtml(page)
+    expect(html).toContain('NEAR/3')
+  })
 })
 
 test.describe('WOS Query Highlighter - Type-Ahead/Autocomplete', () => {
@@ -374,6 +403,19 @@ test.describe('WOS Query Highlighter - Type-Ahead/Autocomplete', () => {
     await expect(boolItems.filter({ hasText: /^AND$/ })).toBeVisible()
     await expect(boolItems.filter({ hasText: /^OR$/ })).toBeVisible()
     await expect(boolItems.filter({ hasText: /^NOT$/ })).toBeVisible()
+    await expect(boolItems.filter({ hasText: /^NEAR\/$/ })).toBeVisible()
+  })
+
+  test('suggests plain NEAR (default 15 words) as an in-value operator', async ({ page }) => {
+    await openWosQueryDialog(page)
+
+    const textarea = page.locator('#query-usr-query')
+    await textarea.fill('TI=(test ')
+
+    const boolItems = page.locator('.wos-ac-item.wos-ac-bool .wos-ac-code')
+    await expect(page.locator('.wos-ac-menu')).toBeVisible({ timeout: 1000 })
+    // Plain NEAR (equivalent to NEAR/15 per WOS docs) must appear alongside NEAR/x.
+    await expect(boolItems.filter({ hasText: /^NEAR$/ })).toBeVisible()
     await expect(boolItems.filter({ hasText: /^NEAR\/$/ })).toBeVisible()
   })
 

@@ -43,9 +43,16 @@ const BOOL_ITEMS: SuggestionItem[] = [
     kind: 'bool'
   },
   {
-    code: 'NEAR/',
+    code: 'NEAR',
     label: 'NEAR',
-    description: 'Terms within a specified word distance',
+    description: 'Terms within 15 words of each other (default — equivalent to NEAR/15)',
+    kind: 'bool'
+  },
+  {
+    code: 'NEAR/',
+    label: 'NEAR/x',
+    description:
+      'Terms within x words of each other — replace x with a number (e.g. NEAR/3). NEAR without /x defaults to 15.',
     kind: 'bool',
     insertText: 'NEAR/'
   }
@@ -105,7 +112,10 @@ const escapeHtml = (raw: string): string =>
 /**
  * Token-by-token syntax highlighter.
  * - Field tags: ANY [A-Za-z]{2,5}= pattern — case-insensitive, documented or not.
- * - Reserved words: AND / OR / NOT / NEAR / SAME (only when followed by whitespace or `(`).
+ * - Reserved words: AND / OR / NOT / NEAR / SAME (only when followed by whitespace, `(`, `)`,
+ *   or end-of-string to avoid partial matches inside values).
+ * - Proximity operator: NEAR/x or NEAR/ — matched before the generic reserved-word check.
+ *   Plain NEAR (equivalent to NEAR/15 per WOS docs) is handled by the reserved-word path.
  * - Both are suppressed inside quoted strings.
  */
 const highlightedHTML = computed((): string => {
@@ -144,15 +154,19 @@ const highlightedHTML = computed((): string => {
       }
 
       // Proximity operator form: NEAR/x or NEAR/ — highlight as reserved keyword.
-      const nearMatch = text.substring(i).match(/^(NEAR\/[A-Za-z0-9]+|NEAR\/)(?=[\s()])/i)
+      // Plain NEAR (without /x) falls through to the wordMatch path below and is
+      // highlighted because NEAR is in reservedWordSet.  Both paths accept end-of-
+      // string so the operator is highlighted even when it is the last token.
+      const nearMatch = text.substring(i).match(/^(NEAR\/[A-Za-z0-9]+|NEAR\/)(?=[\s()]|$)/i)
       if (nearMatch) {
         html += `<span class="wos-kw">${escapeHtml(nearMatch[1])}</span>`
         i += nearMatch[1].length
         continue
       }
 
-      // Reserved / boolean word – only when followed by whitespace or `(` (avoid partial matches)
-      const wordMatch = text.substring(i).match(/^([A-Za-z]+)(?=[\s()])/)
+      // Reserved / boolean word – only when followed by whitespace, `(`, `)`, or
+      // end-of-string (avoid partial matches inside longer identifiers).
+      const wordMatch = text.substring(i).match(/^([A-Za-z]+)(?=[\s()]|$)/)
       if (wordMatch && reservedWordSet.has(wordMatch[1].toUpperCase())) {
         html += `<span class="wos-kw">${escapeHtml(wordMatch[1])}</span>`
         i += wordMatch[1].length
