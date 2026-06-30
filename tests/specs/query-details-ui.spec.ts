@@ -59,7 +59,7 @@ test.describe('Query Details UI', () => {
     await expect(
       page.getByText('Verify your Web of Science token before query validation.')
     ).toBeVisible()
-    await expect(page.locator('#query-validation-alert')).toHaveCount(0)
+    await expect(page.locator('#query-validation-alert')).toBeVisible()
   })
 })
 

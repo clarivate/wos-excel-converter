@@ -427,14 +427,6 @@ const openWosDocs = (): void => {
             md="4"
             class="d-flex flex-column justify-center ga-2"
           >
-            <v-alert
-              v-if="!wosTokenSucceeded"
-              type="info"
-              variant="tonal"
-              density="compact"
-            >
-              {{ t('query.validation.token-required') }}
-            </v-alert>
             <WosRecordsFoundChip
               v-if="showValidationSuccess"
               :records-found="wosRecordsFound"
@@ -442,14 +434,14 @@ const openWosDocs = (): void => {
               class="align-self-start"
             />
             <v-chip
-              v-if="showValidationAlert"
+              v-if="!wosTokenSucceeded || showValidationAlert"
               id="query-validation-alert"
-              :color="validationChipColor"
+              :color="!wosTokenSucceeded ? 'info' : validationChipColor"
               variant="tonal"
               size="small"
               class="align-self-start validation-feedback-chip"
             >
-              {{ wosMessage }}
+              {{ !wosTokenSucceeded ? t('query.validation.token-required') : wosMessage }}
             </v-chip>
           </v-col>
         </v-row>
