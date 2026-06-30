@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch, nextTick } from 'vue'
+import { computed, ref, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { WOS_FIELD_TAGS, isInsideQuotes, WOS_RESERVED_WORDS } from '@/renderer/utils/wosFieldTags'
 
@@ -98,7 +98,6 @@ const autocompletePos = ref<{ top: number; left: number } | null>(null)
 const selectedSuggestionIndex = ref(-1)
 const suggestions = ref<SuggestionItem[]>([])
 const isFocused = ref(false)
-const autoHeight = ref<string>('120px') // Auto-expandable height; minimum 120px
 
 const NAVIGATION_KEYS = new Set(['ArrowDown', 'ArrowUp', 'Enter', 'Tab', 'Escape'])
 const showFieldTagFilterHint = computed(() => suggestions.value.some((item) => item.kind === 'tag'))
@@ -106,28 +105,16 @@ const showFieldTagFilterHint = computed(() => suggestions.value.some((item) => i
 // v-field needs active+focused to float the label properly
 const isActive = computed(() => isFocused.value || props.modelValue.length > 0)
 
-// ── Scroll sync & auto-height ─────────────────────────────────────────────────
+// ── Scroll sync ───────────────────────────────────────────────────────────────
+// The container height is driven entirely by the highlight overlay (which lives
+// in normal flow and grows with the wrapped query text). The textarea is laid
+// over it, so both layers always share the same height and no manual height
+// measurement is required — this works identically whether the query is typed
+// or loaded from a saved config.
 const syncScroll = (): void => {
   if (!textareaRef.value || !highlighterRef.value) return
   highlighterRef.value.scrollTop = textareaRef.value.scrollTop
   highlighterRef.value.scrollLeft = textareaRef.value.scrollLeft
-}
-
-/**
- * Auto-expand textarea height based on content scrollHeight.
- * Minimum height is 120px; grows as needed to fit full query without scrolling.
- */
-const updateAutoHeight = (): void => {
-  if (!textareaRef.value) return
-  nextTick(() => {
-    if (!textareaRef.value) return
-    // Measure the true content height by temporarily resetting to auto
-    textareaRef.value.style.height = 'auto'
-    const scrollHeight = textareaRef.value.scrollHeight
-    // Apply: minimum 120px, or scrollHeight if taller
-    const newHeight = Math.max(120, scrollHeight)
-    autoHeight.value = `${newHeight}px`
-  })
 }
 
 // ── Highlighter ───────────────────────────────────────────────────────────────
@@ -214,7 +201,10 @@ const highlightedHTML = computed((): string => {
     i++
   }
 
-  return html
+  // Append a guard newline so a trailing line break still occupies vertical
+  // space in the overlay. Because the overlay drives the container height, this
+  // keeps the textarea tall enough to show the final empty line.
+  return text.endsWith('\n') ? `${html}\n` : html
 })
 
 // ── Input handling ────────────────────────────────────────────────────────────
@@ -223,7 +213,6 @@ const handleInput = (event: Event): void => {
   emit('update:modelValue', el.value)
   updateAutocomplete(el.value, el.selectionStart ?? el.value.length)
   syncScroll()
-  updateAutoHeight()
 }
 
 const snapMenuPosition = (): { top: number; left: number } | null => {
@@ -534,16 +523,6 @@ const onBlur = (): void => {
     autocompleteOpen.value = false
   }, 200)
 }
-
-watch(
-  () => props.modelValue,
-  () => {
-    nextTick(() => {
-      syncScroll()
-      updateAutoHeight()
-    })
-  }
-)
 </script>
 
 <template>
@@ -557,10 +536,7 @@ watch(
       class="wos-field"
     >
       <template #default>
-        <div
-          class="wos-inner"
-          :style="{ height: autoHeight }"
-        >
+        <div class="wos-inner">
           <div
             ref="highlighterRef"
             class="wos-hl"
@@ -665,11 +641,11 @@ watch(
   word-break: break-word;
 }
 
-/* ── Highlight overlay ────────────────────────────────────────────────────── */
+/* ── Highlight overlay (drives container height) ──────────────────────────── */
 .wos-hl {
-  position: absolute;
-  inset: 0;
+  position: relative;
   box-sizing: border-box;
+  min-height: 120px;
   padding: 10px 14px;
   pointer-events: none;
   overflow: hidden;
@@ -709,7 +685,7 @@ watch(
   background: transparent;
   color: transparent;
   caret-color: rgb(var(--v-theme-on-surface));
-  overflow: auto;
+  overflow: hidden;
   scrollbar-width: none; /* Firefox – no layout space for scrollbar */
 }
 

@@ -732,4 +732,56 @@ test.describe('WOS Query Highlighter - Persistence', () => {
     expect(keywordCount).toBeGreaterThan(5) // AND, OR keywords
     expect(tagCount).toBeGreaterThanOrEqual(2) // TS=, LA=, PY=
   })
+
+  test('expands height for a long query loaded from a saved config (no typing)', async ({
+    page
+  }) => {
+    const longQuery = `TS=((biomass OR biogenic OR "bio-based" OR biobased OR "bio-derived" OR bioderived OR "renewable carbon" OR "bio-renewable" OR biorenewable OR lignocellulos* OR lignin OR cellulos* OR hemicellulos* OR starch OR glucos* OR "sugar platform" OR "sugar-derived" OR "vegetable oil*" OR "agricultural residue*" OR algae) AND (intermediate* OR "building block*" OR "platform chemical*" OR "platform molecule*" OR monomer* OR "organic acid*" OR alcohol* OR aldehyde* OR ketone* OR amine* OR amide* OR nitrile* OR anhydride*) AND (synthesis OR conversion OR transform* OR upgrading OR valoris*)) AND LA=English AND PY=2000-2027`
+
+    // Persist a long query to the backend, then reload so the renderer re-fetches
+    // it via loadQueryDetails() — this reproduces opening a saved config with a
+    // long query (the store drives modelValue, no keyboard input is involved).
+    await page.evaluate(
+      (q) =>
+        window.mainApi.invoke('msgRequestSetQueryDetails', {
+          disableWosQuery: false,
+          usrQuery: q
+        }),
+      longQuery
+    )
+
+    await page.reload()
+    await page.waitForLoadState('domcontentloaded')
+
+    // Open the dialog; the textarea is populated purely from the loaded store value.
+    await openWosQueryDialog(page)
+
+    const textarea = page.locator('#query-usr-query')
+    await expect(textarea).toHaveValue(longQuery)
+
+    const container = page.locator('.wos-inner')
+    const containerHeight = await container.evaluate(
+      (el: HTMLElement) => el.getBoundingClientRect().height
+    )
+
+    // The long query wraps to many lines, so the container must grow well beyond
+    // the 120px minimum without the user typing anything.
+    expect(containerHeight).toBeGreaterThan(200)
+
+    // The textarea overlay must cover the full grown height (no inner scroll).
+    const textareaHeight = await textarea.evaluate(
+      (el: HTMLTextAreaElement) => el.getBoundingClientRect().height
+    )
+    expect(Math.abs(textareaHeight - containerHeight)).toBeLessThan(2)
+    const scrollHeight = await textarea.evaluate((el: HTMLTextAreaElement) => el.scrollHeight)
+    const clientHeight = await textarea.evaluate((el: HTMLTextAreaElement) => el.clientHeight)
+    expect(clientHeight).toBeGreaterThanOrEqual(scrollHeight - 2)
+
+    // Restore a sane default query so the persisted long query does not leak.
+    await page.evaluate(() =>
+      window.mainApi.invoke('msgRequestSetQueryDetails', {
+        usrQuery: 'TS=covid* and PY=2020'
+      })
+    )
+  })
 })
