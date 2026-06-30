@@ -683,6 +683,12 @@ watch(
   color: transparent;
   caret-color: rgb(var(--v-theme-on-surface));
   overflow: auto;
+  scrollbar-width: none; /* Firefox – no layout space for scrollbar */
+}
+
+/* Hide Chromium/Electron scrollbar – keep scroll functionality but remove width footprint */
+.wos-ta::-webkit-scrollbar {
+  display: none;
 }
 
 /* ── Hint / message area ─────────────────────────────────���───────────────── */

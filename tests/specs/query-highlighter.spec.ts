@@ -698,4 +698,38 @@ test.describe('WOS Query Highlighter - Persistence', () => {
     const tagCount = await tags.count()
     expect(tagCount).toBeGreaterThan(0)
   })
+
+  test('cursor aligns with overlay on complex long TS= query (scrollbar regression)', async ({
+    page
+  }) => {
+    await openWosQueryDialog(page)
+
+    const textarea = page.locator('#query-usr-query')
+    const overlay = page.locator('.wos-hl')
+
+    // Complex TS= query that triggers scrollbar (20+ wrapped lines)
+    const complexQuery = `TS=((biomass OR biogenic OR "bio-based" OR biobased OR "bio-derived" OR bioderived OR "renewable carbon" OR "bio-renewable" OR biorenewable OR lignocellulos* OR lignin OR cellulos* OR hemicellulos* OR starch OR glucos* OR "sugar platform" OR "sugar-derived" OR "vegetable oil*" OR "agricultural residue*" OR algae) AND (intermediate* OR "building block*" OR "platform chemical*" OR "platform molecule*" OR monomer* OR "organic acid*" OR alcohol* OR aldehyde* OR ketone* OR amine* OR amide* OR nitrile* OR anhydride* OR aromatic* OR phenol* OR alkene* OR polyester* OR polyamide* OR polyurethane* OR polyol* OR diol* OR triol* OR solvent* OR surfactant* OR resin* OR "flame retardant*" OR plastici?er* OR lubricant* OR adhesive* OR coating* OR additive*) AND (synthesis OR conversion OR transform* OR upgrading OR valoris* OR valoriz* OR biorefin* OR ferment* OR biochemical OR bioconversion OR biosynth* OR "enzymatic hydrolysis" OR thermochemical OR gasif* OR pyrolys* OR cataly* OR hydrogenolysis OR polymeriz* OR depolymeriz* OR pretreat* OR fraction* OR "acid hydrolysis") AND ("drop-in" OR substitut* OR dedicated OR replac* OR displac* OR alternative* OR ssbd OR "safe-and-sustainable" OR "safe-and-sustainable-by-design" OR "green chemistry")) AND LA=English AND PY=2000-2027`
+
+    await textarea.fill(complexQuery)
+
+    // Wait for overlay to render
+    await expect(overlay).toBeVisible()
+
+    // Assert: textarea and overlay have matching left positions (no width discrepancy)
+    const textareaBox = await textarea.boundingBox()
+    const overlayBox = await overlay.boundingBox()
+    expect(textareaBox).not.toBeNull()
+    expect(overlayBox).not.toBeNull()
+
+    if (textareaBox && overlayBox) {
+      expect(textareaBox.x).toEqual(overlayBox.x) // Same left edge
+      expect(textareaBox.width).toEqual(overlayBox.width) // Same width (no scrollbar gap)
+    }
+
+    // Assert: highlighting is still applied to field tags and operators in long query
+    const keywordCount = await page.locator('.wos-hl .wos-kw').count()
+    const tagCount = await getTagCount(page)
+    expect(keywordCount).toBeGreaterThan(5) // AND, OR keywords
+    expect(tagCount).toBeGreaterThanOrEqual(2) // TS=, LA=, PY=
+  })
 })
