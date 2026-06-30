@@ -332,7 +332,9 @@ To add or remove a tag, edit the `WOS_FIELD_TAGS` array in `src/renderer/utils/w
 
 ### Reserved words
 
-`WOS_RESERVED_WORDS` = `AND`, `OR`, `NOT`, `NEAR`, `SAME` — highlighted in warning colour. These are matched only when followed immediately by whitespace or `(` to avoid false-positives inside values.
+`WOS_RESERVED_WORDS` = `AND`, `OR`, `NOT`, `NEAR`, `SAME` — highlighted in warning colour. These are matched only as standalone tokens (left boundary: start/whitespace/parenthesis; right boundary: whitespace/parenthesis/end-of-string) to avoid false-positives such as `astronomyOR`.
+
+Field tags are matched as `TAG[ \t]*=` so both `PY=2020` and `PY = 2020` are highlighted.
 
 ### Handling Errors Across Processes
 
@@ -384,4 +386,4 @@ Reason: This project uses `pnpm-workspace.yaml` and `pnpm-lock.yaml` for monorep
 
 ---
 
-**Last Updated**: March 2026 **License**: GPL-3.0 **Repository**: https://github.com/clarivate/wos-api-converter
+**Last Updated**: June 2026 **License**: GPL-3.0 **Repository**: https://github.com/clarivate/wos-api-converter

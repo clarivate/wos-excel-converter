@@ -189,6 +189,76 @@ test.describe('WOS Query Highlighter - Syntax Highlighting', () => {
     expect(matches).not.toBeNull()
     expect(matches!.length).toBeGreaterThanOrEqual(2)
   })
+
+  test('highlights field tag when using spaced equals', async ({ page }) => {
+    await openWosQueryDialog(page)
+
+    const textarea = page.locator('#query-usr-query')
+    await textarea.click()
+    await textarea.clear()
+    await textarea.fill('PY = 2020')
+
+    await expect
+      .poll(async () => getHighlighterHtml(page))
+      .toContain('<span class="wos-tag">PY</span>')
+    const html = await getHighlighterHtml(page)
+    expect(html).toContain('<span class="wos-eq">=</span>')
+  })
+
+  test('highlights field tag when using multiple spaces before equals', async ({ page }) => {
+    await openWosQueryDialog(page)
+
+    const textarea = page.locator('#query-usr-query')
+    await textarea.click()
+    await textarea.clear()
+    await textarea.fill('PY    =2020')
+
+    await expect
+      .poll(async () => getHighlighterHtml(page))
+      .toContain('<span class="wos-tag">PY</span>')
+    const html = await getHighlighterHtml(page)
+    expect(html).toContain('<span class="wos-eq">=</span>')
+  })
+
+  test('does not highlight OR when glued to a value token', async ({ page }) => {
+    await openWosQueryDialog(page)
+
+    const textarea = page.locator('#query-usr-query')
+    await textarea.click()
+    await textarea.clear()
+    await textarea.fill('AK=astronomyOR')
+
+    await expect
+      .poll(async () => getHighlighterHtml(page))
+      .toContain('<span class="wos-tag">AK</span>')
+    const html = await getHighlighterHtml(page)
+    expect(html).not.toContain('<span class="wos-kw">OR</span>')
+  })
+
+  test('highlights OR when used as a standalone token', async ({ page }) => {
+    await openWosQueryDialog(page)
+
+    const textarea = page.locator('#query-usr-query')
+    await textarea.click()
+    await textarea.clear()
+    await textarea.fill('AK = astronomy OR')
+
+    await expect
+      .poll(async () => getHighlighterHtml(page))
+      .toContain('<span class="wos-kw">OR</span>')
+  })
+
+  test('does not highlight quoted OR in field value', async ({ page }) => {
+    await openWosQueryDialog(page)
+
+    const textarea = page.locator('#query-usr-query')
+    await textarea.click()
+    await textarea.clear()
+    await textarea.fill('AK = astronomy "OR"')
+
+    const html = await getHighlighterHtml(page)
+    expect(html).not.toContain('<span class="wos-kw">OR</span>')
+  })
 })
 
 test.describe('WOS Query Highlighter - Type-Ahead/Autocomplete', () => {
@@ -265,16 +335,23 @@ test.describe('WOS Query Highlighter - Type-Ahead/Autocomplete', () => {
 
     const textarea = page.locator('#query-usr-query')
     await expect(textarea).toBeVisible()
+    await textarea.click()
+    await textarea.clear()
 
     // Type 'AU' to trigger autocomplete
-    await page.fill('#query-usr-query', 'AU')
+    await textarea.fill('AU')
+    await expect.poll(async () => textarea.inputValue()).toBe('AU')
+    await expect(page.locator('.wos-ac-menu')).toBeVisible({ timeout: 1000 })
 
-    // Wait for at least one suggestion
-    await expect.poll(async () => page.locator('.wos-ac-item').count()).toBeGreaterThan(0)
+    // Select exact AU= suggestion to avoid order-dependent matches.
+    const auSuggestion = page
+      .locator('.wos-ac-item')
+      .filter({ has: page.locator('.wos-ac-code', { hasText: /^AU=$/ }) })
+      .first()
+    await expect(auSuggestion).toBeVisible()
 
-    // Click on first suggestion
-    const firstSuggestion = page.locator('.wos-ac-item').filter({ hasText: 'AU=' }).first()
-    await firstSuggestion.dispatchEvent('mousedown')
+    // Use mousedown because selection is committed on mousedown before blur handlers run.
+    await auSuggestion.dispatchEvent('mousedown')
 
     // Selection closes the menu and commits insertion through mousedown handler.
     await expect(page.locator('.wos-ac-menu')).toBeHidden({ timeout: 500 })

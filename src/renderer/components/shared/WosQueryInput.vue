@@ -118,9 +118,9 @@ const escapeHtml = (raw: string): string =>
 
 /**
  * Token-by-token syntax highlighter.
- * - Field tags: ANY [A-Za-z]{2,5}= pattern — case-insensitive, documented or not.
- * - Reserved words: AND / OR / NOT / NEAR / SAME (only when followed by whitespace, `(`, `)`,
- *   or end-of-string to avoid partial matches inside values).
+ * - Field tags: ANY [A-Za-z]{2,5}[ \t]*= pattern — case-insensitive, documented or not.
+ * - Reserved words: AND / OR / NOT / NEAR / SAME (only as standalone tokens with
+ *   left+right boundaries so values like astronomyOR are not highlighted).
  * - Proximity operator: NEAR/x or NEAR/ — matched before the generic reserved-word check.
  *   Plain NEAR (equivalent to NEAR/15 per WOS docs) is handled by the reserved-word path.
  * - Both are suppressed inside quoted strings.
@@ -151,12 +151,19 @@ const highlightedHTML = computed((): string => {
     }
 
     if (!inQuotes) {
-      // Field tag: 2-5 letters (any case) followed by =
+      const prev = i > 0 ? text[i - 1] : ''
+      const hasLeftTokenBoundary = i === 0 || /[\s()]/.test(prev)
+
+      // Field tag: 2-5 letters (any case) with optional spaces before =
       // Highlight regardless of whether the tag is in the documented list
-      const tagMatch = text.substring(i).match(/^([A-Za-z]{2,5})=/)
+      const tagMatch = hasLeftTokenBoundary
+        ? text.substring(i).match(/^([A-Za-z]{2,5})([ \t]*)=/)
+        : null
       if (tagMatch) {
-        html += `<span class="wos-tag">${escapeHtml(tagMatch[1])}</span><span class="wos-eq">=</span>`
-        i += tagMatch[1].length + 1
+        const tagCode = tagMatch[1]
+        const eqPadding = tagMatch[2] ?? ''
+        html += `<span class="wos-tag">${escapeHtml(tagCode)}</span>${escapeHtml(eqPadding)}<span class="wos-eq">=</span>`
+        i += tagCode.length + eqPadding.length + 1
         continue
       }
 
@@ -164,7 +171,9 @@ const highlightedHTML = computed((): string => {
       // Plain NEAR (without /x) falls through to the wordMatch path below and is
       // highlighted because NEAR is in reservedWordSet.  Both paths accept end-of-
       // string so the operator is highlighted even when it is the last token.
-      const nearMatch = text.substring(i).match(/^(NEAR\/[A-Za-z0-9]+|NEAR\/)(?=[\s()]|$)/i)
+      const nearMatch = hasLeftTokenBoundary
+        ? text.substring(i).match(/^(NEAR\/[A-Za-z0-9]+|NEAR\/)(?=[\s()]|$)/i)
+        : null
       if (nearMatch) {
         html += `<span class="wos-kw">${escapeHtml(nearMatch[1])}</span>`
         i += nearMatch[1].length
@@ -173,7 +182,9 @@ const highlightedHTML = computed((): string => {
 
       // Reserved / boolean word – only when followed by whitespace, `(`, `)`, or
       // end-of-string (avoid partial matches inside longer identifiers).
-      const wordMatch = text.substring(i).match(/^([A-Za-z]+)(?=[\s()]|$)/)
+      const wordMatch = hasLeftTokenBoundary
+        ? text.substring(i).match(/^([A-Za-z]+)(?=[\s()]|$)/)
+        : null
       if (wordMatch && reservedWordSet.has(wordMatch[1].toUpperCase())) {
         html += `<span class="wos-kw">${escapeHtml(wordMatch[1])}</span>`
         i += wordMatch[1].length
