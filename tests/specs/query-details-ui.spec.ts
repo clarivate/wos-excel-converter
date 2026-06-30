@@ -15,6 +15,12 @@ const openQueryPanel = async (page: any): Promise<void> => {
   }
 }
 
+const openWosDialog = async (page: any): Promise<void> => {
+  await openQueryPanel(page)
+  await page.locator('#query-open-wos-dialog-btn').click()
+  await expect(page.getByText('Web of Science API Query Details', { exact: true })).toBeVisible()
+}
+
 test.describe('Query Details UI', () => {
   test('hides compact summary details when token is not verified', async ({ page }) => {
     await openQueryPanel(page)
@@ -42,6 +48,18 @@ test.describe('Query Details UI', () => {
 
     await expect(page.locator('#query-summary-chip-query')).toHaveCount(0)
     await expect(page.getByText('TS=covid* and PY=2020')).toHaveCount(0)
+  })
+
+  test('shows only the token-required info alert in WOS dialog when token is missing', async ({
+    page
+  }) => {
+    await openWosDialog(page)
+
+    await expect(page.locator('#query-validate-btn')).toBeDisabled()
+    await expect(
+      page.getByText('Verify your Web of Science token before query validation.')
+    ).toBeVisible()
+    await expect(page.locator('#query-validation-alert')).toHaveCount(0)
   })
 })
 

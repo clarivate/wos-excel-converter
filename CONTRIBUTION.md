@@ -178,7 +178,8 @@ WOS query validation UX:
 - `usrQuery` disables browser spelling helpers (`spellcheck`, `autocorrect`, `autocapitalize`, `autocomplete`) so advanced query syntax is not altered.
 - WOS validation auto-refreshes after edits to WOS query parameters (`databaseId`, `edition`, `lang`, time spans, `usrQuery`) using a debounced store-side validation flow.
 - Manual validation remains available through the `Validate` button for explicit re-checks.
-- Success feedback in the dialog is shown as a compact records-found chip; warning/error states continue to use alert messaging.
+- Success feedback in the dialog is shown as a compact records-found chip; warning/error states use the validation feedback chip.
+- When the WOS token is missing, the dialog shows only the token-required info alert and suppresses the validation feedback chip to avoid duplicate messaging.
 - User-facing success copy no longer shows query ID, though the raw validation response still carries it internally.
 - Parser/tag validation errors are normalized into end-user wording when the backend returns parser messages (for example, `PYS=2017` becomes `Unknown field tag "PYS". Check the field tags and query syntax.`).
 - `src/renderer/components/shared/WosRecordsFoundChip.vue` is shared by `QueryDetailsManager.vue` and `WosQueryDialog.vue` so records-found formatting and the `>100,000` warning tooltip remain consistent across views and themes.

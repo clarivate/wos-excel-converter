@@ -65,7 +65,8 @@ const wosMessage = computed(() => {
 })
 
 const showValidationAlert = computed(
-  () => !!props.wosValidationType && props.wosValidationType !== 'success'
+  () =>
+    props.wosTokenSucceeded && !!props.wosValidationType && props.wosValidationType !== 'success'
 )
 
 const showValidationSuccess = computed(
@@ -432,7 +433,7 @@ const openWosDocs = (): void => {
               variant="tonal"
               density="compact"
             >
-              {{ t('query.wos.verify-token-first') }}
+              {{ t('query.validation.token-required') }}
             </v-alert>
             <WosRecordsFoundChip
               v-if="showValidationSuccess"

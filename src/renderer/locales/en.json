@@ -117,8 +117,7 @@
       "autocomplete-guidance": "Typeahead suggestions are provided as guidance only and may not always form a valid query. Please confirm syntax in the documentation.",
       "autocomplete-start-typing": "Start typing to filter the fields.",
       "open-docs": "Open query documentation",
-      "validate": "Validate",
-      "verify-token-first": "Verify your token first"
+      "validate": "Validate"
     },
     "incites": {
       "title": "InCites Query Settings",

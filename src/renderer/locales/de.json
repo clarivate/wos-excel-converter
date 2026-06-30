@@ -117,8 +117,7 @@
       "autocomplete-guidance": "Typeahead-Vorschläge dienen nur als Orientierung und ergeben nicht immer eine gültige Query. Prüfen Sie die Syntax in der Dokumentation.",
       "autocomplete-start-typing": "Tippen Sie, um die Feld-Tags zu filtern.",
       "open-docs": "Query-Dokumentation öffnen",
-      "validate": "Validieren",
-      "verify-token-first": "Validieren Sie zuerst Ihr Token"
+      "validate": "Validieren"
     },
     "incites": {
       "title": "InCites Query-Einstellungen",
