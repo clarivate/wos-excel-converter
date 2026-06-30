@@ -5,19 +5,23 @@ test.beforeAll(beforeAll)
 test.afterAll(afterAll)
 
 const openQueryPanel = async (page: any): Promise<void> => {
-  const queryTitle = page.getByText('Query Details', { exact: true }).first()
-  await expect(queryTitle).toBeVisible()
-  await queryTitle.click()
+  const queryPanelButton = page.getByRole('button', { name: 'Query Details', exact: true })
+  await expect(queryPanelButton).toBeVisible()
 
-  const idsButton = page.locator('#query-ids-file-btn')
-  if (!(await idsButton.isVisible())) {
-    await queryTitle.click()
+  const isExpanded = (await queryPanelButton.getAttribute('aria-expanded')) === 'true'
+  if (!isExpanded) {
+    await queryPanelButton.click()
   }
+
+  await expect(page.locator('#query-ids-file-btn')).toBeVisible()
 }
 
 const openWosDialog = async (page: any): Promise<void> => {
   await openQueryPanel(page)
-  await page.locator('#query-open-wos-dialog-btn').click()
+  const wosDialogButton = page.locator('#query-open-wos-dialog-btn')
+  await expect(wosDialogButton).toBeVisible()
+  await expect(wosDialogButton).toBeEnabled()
+  await wosDialogButton.click()
   await expect(page.getByText('Web of Science API Query Details', { exact: true })).toBeVisible()
 }
 
