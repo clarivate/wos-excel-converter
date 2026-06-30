@@ -39,8 +39,8 @@ const persist = async (payload: Record<string, unknown>): Promise<void> => {
       style="height: 100%"
     >
       <v-app-bar
-        density="comfortable"
-        color="primary"
+        density="compact"
+        color="systembar"
         style="position: sticky; top: 0; z-index: 10"
       >
         <v-toolbar-title>{{ t('query.incites.dialog-title') }}</v-toolbar-title>
